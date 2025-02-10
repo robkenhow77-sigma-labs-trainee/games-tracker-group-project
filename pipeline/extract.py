@@ -2,16 +2,17 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
-BASE_URL = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998%2C10&supportedlang=english&ndl=1"
+
 API_URL = "https://store.steampowered.com/api/appdetails?appids="
 
+# Extract
 
-def get_ids() -> list[str]:
+
+def get_ids(url: str) -> list[str]:
     """Fetches the links from the Steam search page and extracts game IDs."""
-    response = requests.get(BASE_URL)
+    response = requests.get(url)
     if response.status_code != 200:
-        print(
-            f"Failed to fetch {BASE_URL}. Status code: {response.status_code}")
+        print(f"Failed to fetch {url}. Status code: {response.status_code}")
         return []
 
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -27,21 +28,25 @@ def get_ids() -> list[str]:
     return game_ids
 
 
-def fetch_game_details(game_ids: list[str]) -> list:
+def fetch_game_details(api: str, game_ids: list[str]) -> list:
     """Fetch game details for each ID from the Steam API."""
-    names = []
+    game_data = []
 
     for game_id in game_ids:
-        url = API_URL + game_id
+        url = api + game_id
         response = requests.get(url)
-        data = response.json()
-        game = data.get(game_id)
-        game_data = game.get("data")
-        names.append(game_data.get("name"))
-    return names
+
+        if response.status_code == 200:
+            data = response.json()
+            game_data.append(data.get(game_id))
+    return game_data
 
 
 if __name__ == "__main__":
-    ids = get_ids()
-    game_details = fetch_game_details(ids)
-    print(game_details)
+    url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998%2C10&supportedlang=english&ndl=1"
+    api = "https://store.steampowered.com/api/appdetails?appids="
+
+    ids = get_ids(url)
+    game_details = fetch_game_details(api, ids)
+    print(game_details[0]["data"]["name"])
+       
