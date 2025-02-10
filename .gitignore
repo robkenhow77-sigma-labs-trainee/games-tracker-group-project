@@ -95,3 +95,16 @@ venv/
 
 workshops/kaggle/kaggle.json
 pipeline/data
+
+# Terraform
+.terraform
+.terraform.lock.hcl
+*.tfstate*
+*.tfvars
+
+
+*.DS_Store
+*__pycache__*
+
+*.coverage
+*pytest_cache
