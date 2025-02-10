@@ -96,12 +96,6 @@ venv/
 workshops/kaggle/kaggle.json
 pipeline/data
 
-# Environment variables
-*.env
-
-# Virtual environment
-*venv
-
 # Terraform
 .terraform
 .terraform.lock.hcl
