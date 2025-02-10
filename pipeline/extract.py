@@ -1,13 +1,8 @@
+import re
 import requests
 from bs4 import BeautifulSoup
-import re
-
-
-API_URL = "https://store.steampowered.com/api/appdetails?appids="
 
 # Extract
-
-
 def get_ids(url: str) -> list[str]:
     """Fetches the links from the Steam search page and extracts game IDs."""
     response = requests.get(url)
