@@ -28,23 +28,34 @@ def fetch_genres(soup: BeautifulSoup) -> list[str]:
             genres.append(match.group(1))
     return genres
 
-def fetch_publisher(soup: BeautifulSoup) -> str:
-    """gets the publisher from the soup"""
+
+def fetch_publisher(soup: BeautifulSoup) -> list:
+    """Gets the publisher from the soup"""
     publishers = []
-    for link in soup.find_all(id="developers_list", href=True):
-        match = re.search(r'https://store.steampowered.com/publisher/([^/?]+)', link["href"])
-        if match:
-            publishers.append(match.group(1))
 
-def fetch_developer(soup: BeautifulSoup) -> str:
-    """gets the developer from the soup"""
+    # Find all <a> tags with href attributes
+    for link in soup.find_all('a', href=True):
+        match = re.search(
+            r'https://store.steampowered.com/search/\?publisher=([^&]+)', link['href'])
+        if match:
+            if match.group(1) not in publishers:
+                publishers.append(match.group(1))
+    return publishers
+
+
+
+def fetch_developer(soup: BeautifulSoup) -> list:
+    """Gets the developers from the soup"""
     developers = []
-    print(soup.find_all(id_="developers_list"))
 
-    for link in soup.find_all(id="developers_list", href=True):
-        match = re.search(r'https://store.steampowered.com/developer/([^/?]+)', link["href"])
-        if match:
-            developers.append(match.group(1))
+    developer_div = soup.find(id="developers_list")
+    if developer_div:
+        for link in developer_div.find_all('a', href=True):
+            match = re.search(
+                r'https://store.steampowered.com/search/\?developer=([^=/?&]+)', link['href'])
+            if match:
+                developers.append(match.group(1))
+    return developers
 
 def fetch_tags(soup: BeautifulSoup) -> list[str]:
     """gets the tags from the soup"""
@@ -68,8 +79,16 @@ def fetch_platform_score(soup: BeautifulSoup) -> str:
 
 def fetch_platform_price(soup: BeautifulSoup) -> str:
     """gets the price listed on the platform in pennies"""
-    price = soup.find(class_="game_purchase_price")
-    return price.get('data-price-final')
+    find_price = soup.find(class_="game_purchase_price")
+    price = find_price.get('data-price-final')
+    
+    if not price:
+        match = re.search(r'(Free To Play)',soup.find(class_="game_purchase_price").text)
+        price = match.group(1)
+    if not price:
+        price = re.sub(
+            r'[^0-9]', '', soup.find(class_="discount_original_price").text)
+    return price
 
 def fetch_platform_discount(soup: BeautifulSoup) -> str:
     """Gets the discounted price in percentage"""
@@ -92,7 +111,11 @@ def fetch_game_image(soup: BeautifulSoup) -> str:
     return image
 
 def fetch_age_rating(soup: BeautifulSoup) -> str:
-    age_rating_tag = soup.find(class_="game_rating_icon").find('img')
+    """Gets age rating if it exists"""
+    try:
+        age_rating_tag = soup.find(class_="game_rating_icon").find('img')
+    except:
+        return None
     if age_rating_tag:
         age_rating = age_rating_tag['src']
         match = re.match(
@@ -141,6 +164,7 @@ if __name__ == "__main__":
     api = "https://store.steampowered.com/api/appdetails?appids="
 
     # data = scrape_newest(url)
-    data = get_data("https://store.steampowered.com/app/2933620/Call_of_Duty_Black_Ops_6/")
+    data = get_data(
+        "https://store.steampowered.com/app/730/CounterStrike_2/")
 
-    # print(data)
+    print(data)
