@@ -30,11 +30,6 @@ def is_valid_developer(developer: list[str]) -> bool:
     ...
 
 
-def is_valid_developer(developer: list[str]) -> bool:
-    """Returns true if developers are valid."""
-    ...
-
-
 def is_valid_tag(tag: list[str]) -> bool:
     """Returns true if tags are valid."""
     ...
