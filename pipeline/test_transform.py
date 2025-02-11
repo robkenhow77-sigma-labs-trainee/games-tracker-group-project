@@ -13,7 +13,7 @@ from transform import (get_data, is_valid_data, is_valid_title, is_valid_genres,
 
 
 string_validation_fail_test = [123, True, datetime.now(), -2.99, None, ""]
-string_validation_succeed_test= ["A correct string", "Testing. punctuation!", "can handle tests with numbers 123"]
+string_validation_succeed_test= ["A correct string", "Testing. punctuation!", "numbers 123"]
 
 # Tests for is_valid_title
 @pytest.mark.parametrize("test_input", string_validation_succeed_test)
@@ -148,7 +148,7 @@ def test_valid_tag_as_list_negative(test_input):
 #TODO: parameterise this
 def test_valid_score_positive():
     """Tests if is_valid_score returns True when a valid score is passed."""
-    assert is_valid_score(80) is True
+    assert is_valid_score('80') is True
 
 #TODO: parameterise this
 def test_valid_score_negative():
@@ -160,7 +160,7 @@ def test_valid_score_negative():
 # Tests for is_valid_price
 def test_valid_price_positive():
     """Tests if is_valid_price returns True when a valid price is passed."""
-    assert is_valid_price("£30.00") is True
+    assert is_valid_price("3000") is True
 
 #TODO: parameterise this
 def test_valid_price_negative():
@@ -172,7 +172,7 @@ def test_valid_price_negative():
 # Tests for is_valid_discount
 def test_valid_discount_positive():
     """Tests if is_valid_discount returns True when a valid discount percentage is passed."""
-    assert is_valid_discount("50%") is True
+    assert is_valid_discount("50") is True
 
 #TODO: parameterise this
 def test_valid_discount_negative():
@@ -186,8 +186,7 @@ def test_valid_discount_negative():
 #TODO: parameterise this
 def test_valid_release_positive():
     """Tests if is_valid_release returns True when a valid release date is passed."""
-    #TODO: need to mock date
-    ...
+    assert is_valid_release(datetime.strftime(datetime.now(), "%d %b, %Y"))
 
 
 #TODO: parameterise this
