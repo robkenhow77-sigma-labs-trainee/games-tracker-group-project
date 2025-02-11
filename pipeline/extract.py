@@ -1,6 +1,8 @@
-import time
+from rich.progress import Progress
 import re
 import requests
+import argparse
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -8,11 +10,21 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 
-# Function to initialize the WebDriver
 
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Scrape Steam search page for games released on a specific date.")
+    parser.add_argument(
+        '--scroll_to_date',
+        type=str,
+        required=False,
+        help="The release date to stop scrolling at, in the format 'DD MMM, YYYY' (e.g., '10 Feb, 2025')"
+    )
+    return parser.parse_args()
 
 def init_driver():
-    # Set up Chrome driver (you can also use other drivers if preferred)
+    # Set up Chrome driver
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")  # Run in headless mode
     driver = webdriver.Chrome(service=Service(
@@ -25,23 +37,24 @@ def scrape_newest(url: str, target_date: str) -> list[dict]:
     driver = init_driver()
     driver.get(url)
     page_data_list = []
+    with Progress() as progress:
+        task = progress.add_task("[cyan]Scraping Steam Games...", total=None)
+        while True:
+            soup = BeautifulSoup(driver.page_source, "html.parser")
 
-    while True:
-        soup = BeautifulSoup(driver.page_source, "html.parser")
-
-        for link in soup.find_all('a', href=True):
-            if re.match(r'https://store\.steampowered\.com/app/\d+', link["href"]):
-                game_data = get_data(link["href"])
-                page_data_list.append(game_data)
-                print(game_data.get('release_date'))
-                if game_data.get("release_date") == target_date:
-                    driver.quit()
-                    return page_data_list
+            for link in soup.find_all('a', href=True):
+                if re.match(r'https://store\.steampowered\.com/app/\d+', link["href"]):
+                    game_data = get_data(link["href"])
+                    page_data_list.append(game_data)
+                    print(f'Processing {game_data.get('title')} released {game_data.get('release_date')}')
+                    progress.update(task, advance=1)
+                    if game_data.get("release_date") == target_date:
+                        driver.quit()
+                        return page_data_list
 
 
         body = driver.find_element(By.TAG_NAME, "body")
         body.send_keys(Keys.END)
-        time.sleep(1)
 
 def fetch_genres(soup: BeautifulSoup) -> list[str]:
     """Gets the genres out of a soup"""
@@ -58,7 +71,6 @@ def fetch_publisher(soup: BeautifulSoup) -> list:
     """Gets the publisher from the soup"""
     publishers = []
 
-    # Find all <a> tags with href attributes
     for link in soup.find_all('a', href=True):
         match = re.search(
             r'https://store.steampowered.com/search/\?publisher=([^&]+)', link['href'])
@@ -137,9 +149,7 @@ def fetch_release_date(soup: BeautifulSoup) -> str:
     """Gets the release date from the soup"""
     release_date = soup.find(class_="release_date")
     if release_date:
-        # Strip out the label ("Release Date:") and extra spaces
         release_text = release_date.text.strip().replace("Release Date:", "").strip()
-        print(f'text{release_text}')  # Optional, to check the cleaned release text
         return release_text
     return None
 
@@ -197,7 +207,20 @@ def get_data(link: str) -> dict:
     data['age_rating'] = fetch_age_rating(soup)
     return data
 
-if __name__ == "__main__":
+def steam_handler(event, context):
+    args = parse_args()
     url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998%2C10&supportedlang=english&ndl=1"
-    scroll_to_date = "10 Feb, 2025"
+    if args.scroll_to_date:
+        try:
+            scroll_to_date = datetime.strptime(
+                args.scroll_to_date, "%d %b, %Y").strftime("%d %b, %Y")
+        except ValueError:
+            print(
+                "Error: The date format should like '10 Feb, 2025'.")
+            return
+    else:
+        scroll_to_date = (datetime.now() - timedelta(1)).strftime("%d %b, %Y")
     data = scrape_newest(url, scroll_to_date)
+    return f"Completed {len(data)} entries"
+
+steam_handler(None, None)
