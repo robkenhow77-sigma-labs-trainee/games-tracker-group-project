@@ -16,7 +16,8 @@ def scrape_newest(url: str) -> list[dict]:
     for link in soup.find_all('a', href=True):
         if re.match(
                 r'https://store\.steampowered\.com/app/\d+', link["href"]):
-            page_data_list.append(get_data(link))
+            page_data_list.append(get_data(link["href"]))
+    return page_data_list
 
 def fetch_genres(soup: BeautifulSoup) -> list[str]:
     """Gets the genres out of a soup"""
@@ -78,17 +79,28 @@ def fetch_platform_score(soup: BeautifulSoup) -> str:
 
 
 def fetch_platform_price(soup: BeautifulSoup) -> str:
-    """gets the price listed on the platform in pennies"""
+    """Gets the price listed on the platform in pennies"""
     find_price = soup.find(class_="game_purchase_price")
-    price = find_price.get('data-price-final')
-    
+
+    # Check if find_price is None
+    if find_price:
+        price = find_price.get('data-price-final')
+    else:
+        price = None
+
+    # If price is not found, check for "Free To Play" text
     if not price:
-        match = re.search(r'(Free To Play)',soup.find(class_="game_purchase_price").text)
-        price = match.group(1)
+        game_purchase_price = soup.find(class_="game_purchase_price")
+        if game_purchase_price and "Free To Play" in game_purchase_price.text:
+            price = "Free To Play"
+
+    # If no price found, check for original price in discount
     if not price:
-        price = re.sub(
-            r'[^0-9]', '', soup.find(class_="discount_original_price").text)
-    return price
+        discount_price = soup.find(class_="discount_original_price")
+        if discount_price:
+            price = re.sub(r'[^0-9]', '', discount_price.text)
+
+    return price if price else None
 
 def fetch_platform_discount(soup: BeautifulSoup) -> str:
     """Gets the discounted price in percentage"""
@@ -103,7 +115,7 @@ def fetch_release_date(soup: BeautifulSoup) -> str:
     """Gets the release date from the soup"""
     release_date = soup.find(class_="release_date")
     match = re.search(r'(\d+ \w+, \d+)',release_date.text)
-    return match.group(1)
+    return match.group(1) if match else None
 
 def fetch_game_image(soup: BeautifulSoup) -> str:
     """gets the url for the game image"""
@@ -161,10 +173,8 @@ def get_data(link: str) -> dict:
 
 if __name__ == "__main__":
     url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998%2C10&supportedlang=english&ndl=1"
-    api = "https://store.steampowered.com/api/appdetails?appids="
+    # data = get_data(
+    #     "https://store.steampowered.com/app/730/CounterStrike_2/")
 
-    # data = scrape_newest(url)
-    data = get_data(
-        "https://store.steampowered.com/app/730/CounterStrike_2/")
-
+    data = scrape_newest(url)
     print(data)
