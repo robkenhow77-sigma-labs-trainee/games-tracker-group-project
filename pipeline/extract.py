@@ -26,35 +26,49 @@ def parse_args():
 def init_driver():
     # Set up Chrome driver
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless")  # Run in headless mode
+    # options.add_argument("--headless")  # Run in headless mode
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=options)
     return driver
 
 
 def scrape_newest(url: str, target_date: str) -> list[dict]:
-    """Fetches the links from the Steam search page and extracts game IDs by scrolling and waiting for content to load."""
+    """Scrolls until it finds a game with the target release date, then scrapes all loaded game links."""
     driver = init_driver()
     driver.get(url)
     page_data_list = []
+
     with Progress() as progress:
-        task = progress.add_task("[cyan]Scraping Steam Games...", total=None)
-        while True:
+        task = progress.add_task(
+            "[cyan]Scrolling through Steam search...", total=None)
+        found_target_date = False
+
+        while not found_target_date:
             soup = BeautifulSoup(driver.page_source, "html.parser")
+            release_dates = soup.find_all(
+                'div', class_='col search_released responsive_secondrow')
 
-            for link in soup.find_all('a', href=True):
-                if re.match(r'https://store\.steampowered\.com/app/\d+', link["href"]):
-                    game_data = get_data(link["href"])
-                    page_data_list.append(game_data)
-                    print(f'Processing {game_data.get('title')} released {game_data.get('release_date')}')
-                    progress.update(task, advance=1)
-                    if game_data.get("release_date") == target_date:
-                        driver.quit()
-                        return page_data_list
+            for release_date in release_dates:
+                if release_date.text.strip() == target_date:
+                    found_target_date = True
+                    break
 
+            if not found_target_date:
+                body = driver.find_element(By.TAG_NAME, "body")
+                body.send_keys(Keys.END)
 
-        body = driver.find_element(By.TAG_NAME, "body")
-        body.send_keys(Keys.END)
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        game_links = [link['href'] for link in soup.find_all('a', href=True)
+                      if re.match(r'https://store\.steampowered\.com/app/\d+', link["href"])]
+
+        for link in game_links:
+            game_data = get_data(link)
+            game_data.get("release_date")
+            page_data_list.append(game_data)
+            progress.update(task, advance=1, total=len(game_links))
+
+    driver.quit()
+    return page_data_list
 
 def fetch_genres(soup: BeautifulSoup) -> list[str]:
     """Gets the genres out of a soup"""
@@ -168,7 +182,7 @@ def fetch_age_rating(soup: BeautifulSoup) -> str:
         age_rating = age_rating_tag['src']
         match = re.match(
             r'https://store.cloudflare.steamstatic.com/public/shared/images/game_ratings/PEGI/(\d+)', age_rating)
-        return match.group(1)
+        return match.group(1) if match else None
 
 def get_data(link: str) -> dict:
     """Scrapes page for this data.
@@ -223,4 +237,7 @@ def steam_handler(event, context):
     data = scrape_newest(url, scroll_to_date)
     return f"Completed {len(data)} entries"
 
-steam_handler(None, None)
+
+if __name__ == "__main__":
+    # steam_handler(None, None)
+    print(get_data("https://store.steampowered.com/app/394360/Hearts_of_Iron_IV/"))
