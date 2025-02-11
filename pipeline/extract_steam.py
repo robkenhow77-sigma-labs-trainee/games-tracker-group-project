@@ -1,14 +1,17 @@
-from rich.progress import Progress
-import re
-import requests
+"""Extract script by webscraping steam store page"""
 import argparse
+import re
 from datetime import datetime, timedelta
+
+import requests
 from bs4 import BeautifulSoup
+from rich.progress import Progress
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.keys import Keys
+from webdriver_manager.chrome import ChromeDriverManager
+
 
 
 def parse_args():
@@ -24,6 +27,7 @@ def parse_args():
     return parser.parse_args()
 
 def init_driver():
+    """sets up the selenium driver"""
     # Set up Chrome driver
     options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
