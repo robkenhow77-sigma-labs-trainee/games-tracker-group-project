@@ -1,3 +1,4 @@
 pytest
 pylint
-psycopg
+psycopg[binary]
+python-dotenv
