@@ -1,37 +1,128 @@
 import unittest
 import pytest
 from unittest.mock import patch, MagicMock
-from extract import get_ids, fetch_game_details
-
+from extract_steam import fetch_age_rating, fetch_developer, fetch_game_image, fetch_platform_discount, fetch_genres, fetch_platform_price, fetch_platform_score, fetch_publisher, fetch_release_date, fetch_tags
+from bs4 import BeautifulSoup
 
 @pytest.fixture
-def api_response():
+def full_page_response():
     return """
     <html>
         <body>
-            <a href="https://store.steampowered.com/app/1/game_one"></a>
-            <a href="https://store.steampowered.com/app/2/game_two"></a>
-        </body>
-    </html>
+            <a href="https://store.steampowered.com/genre/action"></a>
+            <a href="https://store.steampowered.com/search/?publisher=bethesda"></a>
+            <a href="https://store.steampowered.com/search/?developer=arkane"></a>
+            <a href="https://store.steampowered.com/tags/en/eye"></a>
+            <a href="https://store.steampowered.com/tags/en/gift"></a>
+            <a href="https://store.steampowered.com/tags/en/cyclopse"></a>
+        <body>
+    <html>
+"""
+
+
+@pytest.fixture
+def tag_page_response():
+    return """            
+    <a href="https://store.steampowered.com/tags/en/eye"></a>
+    <a href="https://store.steampowered.com/tags/en/gift"></a>
+    <a href="https://store.steampowered.com/tags/en/cyclopse"></a>"""
+
+
+def test_fetch_tags(tag_page_response):
+    mock_soup = MagicMock()
+    mock_soup.find.return_value = BeautifulSoup(
+        tag_page_response, "html.parser")
+    assert fetch_tags(mock_soup) == ['eye', 'gift', 'cyclopse']
+
+
+@pytest.fixture
+def genre_page_response():
+    return """
+    <a href="https://store.steampowered.com/genre/action"></a>
+"""
+
+def test_fetch_genre(genre_page_response):
+    soup = BeautifulSoup(
+        genre_page_response, "html.parser"
+    )
+    assert fetch_genres(soup) == ['action']
+
+@pytest.fixture
+def publisher_page_response():
+    return """
+    <a href="https://store.steampowered.com/search/?publisher=bethesda"></a>
+"""
+
+
+def test_fetch_publisher(publisher_page_response):
+    soup = BeautifulSoup(
+        publisher_page_response, "html.parser")
+    assert fetch_publisher(soup) == ['bethesda']
+
+
+@pytest.fixture
+def developer_page_response():
+    return """
+    <div id="developers_list">
+        <a href="https://store.steampowered.com/search/?developer=bethesda"></a>
+    </div>
     """
 
 
-@patch("requests.get")
-def test_get_ids(mock_get, api_response):
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.text = api_response
+def test_fetch_developer(developer_page_response):
+    # Use real BeautifulSoup object
+    soup = BeautifulSoup(developer_page_response, "html.parser")
+    assert fetch_developer(soup) == ['bethesda']
 
-    mock_get.return_value = mock_response
+@pytest.fixture
+def platform_score_page_response():
+    return """
+    <div class="user_reviews_summary_row" data-tooltip-html="TEST TEST 69% TEST TEST.">
+"""
 
-    url = "https://store.steampowered.com/search"
-    game_ids = get_ids(url)
+def test_fetch_plaform_score(platform_score_page_response):
+    soup = BeautifulSoup(platform_score_page_response, "html.parser")
+    assert fetch_platform_score(soup) == '69'
 
-    assert game_ids == ["1", "2"]
+@pytest.fixture
+def platform_price_page_response():
+    return """
+    <div class="game_purchase_price" data-price-final="1000">
+"""
 
-def test_fetch_game_details():
-    api = "https://store.steampowered.com/api/appdetails?appids="
-    ids = ["1", "2"]
-    fetch_game_details(api, ids)
+def test_fetch_platform_price(platform_price_page_response):
+    soup = BeautifulSoup(platform_price_page_response, "html.parser")
+    assert fetch_platform_price(soup) == '1000'
 
+@pytest.fixture
+def platform_price_discount_page_response():
+    return """
+    <div class="discount_pct">50%</div>
+"""
 
+def test_fetch_platform_discount(platform_price_discount_page_response):
+    soup = BeautifulSoup(platform_price_discount_page_response, "html.parser")
+    assert fetch_platform_discount(soup) == '50'
+
+@pytest.fixture
+def release_date_page_response():
+    return """
+    <div class="release_date">TEST</div>    
+"""
+def test_fetch_release_date(release_date_page_response):
+    soup = BeautifulSoup(release_date_page_response, "html.parser")
+    assert fetch_release_date(soup) == 'TEST'
+
+@pytest.fixture
+def age_rating_page_response():
+    return """
+    <div class="game_rating_icon">
+        <a href="TEST">
+            <img src="https://store.cloudflare.steamstatic.com/public/shared/images/game_ratings/PEGI/69">
+        </a>
+    </div>
+"""
+
+def test_fetch_rating(age_rating_page_response):
+    soup = BeautifulSoup(age_rating_page_response, "html.parser")
+    assert fetch_age_rating(soup)
