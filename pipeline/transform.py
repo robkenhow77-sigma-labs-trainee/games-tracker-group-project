@@ -1,6 +1,9 @@
 """Script containing all functions pertaining to cleaning the data before insertion."""
 
 import logging
+from datetime import datetime
+
+from requests import get
 
 def get_data() -> list[dict]:
     """Gets the data from extract."""
@@ -9,7 +12,12 @@ def get_data() -> list[dict]:
 
 def is_valid_data(game: dict) -> bool:
     """Returns true if all the data is valid."""
-    ...
+
+    return (is_valid_title(game['title']) and is_valid_genres(game['genres']) and
+            is_valid_publisher(game['publisher']) and is_valid_developer(game['developer']) and
+            is_valid_tag(game['tag']) and is_valid_score(game['platform_score']) and 
+            is_valid_price(game['platform_price']) and is_valid_discount(game['platform_discount']) and
+            is_valid_release(game['release_date']) and is_valid_image(game['game_image']))
 
 
 def is_valid_title(title: str) -> bool:
@@ -23,6 +31,10 @@ def is_valid_title(title: str) -> bool:
 
     if len(title) > 101:
         logging.error("%s is not a valid title, too long", title)
+        return False
+
+    if len(title) == 0:
+        logging.error("%s is not a valid title, empty title", title)
         return False
     
     return True
@@ -102,27 +114,80 @@ def is_valid_tag(tags: list[str]) -> bool:
 
 def is_valid_score(score: int) -> bool:
     """Returns true if score is valid."""
-    ...
+
+    if not isinstance(score, str):
+        logging.error("%s is not a valid score, not a string", score)
+        return False
+
+    if not score.isnumeric():
+        logging.error("%s is not a valid score, not an integer.", score)     
+        return False
+
+    if not 0 <= int(score) <= 100:
+        logging.error("%s is not a valid score, not between 0 and 100.", score)     
+        return False
+
+    return True
 
 
 def is_valid_price(price: int) -> bool:
     """Returns true if price is valid."""
-    ...
+
+    if not isinstance(price, str):
+        logging.error("%s is not a valid price, not a string", price)
+        return False
+
+    if not price.isnumeric():
+        logging.error("%s is not a valid price, not numeric.", price)     
+        return False
+
+    return True
 
 
 def is_valid_discount(discount: int) -> bool:
     """Returns true if discount is valid."""
-    ...
+
+    if not isinstance(discount, str):
+        logging.error("%s is not a valid discount, not a string", discount)
+        return False
+
+    if not discount.isnumeric() or None:
+        logging.error("%s is not a valid price, not numeric.", discount)     
+        return False
+
+    return True
 
 
 def is_valid_release(release: str) -> bool:
     """Returns true if release is valid."""
-    ...
+
+    try:
+        datetime_release = datetime.strptime(release, "%d %b, %Y")
+    except:
+        logging.error("%s is not in the valid release form.", release)
+        return False
+
+    if not datetime.now().date() == datetime_release:
+        logging.error("%s is not a valid date, not released today.", release)     
+        return False
+
+    return True
 
 
 def is_valid_image(image: str) -> bool:
     """Returns true if image is valid."""
-    ...
+
+    try:
+        response = get(image)
+    except Exception as e:
+        logging.error("""%s is not a valid image, not loading properly.
+                            Error: %s""", (image, e))      
+
+    if not response.status_code == 200:
+        logging.error("%s is not a valid image, not loading properly.", image)     
+        return False
+
+    return True
 
 
 def format_data(game: dict) -> bool:
