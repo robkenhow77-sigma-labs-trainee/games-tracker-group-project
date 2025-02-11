@@ -1,23 +1,47 @@
+import time
 import re
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
 
-# Extract
-def scrape_newest(url: str) -> list[dict]:
-    """Fetches the links from the Steam search page and extracts game IDs."""
-    response = requests.get(url)
-    if response.status_code != 200:
-        print(f"Failed to fetch {url}. Status code: {response.status_code}")
-        return []
+# Function to initialize the WebDriver
 
-    soup = BeautifulSoup(response.text, "html.parser")
 
+def init_driver():
+    # Set up Chrome driver (you can also use other drivers if preferred)
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")  # Run in headless mode
+    driver = webdriver.Chrome(service=Service(
+        ChromeDriverManager().install()), options=options)
+    return driver
+
+
+def scrape_newest(url: str, target_date: str) -> list[dict]:
+    """Fetches the links from the Steam search page and extracts game IDs by scrolling and waiting for content to load."""
+    driver = init_driver()
+    driver.get(url)
     page_data_list = []
-    for link in soup.find_all('a', href=True):
-        if re.match(
-                r'https://store\.steampowered\.com/app/\d+', link["href"]):
-            page_data_list.append(get_data(link["href"]))
-    return page_data_list
+
+    while True:
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+
+        for link in soup.find_all('a', href=True):
+            if re.match(r'https://store\.steampowered\.com/app/\d+', link["href"]):
+                game_data = get_data(link["href"])
+                page_data_list.append(game_data)
+                print(game_data.get('release_date'))
+                if game_data.get("release_date") == target_date:
+                    driver.quit()
+                    return page_data_list
+
+
+        body = driver.find_element(By.TAG_NAME, "body")
+        body.send_keys(Keys.END)
+        time.sleep(1)
 
 def fetch_genres(soup: BeautifulSoup) -> list[str]:
     """Gets the genres out of a soup"""
@@ -82,19 +106,16 @@ def fetch_platform_price(soup: BeautifulSoup) -> str:
     """Gets the price listed on the platform in pennies"""
     find_price = soup.find(class_="game_purchase_price")
 
-    # Check if find_price is None
     if find_price:
         price = find_price.get('data-price-final')
     else:
         price = None
 
-    # If price is not found, check for "Free To Play" text
     if not price:
         game_purchase_price = soup.find(class_="game_purchase_price")
         if game_purchase_price and "Free To Play" in game_purchase_price.text:
             price = "Free To Play"
 
-    # If no price found, check for original price in discount
     if not price:
         discount_price = soup.find(class_="discount_original_price")
         if discount_price:
@@ -109,13 +130,18 @@ def fetch_platform_discount(soup: BeautifulSoup) -> str:
     if discount_percent:
         match = re.search(r"(\d+)%", discount_percent.text)
         if match:
-            return match.group(1)
+            return match.group(1) if match else None
+
 
 def fetch_release_date(soup: BeautifulSoup) -> str:
     """Gets the release date from the soup"""
     release_date = soup.find(class_="release_date")
-    match = re.search(r'(\d+ \w+, \d+)',release_date.text)
-    return match.group(1) if match else None
+    if release_date:
+        # Strip out the label ("Release Date:") and extra spaces
+        release_text = release_date.text.strip().replace("Release Date:", "").strip()
+        print(f'text{release_text}')  # Optional, to check the cleaned release text
+        return release_text
+    return None
 
 def fetch_game_image(soup: BeautifulSoup) -> str:
     """gets the url for the game image"""
@@ -166,15 +192,12 @@ def get_data(link: str) -> dict:
     data['platform_score'] = fetch_platform_score(soup)
     data['platform_price'] = fetch_platform_price(soup)
     data['platform_discount'] = fetch_platform_discount(soup)
-    data['release_data'] = fetch_release_date(soup)
+    data['release_date'] = fetch_release_date(soup)
     data['game_image'] = fetch_game_image(soup)
     data['age_rating'] = fetch_age_rating(soup)
     return data
 
 if __name__ == "__main__":
     url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998%2C10&supportedlang=english&ndl=1"
-    # data = get_data(
-    #     "https://store.steampowered.com/app/730/CounterStrike_2/")
-
-    data = scrape_newest(url)
-    print(data)
+    scroll_to_date = "10 Feb, 2025"
+    data = scrape_newest(url, scroll_to_date)
