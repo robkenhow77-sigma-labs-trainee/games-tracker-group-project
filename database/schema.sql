@@ -63,7 +63,7 @@ CREATE TABLE "game_platform_assignment"(
     "platform_id" SMALLINT NULL,
     "platform_score" SMALLINT NULL,
     "platform_price" SMALLINT NULL,
-    "platform_discount" BIGINT NOT NULL
+    "platform_discount" SMALLINT NOT NULL
 );
 
 
