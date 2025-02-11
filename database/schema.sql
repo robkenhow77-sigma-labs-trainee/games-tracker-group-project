@@ -60,9 +60,9 @@ CREATE TABLE "tag_game_platform_assignment"(
 CREATE TABLE "game_platform_assignment"(
     "platform_assignment_id" SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  
     "game_id" SMALLINT NOT NULL,
-    "platform_id" SMALLINT NULL,
-    "platform_score" SMALLINT NULL,
-    "platform_price" SMALLINT NULL,
+    "platform_id" SMALLINT NOT NULL,
+    "platform_score" SMALLINT NOT NULL,
+    "platform_price" SMALLINT NOT NULL,
     "platform_discount" SMALLINT NOT NULL
 );
 
