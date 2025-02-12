@@ -27,32 +27,37 @@ def clean_data(data: list[dict]) -> list[dict]:
     return cleaned_data
 
 
-#TODO: we should put this in load (function that queries DB to see if need to add tag)
-def find_data_to_add() -> dict:
-    """Queries the database to see what data we need to input."""
+#TODO: we should put this in load (function that queries DB to see if need to add tag/genre/dev/pub)
+# def find_data_to_add() -> dict:
+#     """Queries the database to see what data we need to input."""
 
-    genres_to_add = {}
-    tags_to_add = {}
-    publishers_to_add = {}
-    developers_to_add = {}
+#     genres_to_add = {}
+#     tags_to_add = {}
+#     publishers_to_add = {}
+#     developers_to_add = {}
 
-    #need to define these functions
-    current_genres = get_db_genres()
-    current_tags = get_db_tags()
-    current_publishers = get_db_publishers()
-    current_developers = get_db_developers()
+#     #need to define these functions
+#     current_genres = get_db_genres()
+#     current_tags = get_db_tags()
+#     current_publishers = get_db_publishers()
+#     current_developers = get_db_developers()
 
-    #for row in cleaned_data:
-    #    for genre in genres
+#     #for row in cleaned_data:
+#     #    for genre in genres
 
 
 def is_valid_data(game: dict) -> bool:
     """Returns true if all the data is valid."""
 
-    if ['title', 'genres', 'publisher',
-        'developer', 'tag','platform_score',
-        'platform_price', 'platform_discount', 'release_date',
-        'game_image', 'age_rating'] != list(game.keys()):
+    expected_keys = ['title', 'genres', 'publisher',
+    'developer', 'tag', 'platform_score', 'platform_score',
+    'platform_price', 'platform_discount', 'release_date',
+    'game_image', 'age_rating']
+
+    missing_keys = [key for key in expected_keys if key not in game.keys()]
+
+    if missing_keys:
+        logging.error("game is not a valid entry, missing keys: %s", missing_keys)
         return False
 
     #TODO: figure out if we want to include some invalid data.
@@ -60,7 +65,8 @@ def is_valid_data(game: dict) -> bool:
             is_valid_publisher(game['publisher']) and is_valid_developer(game['developer']) and
             is_valid_tag(game['tag']) and is_valid_score(game['platform_score']) and
             is_valid_price(game['platform_price']) and is_valid_discount(game['platform_discount'])
-            and is_valid_release(game['release_date']) and is_valid_image(game['game_image']))
+            and is_valid_release(game['release_date']) and is_valid_image(game['game_image']) and
+            is_valid_age(game['age_rating']))
 
 
 def is_valid_title(title: str) -> bool:
@@ -295,6 +301,25 @@ def is_valid_image(image: str) -> bool:
     return True
 
 
+def is_valid_age(age: str) -> bool:
+    """Returns if the age conforms to PEGI standards."""
+
+    if age is None:
+        return True
+
+    if not isinstance(age, str):
+        logging.error("%s is not a valid age rating, not a string", age)
+        return False
+
+    age = age.strip()
+
+    if age not in ['3', '7', '12', '16', '18']:
+        logging.error("%s is not a valid age rating, not a standard PEGI age", age)
+        return False
+
+    return True
+
+
 def format_data(game: dict) -> bool:
     """Formats all the data."""
 
@@ -305,15 +330,13 @@ def format_data(game: dict) -> bool:
     formatted_data['publisher'] = format_list(game['publisher'])
     formatted_data['developer'] = format_list(game['developer'])
     formatted_data['tag'] = format_list(game['tag'])
-    #TODO: notify Ben there is no score
-    #formatted_data['score'] = format_integer(game['score'])
+    formatted_data['score'] = format_integer(game['platform_score'])
     formatted_data['price'] = format_integer(game['platform_price'])
     formatted_data['discount'] = format_integer(game['platform_discount'])
     formatted_data['release'] = format_release(game['release_date'])
     formatted_data['image'] = format_string(game['game_image'])
     formatted_data['platform'] = "Steam"
-    #TODO: write formatting for age rating - need to know what form it will come.
-    formatted_data['age_rating'] = game['age_rating']
+    formatted_data['age_rating'] = format_string(game['age_rating'])
 
     return formatted_data
 
