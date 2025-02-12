@@ -75,13 +75,14 @@ def format_games_for_upload(games: list[dict]):
     }
     games_for_upload = []
     for game in games:
-        row = (
+        games_for_upload.append((
             game["game_name"],
             game["release_date"],
             game["game_image"],
             game["age_rating_id"], # NEED TO MAP
             game["is_nsfw"]
-        )
+        ))
+
     return games_for_upload
 
 
@@ -164,11 +165,8 @@ if __name__ == "__main__":
 
     new_games = format_games_for_upload(new_games)
 
-    print(new_games,
-    new_tags,
-    new_devs,
-    new_pubs,
-    new_genres)
+    print(new_games)
+    
 
 
     new_game_titles_and_ids = lf.execute_and_return_games(new_games, connection)
