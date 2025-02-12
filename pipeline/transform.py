@@ -5,12 +5,14 @@ from datetime import datetime
 
 from requests import get
 
+#TODO: add age to this
+
 #TODO: write this
 def get_data() -> list[dict]:
     """Gets the data from extract."""
     ...
 
-#TODO: write this
+
 def clean_data(data: list[dict]) -> list[dict]:
     """Cleans the data extracted from the Steam scraper."""
 
@@ -19,9 +21,11 @@ def clean_data(data: list[dict]) -> list[dict]:
     for row in data:
         if is_valid_data(row):
             cleaned_data.append(format_data(row))
+    
+    return cleaned_data
 
 
-#TODO: write this
+#TODO: we should put this in load
 def find_data_to_add() -> dict:
     """Queries the database to see what data we need to input."""
 
@@ -89,6 +93,10 @@ def is_valid_genres(genres: list[str]) -> bool:
 
         if len(genre) > 31:
             logging.error("%s is not a valid genre, too long.", genre)
+            return False
+
+        if len(genre) == 0:
+            logging.error("%s is not a valid genre, cannot be empty.", genre)
             return False
 
     return True
@@ -195,11 +203,15 @@ def is_valid_price(price: int) -> bool:
 def is_valid_discount(discount: int) -> bool:
     """Returns true if discount is valid."""
 
+    #Not on discount currently
+    if discount is None:
+        return True
+
     if not isinstance(discount, str):
         logging.error("%s is not a valid discount, not a string", discount)
         return False
 
-    if not discount.isnumeric() or None:
+    if not discount.isnumeric():
         logging.error("%s is not a valid price, not numeric.", discount)
         return False
 
@@ -215,7 +227,7 @@ def is_valid_release(release: str) -> bool:
         logging.error("%s is not in the valid release form.", release)
         return False
 
-    if not datetime.now().date() == datetime_release:
+    if not datetime.now().date() == datetime_release.date():
         logging.error("%s is not a valid date, not released today.", release)
         return False
 
@@ -243,65 +255,56 @@ def format_data(game: dict) -> bool:
 
     formatted_data = {}
 
-    formatted_data['title'] = format_title(game['title'])
-    formatted_data['genre'] = format_genres(game['genre'])
-    formatted_data['publisher'] = format_publisher(game['publisher'])
-    formatted_data['developer'] = format_developer(game['developer'])
-    formatted_data['tag'] = format_tag(game['tag'])
-    formatted_data['score'] = format_score(game['score'])
-    formatted_data['price'] = format_price(game['price'])
-    formatted_data['discount'] = format_discount(game['discount'])
-    formatted_data['release'] = format_release(game['release'])
-    formatted_data['image'] = format_image(game['image'])
+    formatted_data['title'] = format_string(game['title'])
+    formatted_data['genre'] = format_list(game['genres'])
+    formatted_data['publisher'] = format_list(game['publisher'])
+    formatted_data['developer'] = format_list(game['developer'])
+    formatted_data['tag'] = format_list(game['tag'])
+    #TODO: notify Ben there is no score
+    #formatted_data['score'] = format_integer(game['score'])
+    formatted_data['price'] = format_integer(game['platform_price'])
+    formatted_data['discount'] = format_integer(game['platform_discount'])
+    formatted_data['release'] = format_release(game['release_date'])
+    formatted_data['image'] = format_string(game['game_image'])
+    formatted_data['platform'] = "Steam"
 
     return formatted_data
 
 
-def format_title(title: str) -> bool:
+def format_string(string: str) -> str:
     """Formats title."""
-    ...
+    return string.strip().lower().replace('%20', ' ')
 
 
-def format_genres(genre: list[str]) -> bool:
+def format_list(values: list[str]) -> list[str]:
     """Formats genres are valid."""
-    ...
+
+    formatted_list = []
+
+    for value in values:
+        formatted_list.append(format_string(value))
+
+    return formatted_list
 
 
-def format_publisher(publisher: list[str]) -> bool:
-    """Formats publishers are valid."""
-    ...
+def format_integer(integer: str) -> int:
+    """Formats number."""
+
+    if integer is not None:
+        return int(integer)
+
+    return None
 
 
-def format_developer(developer: list[str]) -> bool:
-    """Formats developers are valid."""
-    ...
-
-
-def format_tag(tag: list[str]) -> bool:
-    """Formats tags are valid."""
-    ...
-
-
-def format_score(score: int) -> bool:
-    """Formats score."""
-    ...
-
-
-def format_price(price: int) -> bool:
-    """Formats price."""
-    ...
-
-
-def format_discount(discount: int) -> bool:
-    """Formats discount."""
-    ...
-
-
-def format_release(release: str) -> bool:
+def format_release(release: str) -> datetime:
     """Formats release."""
-    ...
+
+    release = format_string(release)
+    return datetime.strptime(release, "%d %b, %Y")
 
 
-def format_image(image: str) -> bool:
-    """Formats image."""
-    ...
+if __name__ == "__main__":
+
+    test_input = [{'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}]
+
+    print(clean_data(test_input))
