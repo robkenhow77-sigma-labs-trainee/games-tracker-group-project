@@ -1,1 +1,1 @@
-python3 extract.py --scroll_to_date "11 Jan, 2025"
+python3 extract_steam.py --scroll_to_date "11 Jan, 2025"
