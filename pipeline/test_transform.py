@@ -11,7 +11,7 @@ from transform import (get_data, is_valid_data, is_valid_title, is_valid_genres,
                        format_discount, format_release, format_image)
 
 
-
+#TODO: write tests for string fail where the text is too long
 string_validation_fail_test = [123, True, datetime.now(), -2.99, None, ""]
 string_validation_succeed_test= ["A correct string", "Testing. punctuation!", "numbers 123"]
 
