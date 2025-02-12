@@ -1,4 +1,5 @@
 """Script containing all tests for the functions in transform.py."""
+# pylint: skip-file
 
 from datetime import datetime
 
@@ -6,11 +7,12 @@ import pytest
 
 from transform import (get_data, is_valid_data, is_valid_title, is_valid_genres, is_valid_publisher,
                        is_valid_developer, is_valid_tag, is_valid_score, is_valid_price, is_valid_discount,
-                       is_valid_release, is_valid_image, format_data, format_release)
+                       is_valid_release, is_valid_image, format_data, format_string, format_list,
+                       format_integer, format_release)
 
 
 #TODO: write tests for string fail where the text is too long
-string_validation_fail_test = [123, True, datetime.now(), -2.99, None, ""]
+string_validation_fail_test = [123, True, datetime.now(), -2.99, None, "", " "]
 string_validation_succeed_test= ["A correct string", "Testing. punctuation!", "numbers 123"]
 
 # Tests for is_valid_title
@@ -202,45 +204,47 @@ def test_valid_tag_positive_empty_array():
 
 
 # Tests for is_valid_score
-pos_score = ['0', '100', '55']
+pos_score = ['0', '100', '55', '  60   ']
 @pytest.mark.parametrize("test_input", pos_score)
 def test_valid_score_positive(test_input):
     """Tests if is_valid_score returns True when a valid score is passed."""
     assert is_valid_score(test_input) is True
 
 
-neg_score = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10"]
-@pytest.mark.parametrize("test_input", pos_score)
+neg_score = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", [], ""]
+@pytest.mark.parametrize("test_input", neg_score)
 def test_valid_score_negative(test_input):
     """Tests if is_valid_score returns False when an invalid score is passed."""
     assert is_valid_score(test_input) is False
 
 #TODO: add free option
-pos_price = ['10', '100', '5500']
+pos_price = ['10', '100', '5500', '       9 ']
 @pytest.mark.parametrize("test_input", pos_price)
 def test_valid_price_positive(test_input):
     """Tests if is_valid_price returns True when a valid price is passed."""
     assert is_valid_price(test_input) is True
 
 
-neg_price = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10"]
+neg_price = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", [], ""]
 @pytest.mark.parametrize("test_input", neg_price)
 def test_valid_price_negative(test_input):
     """Tests if is_valid_price returns False when an invalid price is passed."""
     assert is_valid_price(test_input) is False
 
-#TODO: parameterise this
-# Tests for is_valid_discount
-def test_valid_discount_positive():
-    """Tests if is_valid_discount returns True when a valid discount percentage is passed."""
-    assert is_valid_discount("50") is True
 
-#TODO: parameterise this
-def test_valid_discount_negative():
+# Tests for is_valid_discount
+pos_discount = ['0', '100', '55', '1', None, '  11  ']
+@pytest.mark.parametrize("test_input", pos_discount)
+def test_valid_discount_positive(test_input):
+    """Tests if is_valid_discount returns True when a valid discount percentage is passed."""
+    assert is_valid_discount(test_input) is True
+
+
+neg_discount = [100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", "110", [], ""]
+@pytest.mark.parametrize("test_input", neg_discount)
+def test_valid_discount_negative(test_input):
     """Tests if is_valid_discount returns False when an invalid discount is passed."""
-    assert is_valid_discount(150) is False
-    assert is_valid_discount("Fifty Percent") is False
-    assert is_valid_discount("150%") is False
+    assert is_valid_discount(test_input) is False
 
 
 # Tests for is_valid_release
@@ -250,28 +254,124 @@ def test_valid_release_positive():
     assert is_valid_release(datetime.strftime(datetime.now(), "%d %b, %Y"))
 
 
-#TODO: parameterise this
-def test_valid_release_negative():
+neg_release = [None, 100, 'words', True, -2.99, "50.3", "89%", "-10", "110", []]
+@pytest.mark.parametrize("test_input", neg_discount)
+def test_valid_release_negative(test_input):
     """Tests if is_valid_release returns False when an invalid release date is passed."""
-    assert is_valid_release("Not a Date") is False
-    assert is_valid_release("") is False
-    #TODO: set a date that is two days before today with mocking
-    assert is_valid_release("") is False
+    assert is_valid_release(test_input) is False
+
+
+def test_valid_release_day_way_out_of_range():
+    """Tests if is_valid_release returns False when an invalid release date is passed."""
+    assert is_valid_release("10 Jan, 2001") is False
 
 
 # Tests for is_valid_image
-#TODO: parameterise this
-def test_valid_image_positive():
+pos_image = ['https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786']
+@pytest.mark.parametrize("test_input", pos_image)
+def test_valid_image_positive(test_input):
     """Tests if is_valid_image returns True when a valid image URL is passed."""
-    #TODO: add a real picture here
-    assert is_valid_image("http://example.com/image.jpg") is True
+    assert is_valid_image(test_input) is True
 
 
-#TODO: parameterise this
-def test_valid_image_negative():
+neg_image = [None, 100, 'words', True, -2.99, "50.3", "89%", "-10", "110", [], "http://example.com/image.jpg"]
+@pytest.mark.parametrize("test_input", neg_image)
+def test_valid_image_negative(test_input):
     """Tests if is_valid_image returns False when an invalid image URL is passed."""
-    assert is_valid_image("Not a URL") is False
-    assert is_valid_image("") is False
+    assert is_valid_image(test_input) is False
+
+
+def test_valid_image_too_long():
+    """Tests if is_valid_image returns False when an invalid image URL is passed."""
+    assert is_valid_image("""
+    [[ ]] The story goes like this: Earth is captured by a technocapital singularity as renaissance
+    rationalitization and oceanic navigation lock into commoditization take-off.
+    Logistically accelerating techno-economic interactivity crumbles social order in
+    auto-sophisticating machine runaway. As markets learn to manufacture intelligence,
+    politics modernizes, upgrades paranoia, and tries to get a grip.
+    """) is False
+
+valid_games = [{'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}]
+
+@pytest.mark.parametrize("test_input", valid_games)
+def test_valid_game(test_input):
+    """Tests that a valid game passes."""
+    assert is_valid_data(test_input)
+
+# Define the list of required keys
+REQUIRED_KEYS = [
+    'title', 'genres', 'publisher', 'developer', 'tag',
+    'platform_score', 'platform_price', 'platform_discount',
+    'release_date', 'game_image', 'age_rating'
+]
+
+# Define a function that checks if all required keys are present
+def has_all_required_keys(game):
+    return all(key in game for key in REQUIRED_KEYS)
+
+# Sample test cases
+@pytest.mark.parametrize("game,expected", [
+    (
+        # Valid example
+        {'title': 'Hearts of Iron IV', 'genres': ['Strategy'], 'publisher': [],
+         'developer': [], 'tag': [], 'platform_score': '90', 'platform_price': '4199',
+         'platform_discount': None, 'release_date': '12 Feb, 2025',
+         'game_image': '<https://shared.cloudflare.steamstatic.com/...>', 'age_rating': '7'},
+        True
+    ),
+    (
+        # Missing a key
+        {'title': 'Hearts of Iron IV', 'genres': ['Strategy'], 'publisher': [],
+         'developer': [], 'tag': [], 'platform_score': '90', 'platform_price': '4199',
+         'platform_discount': None, 'release_date': '12 Feb, 2025', 'age_rating': '7'},
+        False
+    ),
+    (
+        # Extra key but still valid
+        {'title': 'Hearts of Iron IV', 'genres': ['Strategy'], 'publisher': [],
+         'developer': [], 'tag': [], 'platform_score': '90', 'platform_price': '4199',
+         'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': '<https://shared.cloudflare.steamstatic.com/...>',
+         'age_rating': '7', 'extra_key': 'some_value'},
+        True
+    ),
+])
+def test_valid_game_keys_present(game, expected):
+    assert has_all_required_keys(game) == expected
+
+
+# Define a function that checks if all required keys are present
+def has_all_required_keys(game):
+    return all(key in game for key in REQUIRED_KEYS)
+
+# Valid complete game example
+VALID_GAME = {
+    'title': 'Hearts of Iron IV', 
+    'genres': ['Strategy'], 
+    'publisher': [],
+    'developer': [], 
+    'tag': [], 
+    'platform_score': '90', 
+    'platform_price': '4199',
+    'platform_discount': None, 
+    'release_date': '12 Feb, 2025', 
+    'game_image': '<https://shared.cloudflare.steamstatic.com/...>', 
+    'age_rating': '7'
+}
+
+# Test cases where each key is missing one at a time
+@pytest.mark.parametrize("game,expected", [
+    # Valid game (all keys present)
+    (VALID_GAME, True)
+] + [
+    # Create a test case for each missing key
+    (
+        {key: value for key, value in VALID_GAME.items() if key != missing_key},
+        False
+    )
+    for missing_key in REQUIRED_KEYS
+])
+def test_keys_present(game, expected):
+    assert has_all_required_keys(game) == expected
 
 
 # Format function tests would involve more thorough testing frameworks, such as using mocked data.
@@ -279,95 +379,29 @@ def test_valid_image_negative():
 #TODO: parameterise this
 def test_format_data():
     """Tests format_data to ensure it returns correctly formatted data."""
-    input_data = {
-        "title": " Unformatted TITLE ",
-        "genres": "ACtion,!adventure",
-        # ...other raw data...
-    }
-    expected_output = {
-        "title": "Unformatted Title",
-        "genres": ["action", "Adventure"],
-        # ...expected formatted data...
-    }
+    input_data = {'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}
+    expected_output = {'title': 'Hearts of Iron IV', 'genre': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'price': 4199, 'discount': None, 'release': datetime(2025, 2, 12, 0, 0), 'image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': '7'}
     assert format_data(input_data) == expected_output
 
+data = [(" ", ""), ("string   ", "string"), ("normal", "normal"), ("normal%20test", "normal test")]
+@pytest.mark.parametrize("string,expected", data)
+def test_format_string(string, expected):
+    """Tests format_string function."""
+    assert format_string(string) == expected
 
-# Tests for format_title
-#TODO: parameterise this
-def test_format_title():
-    """Tests to ensure format_title formats correctly."""
-    assert format_title(" Unformatted TITLE ") == "unformatted title"
-    assert format_title("") == ""
+data = [([" ", "string   "], ["", "string"]), (["normal", "normal%20test"], ["normal", "normal test"])]
+@pytest.mark.parametrize("string,expected", data)
+def test_format_list(string, expected):
+    """Tests format_list function."""
+    assert format_list(string) == expected
 
-
-# Tests for format_genres
-#TODO: parameterise this
-def test_format_genres():
-    """Tests to ensure format_genres formats correctly."""
-    assert format_genres("actiON,advENTure") == ["action", "adventure"]
-    assert format_genres("") == []
-
-
-# Tests for format_publisher
-#TODO: parameterise this
-def test_format_publisher():
-    """Tests to ensure format_publisher formats correctly."""
-    assert format_publisher(" unformatted publisher ") == "unformatted publisher"
-    assert format_publisher("") == ""
+data = [("1", 1), ("2   ", 2), ("   100 ", 100), (None, None)]
+@pytest.mark.parametrize("string,expected", data)
+def test_format_integer(string, expected):
+    """Tests format_integer function."""
+    assert format_integer(string) == expected
 
 
-# Tests for format_developer
-#TODO: parameterise this
-def test_format_developer():
-    """Tests to ensure format_developer formats correctly."""
-    assert format_developer(" UNFORMATTED developer ") == "unformatted developer"
-    assert format_developer("") == ""
-
-
-# Tests for format_tag
-#TODO: parameterise this
-def test_format_tag():
-    """Tests to ensure format_tag formats correctly."""
-    assert format_tag("multiplayer,singleplayer") == ["Multiplayer", "Singleplayer"]
-    assert format_tag("") == []
-
-
-# Tests for format_score
-#TODO: parameterise this
-def test_format_score():
-    """Tests to ensure format_score formats correctly."""
-    assert format_score(" 85 ") == 85
-    assert format_score(" invalid ") is None
-
-
-# Tests for format_price
-#TODO: parameterise this
-def test_format_price():
-    """Tests to ensure format_price formats correctly."""
-    assert format_price(" 59.99 ") == 5999
-    assert format_price("invalid") is None
-
-
-# Tests for format_discount
-#TODO: parameterise this
-def test_format_discount():
-    """Tests to ensure format_discount formats correctly."""
-    assert format_discount(" 50% ") == 50
-    assert format_discount("invalid") is None
-
-
-# Tests for format_release
-#TODO: parameterise this
 def test_format_release():
-    """Tests to ensure format_release formats correctly."""
-    #TODO: make this datetime
-    assert format_release(" 2023-10-01 ") == "2023-10-01"
-    assert format_release("Invalid Date") == ""
-
-
-# Tests for format_image
-#TODO: parameterise this
-def test_format_image():
-    """Tests to ensure format_image formats correctly."""
-    assert format_image("< http://example.com/image.jpg >") == "http://example.com/image.jpg"
-    assert format_image("Invalid URL") == ""
+    """Tests format_release function"""
+    assert format_release("    10 Feb, 2022") == datetime.strptime("10 Feb, 2022", "%d %b, %Y")
