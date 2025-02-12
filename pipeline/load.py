@@ -9,17 +9,7 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-
-def get_ids(table_name: str, conn: psycopg.Connection):
-    if table_name not in ["tag", "genre", "developer", "publisher", "game"]:
-        raise ValueError("Invalid table")
-    """Simple query function"""
-    query = f"""
-        SELECT * FROM {table_name};
-    """
-    with conn.cursor() as cur:
-        cur.execute(query)
-        return cur.fetchall()
+import load_functions as lf
 
 
 def make_id_mapping(ids_and_items: list[dict], item: str):
@@ -48,13 +38,25 @@ def get_items_not_in_current(new: list[str], current: list[str]):
     return [word for word in new if word not in current]
 
 
+def get_games_if_on_all_platforms(game_platform_assignments: list[dict]):
+    """Checks to see if the game exists on all platforms"""
+    game_ids = [str(game["game_id"]) for game in game_platform_assignments]
+    game_ids_on_all = []
+    for id in game_ids:
+        if game_ids.count(id) == 3:
+            game_ids_on_all.append(id)
+    return game_ids_on_all
+
+
 # Get devs, pubs, tags, genres and games for upload
-def get_items_for_upload(table: str, new_games: list[dict], conn: psycopg.Connection):
+def get_items_for_upload(table: str, new_games: list[dict], current_items: dict):
     """Gets all the new genres for uploading to the database"""
-    ids = get_ids(table, conn)
-    current = make_id_mapping(ids, table)
     new = get_new_items_set(table, new_games)
-    return  get_items_not_in_current(new, current.keys())
+    items_for_upload = get_items_not_in_current(new, current_items.keys())
+    return [(item,) for item in items_for_upload]
+
+
+
 
 
 # Dev_assignment, pub_assignment
@@ -94,7 +96,6 @@ def get_game_assignments(conn: psycopg.Connection):
         return cur.fetchall()
 
 
-
 def make_game_platform_assignment_data(new_games: list[dict], conn: psycopg.Connection):
     new_game_ids = get_new_item_ids('game', new_games, conn)
     current_game_ids = make_id_mapping(get_ids('game', conn), 'game')
@@ -104,10 +105,10 @@ def make_game_platform_assignment_data(new_games: list[dict], conn: psycopg.Conn
 
 
 if __name__ == "__main__":
+    # initialise
     load_dotenv()
     conn_string = f"postgresql://{ENV['DB_USERNAME']}:{ENV["DB_PASSWORD"]}@{ENV["DB_HOST"]}:{ENV["DB_PORT"]}/{ENV["DB_NAME"]}"
     connection = psycopg.connect(conn_string, row_factory=dict_row)
-
 
     new_games_example = [{
         "game": "fortnite",
@@ -115,14 +116,40 @@ if __name__ == "__main__":
         "tag": ["action"],
         "genre": "mystic",
         "publisher": "sigma"
+        },{
+        "game": "rocket league",
+        "developer": "EA",
+        "tag": ["action", "racing"],
+        "genre": ["mystic", "horror"],
+        "publisher": "sigma"
         }]
 
+    # Data to be loaded from db
+    # game titles and ids, tag and id, dev and id, pub and id and genre and id
+    game_titles_and_ids = make_id_mapping(get_ids('game', connection), 'game')
+    tags_and_ids = make_id_mapping(get_ids('tag', connection), 'tag')
+    devs_and_ids = make_id_mapping(get_ids('developer', connection), 'developer')
+    pubs_and_ids = make_id_mapping(get_ids('publisher', connection), 'publisher')
+    genres_and_ids = make_id_mapping(get_ids('genre', connection), 'genre')
+    # return example: {'treyarch': 1}
+
+    # Get the game platform assignments
+    sql = """
+    SELECT game_id, platform_id
+    FROM game_platform_assignment
+    """
+    with connection.cursor() as cur:
+        cur.execute(sql)
+        game_and_platform_ids = cur.fetchall()
     
+    # Get any games on all platforms
+    game_ids_on_all_platforms = get_games_if_on_all_platforms(game_and_platform_ids)
 
-
-
-   
-
+    # Get new tags, games, publishers, developers and genres
+    devs = get_items_for_upload('developer', new_games_example, devs_and_ids)
+    print(devs)
+    
+    
 
 
     connection.close()
