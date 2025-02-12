@@ -5,9 +5,11 @@ from datetime import datetime
 
 from requests import get
 
-#TODO: add age to this
+#TODO: add age formatting and validation to this
+#TODO: add ability to insert data from previous days with timedelta
+#TODO: ensure logger is imported and config-ed
 
-#TODO: write this
+#TODO: write function that gets data from extract
 def get_data() -> list[dict]:
     """Gets the data from extract."""
     ...
@@ -21,11 +23,11 @@ def clean_data(data: list[dict]) -> list[dict]:
     for row in data:
         if is_valid_data(row):
             cleaned_data.append(format_data(row))
-    
+
     return cleaned_data
 
 
-#TODO: we should put this in load
+#TODO: we should put this in load (function that queries DB to see if need to add tag)
 def find_data_to_add() -> dict:
     """Queries the database to see what data we need to input."""
 
@@ -47,12 +49,18 @@ def find_data_to_add() -> dict:
 def is_valid_data(game: dict) -> bool:
     """Returns true if all the data is valid."""
 
+    if ['title', 'genres', 'publisher',
+        'developer', 'tag','platform_score',
+        'platform_price', 'platform_discount', 'release_date',
+        'game_image', 'age_rating'] != list(game.keys()):
+        return False
+
     #TODO: figure out if we want to include some invalid data.
     return (is_valid_title(game['title']) and is_valid_genres(game['genres']) and
             is_valid_publisher(game['publisher']) and is_valid_developer(game['developer']) and
-            is_valid_tag(game['tag']) and is_valid_score(game['platform_score']) and 
-            is_valid_price(game['platform_price']) and is_valid_discount(game['platform_discount']) and
-            is_valid_release(game['release_date']) and is_valid_image(game['game_image']))
+            is_valid_tag(game['tag']) and is_valid_score(game['platform_score']) and
+            is_valid_price(game['platform_price']) and is_valid_discount(game['platform_discount'])
+            and is_valid_release(game['release_date']) and is_valid_image(game['game_image']))
 
 
 def is_valid_title(title: str) -> bool:
@@ -117,6 +125,10 @@ def is_valid_publisher(publishers: list[str]) -> bool:
 
         publisher = publisher.strip()
 
+        if len(publisher) == 0:
+            logging.error("%s is not a valid publisher, cannot be empty", publisher)
+            return False
+
         if len(publisher) > 26:
             logging.error("%s is not a valid publisher, too long.", publisher)
             return False
@@ -138,6 +150,10 @@ def is_valid_developer(developers: list[str]) -> bool:
             return False
 
         developer = developer.strip()
+
+        if len(developer) == 0:
+            logging.error("%s is not a valid developer, cannot be empty", developer)
+            return False
 
         if len(developer) > 26:
             logging.error("%s is not a valid developer, too long.", developer)
@@ -161,6 +177,10 @@ def is_valid_tag(tags: list[str]) -> bool:
 
         tag = tag.strip()
 
+        if len(tag) == 0:
+            logging.error("%s is not a valid tag, cannot be empty", tag)
+            return False
+
         if len(tag) > 26:
             logging.error("%s is not a valid tag, too long.", tag)
             return False
@@ -168,12 +188,14 @@ def is_valid_tag(tags: list[str]) -> bool:
     return True
 
 
-def is_valid_score(score: int) -> bool:
+def is_valid_score(score: str) -> bool:
     """Returns true if score is valid."""
 
     if not isinstance(score, str):
         logging.error("%s is not a valid score, not a string", score)
         return False
+
+    score = score.strip()
 
     if not score.isnumeric():
         logging.error("%s is not a valid score, not an integer.", score)
@@ -193,6 +215,8 @@ def is_valid_price(price: int) -> bool:
         logging.error("%s is not a valid price, not a string", price)
         return False
 
+    price = price.strip()
+
     if not price.isnumeric():
         logging.error("%s is not a valid price, not numeric.", price)
         return False
@@ -211,8 +235,14 @@ def is_valid_discount(discount: int) -> bool:
         logging.error("%s is not a valid discount, not a string", discount)
         return False
 
+    discount = discount.strip()
+
     if not discount.isnumeric():
         logging.error("%s is not a valid price, not numeric.", discount)
+        return False
+
+    if not 0 <= int(discount) <= 100:
+        logging.error("%s is not a valid discount, not between 0 and 100.", discount)
         return False
 
     return True
@@ -227,7 +257,7 @@ def is_valid_release(release: str) -> bool:
         logging.error("%s is not in the valid release form.", release)
         return False
 
-    if not datetime.now().date() == datetime_release.date():
+    if datetime.now().date() != datetime_release.date():
         logging.error("%s is not a valid date, not released today.", release)
         return False
 
@@ -237,11 +267,26 @@ def is_valid_release(release: str) -> bool:
 def is_valid_image(image: str) -> bool:
     """Returns true if image is valid."""
 
+    if not isinstance(image, str):
+        logging.error("%s is not a valid image, not a string", image)
+        return False
+
+    image = image.strip()
+
+    if len(image) > 256:
+        logging.error("%s is not a valid image, url too long", image)
+        return False
+
+    if len(image) == 0:
+        logging.error("%s is not a valid image, empty string", image)
+        return False
+
     try:
-        response = get(image)
+        response = get(image, timeout=5)
     except Exception as e:
         logging.error("""%s is not a valid image, not loading properly.
-                            Error: %s""", (image, e))
+                        Error: %s""", image, e)
+        return False
 
     if not response.status_code == 200:
         logging.error("%s is not a valid image, not loading properly.", image)
@@ -267,13 +312,15 @@ def format_data(game: dict) -> bool:
     formatted_data['release'] = format_release(game['release_date'])
     formatted_data['image'] = format_string(game['game_image'])
     formatted_data['platform'] = "Steam"
+    #TODO: write formatting for age rating - need to know what form it will come.
+    formatted_data['age_rating'] = game['age_rating']
 
     return formatted_data
 
 
 def format_string(string: str) -> str:
     """Formats title."""
-    return string.strip().lower().replace('%20', ' ')
+    return string.strip().replace('%20', ' ')
 
 
 def format_list(values: list[str]) -> list[str]:
@@ -290,6 +337,9 @@ def format_list(values: list[str]) -> list[str]:
 def format_integer(integer: str) -> int:
     """Formats number."""
 
+    if isinstance(integer, str):
+        integer = integer.strip()
+
     if integer is not None:
         return int(integer)
 
@@ -299,12 +349,32 @@ def format_integer(integer: str) -> int:
 def format_release(release: str) -> datetime:
     """Formats release."""
 
+    release = release.strip()
+
     release = format_string(release)
     return datetime.strptime(release, "%d %b, %Y")
 
 
 if __name__ == "__main__":
 
-    test_input = [{'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}]
+    test_input = [{'title': 'Hearts of Iron IV',
+                    'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy',
+                                'Simulation', 'Strategy'],
+                    'publisher': [],
+                    'developer': [],
+                    'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy',
+                            'War', 'Historical', 'Military',
+                            'Alternate%20History', 'Multiplayer', 'Simulation',
+                            'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer',
+                            'RTS', 'Diplomacy', 'Sandbox',
+                            'Co-op', 'Strategy%20RPG', 'Competitive',
+                            'Open%20World', 'Action'],
+                    'platform_score': '90',
+                    'platform_price': '4199',
+                    'platform_discount': None,
+                    'release_date': '12 Feb, 2025', 
+                    'game_image':
+                    'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786',
+                    'age_rating': '7'}]
 
     print(clean_data(test_input))
