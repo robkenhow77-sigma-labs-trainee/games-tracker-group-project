@@ -5,3 +5,4 @@ rich
 selenium
 webdriver_manager
 logging
+pylint
