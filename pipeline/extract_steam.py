@@ -1,7 +1,4 @@
 """Extract script by webscraping steam store page"""
-from rich.live import Live
-from rich.progress import Progress, BarColumn, TimeRemainingColumn
-import logging
 import argparse
 import re
 from datetime import datetime, timedelta
@@ -9,7 +6,8 @@ from datetime import datetime, timedelta
 import logging
 import requests
 from bs4 import BeautifulSoup
-from rich.progress import Progress
+from rich.live import Live
+from rich.progress import Progress, BarColumn, TimeRemainingColumn
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -26,7 +24,8 @@ def parse_args():
         '--scroll_to_date',
         type=str,
         required=False,
-        help="The release date to stop scrolling at, in the format 'DD MMM, YYYY' (e.g., '10 Feb, 2025')"
+        help="""The release date to stop scrolling at,
+          in the format 'DD MMM, YYYY' (e.g., '10 Feb, 2025')"""
     )
     parser.add_argument(
         '--log_output',
@@ -74,7 +73,10 @@ def setup_logging(output: str, filename="game_track.log", level=20):
 
 
 def scrape_newest(url: str, target_date: str) -> list[dict]:
-    """Scrolls until it finds a game with the target release date, then scrapes all loaded game links."""
+    """
+    Scrolls until it finds a game with the target release date, 
+    then scrapes all loaded game links.
+    """
     driver = init_driver()
     driver.get(url)
     page_data_list = []
