@@ -146,10 +146,53 @@ def get_game_platform_assignments(conn: psycopg.Connection):
         return cur.fetchall()
 
 
-# Dev_assignment, pub_assignment
-# def get_new_item_ids(table: str, new_games: list[dict], conn: psycopg.Connection, get_ids):
-#     """Gets the ids that the items will have when they get uploaded to the database"""
-#     items_for_upload = get_items_for_upload(table, new_games, conn)
-#     ids = get_ids(table, conn)
-#     max_id = max([game[f"{table}_id"] for game in ids])
-#     return assign_new_ids(items_for_upload, max_id)
+def assign_publishers(new_games_list: list[dict], game_id_mapping: dict, publisher_mapping):
+    """Maps the names to the ids and the pubs to ids, for the assignment table"""
+    values = []
+    for game in new_games_list:
+        if isinstance(game["publisher"], list):
+            publishers = game["publisher"]
+            for publisher in publishers:
+                values.append((
+                    game_id_mapping[game["game_name"]],
+                    publisher_mapping[publisher]
+                ))
+        else:
+            values.append((
+                game_id_mapping[game["game_name"]],
+                publisher_mapping[game["publisher"]]
+            ))
+    return values
+
+
+def assign_developers(new_games_list: list[dict], game_id_mapping: dict, developer_mapping):
+    """Maps the names to the ids and the pubs to ids, for the assignment table"""
+    values = []
+    for game in new_games_list:
+        if isinstance(game["developer"], list):
+            developers = game["developer"]
+            for developer in developers:
+                values.append((
+                    game_id_mapping[game["game_name"]],
+                    developer_mapping[developer]
+                ))
+        else:
+            values.append((
+                game_id_mapping[game["game_name"]],
+                developer_mapping[game["developer"]]
+            ))
+    return values
+
+
+def upload_developer_assignment(data: list[tuple], conn: psycopg.Connection):
+     with conn.cursor() as cur:
+        cur.executemany("""INSERT INTO developer_game_assignment (game_id, developer_id) 
+            VALUES (%s, %s)""", data)
+        conn.commit()
+
+
+def upload_publisher_assignment(data: list[tuple], conn: psycopg.Connection):
+     with conn.cursor() as cur:
+        cur.executemany("""INSERT INTO publisher_game_assignment (game_id, publisher_id) 
+            VALUES (%s, %s)""", data)
+        conn.commit()

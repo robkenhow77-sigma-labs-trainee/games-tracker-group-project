@@ -128,7 +128,7 @@ if __name__ == "__main__":
         "developer": ["treyarch", 'epic', 'some other dev'],
         "tag": ["action"],
         "genre": "mystic",
-        "publisher": "sigma",
+        "publisher": ["sigma", "activision"],
         "release_date": datetime.now(),
         "game_image": "random",
         "is_nsfw": True,
@@ -156,6 +156,7 @@ if __name__ == "__main__":
     # return example: {'treyarch': 1}
 
     # Load known values: game titles and ids, tag and id, dev and id, pub and id and genre and id
+    # New values that don't exist in the DB
     new_games = get_games_for_upload(new_games_example, game_titles_and_ids)
     new_tags = get_items_for_upload('tag', new_games_example, tags_and_ids)
     new_devs = get_items_for_upload('developer', new_games_example, devs_and_ids)
@@ -170,7 +171,7 @@ if __name__ == "__main__":
     new_tags_and_ids = make_id_mapping(lf.execute_and_return_tags(new_tags, connection), 'tag')
     new_devs_and_ids = make_id_mapping(lf.execute_and_return_devs(new_devs, connection), 'developer')
     new_pubs_and_ids = make_id_mapping(lf.execute_and_return_pubs(new_pubs, connection), 'publisher')
-    new_genres_and_ids =  make_id_mapping(lf.execute_and_return_genres(new_genres, connection), 'genre')
+    new_genres_and_ids = make_id_mapping(lf.execute_and_return_genres(new_genres, connection), 'genre')
 
 
     # Update names and ids with the new ones
@@ -181,25 +182,23 @@ if __name__ == "__main__":
     genres_and_ids.update(new_genres_and_ids)
 
 
-    print(game_titles_and_ids,
-    tags_and_ids,
-    devs_and_ids,
-    pubs_and_ids,
-    genres_and_ids)
+    # Update game_publisher_assignment, game_developer_assignment
+    game_dev_assignments = lf.assign_developers(new_games_example, game_titles_and_ids, devs_and_ids) #### NEED TO CHECK FOR DUPLIACTES
+    game_pub_assignments = lf.assign_publishers(new_games_example, game_titles_and_ids, pubs_and_ids)
 
-
-
-    # Get the game platform assignments
-    game_platform_assignments = lf.get_game_platform_assignments(connection)
-    
-    # Get any games on all platforms
-    game_ids_on_all_platforms = get_games_if_on_all_platforms(game_platform_assignments)
+    lf.upload_developer_assignment(game_dev_assignments, connection)
+    lf.upload_publisher_assignment(game_pub_assignments, connection)
 
     # Get new tags, games, publishers, developers and genres
     devs = get_items_for_upload('developer', new_games_example, devs_and_ids)
-    # print(devs)
+
+   
+
+    # # Get the game platform assignments
+    # game_platform_assignments = lf.get_game_platform_assignments(connection)
     
-    
+    #  # Get any games on all platforms
+    # game_ids_on_all_platforms = get_games_if_on_all_platforms(game_platform_assignments)
 
 
     connection.close()
