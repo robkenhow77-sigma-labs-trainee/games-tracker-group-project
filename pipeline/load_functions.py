@@ -53,72 +53,87 @@ def get_genre_ids(conn: psycopg.Connection):
 
 def execute_and_return_devs(devs: list[tuple], conn: psycopg.Connection):
     """Loads values and returns"""
-    with conn.cursor() as cur:
-        cur.executemany("""INSERT INTO developer (developer_name) 
-                        VALUES (%s) RETURNING *""", devs, returning=True)
-        ids = []
-        while True:
-            ids.append(cur.fetchone())
-            if not cur.nextset():
-                break
-        conn.commit()
-        return ids
+    try:
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO developer (developer_name) 
+                            VALUES (%s) RETURNING *""", devs, returning=True)
+            ids = []
+            while True:
+                ids.append(cur.fetchone())
+                if not cur.nextset():
+                    break
+            conn.commit()
+            return ids
+    except:
+        return {}
 
 
 def execute_and_return_games(games: list[tuple], conn: psycopg.Connection):
     """Loads values and returns"""
-    with conn.cursor() as cur:
-        cur.executemany("""INSERT INTO game (game_name, release_date, game_image, age_rating_id, is_nsfw) 
-                        VALUES (%s, %s, %s, %s, %s) RETURNING *""", games, returning=True)
-        ids = []
-        while True:
-            ids.append(cur.fetchone())
-            if not cur.nextset():
-                break
-        conn.commit()
-        return ids
+    try:
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO game (game_name, release_date, game_image, age_rating_id, is_nsfw) 
+                            VALUES (%s, %s, %s, %s, %s) RETURNING game_id, game_name""", games, returning=True)
+            ids = []
+            while True:
+                ids.append(cur.fetchone())
+                if not cur.nextset():
+                    break
+            conn.commit()
+            return ids
+    except :
+        return {}
 
 
 def execute_and_return_pubs(pubs: list[tuple], conn: psycopg.Connection):
     """Loads values and returns"""
-    with conn.cursor() as cur:
-        cur.executemany("""INSERT INTO publisher (publisher_name) 
-                        VALUES (%s) RETURNING *""", pubs, returning=True)
-        ids = []
-        while True:
-            ids.append(cur.fetchone())
-            if not cur.nextset():
-                break
-        conn.commit()
-        return ids
+    try:
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO publisher (publisher_name) 
+                            VALUES (%s) RETURNING *""", pubs, returning=True)
+            ids = []
+            while True:
+                ids.append(cur.fetchone())
+                if not cur.nextset():
+                    break
+            conn.commit()
+            return ids
+    except :
+        return {}
 
 
 def execute_and_return_genres(genre: list[tuple], conn: psycopg.Connection):
     """Loads values and returns"""
-    with conn.cursor() as cur:
-        cur.executemany("""INSERT INTO genre (genre_name) 
-                        VALUES (%s) RETURNING *""", genre, returning=True)
-        ids = []
-        while True:
-            ids.append(cur.fetchone())
-            if not cur.nextset():
-                break
-        conn.commit()
-        return ids
+    try:
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO genre (genre_name) 
+                            VALUES (%s) RETURNING *""", genre, returning=True)
+            ids = []
+            while True:
+                ids.append(cur.fetchone())
+                if not cur.nextset():
+                    break
+            conn.commit()
+            return ids
+    except :
+        return {}
 
 
 def execute_and_return_tags(tags: list[tuple], conn: psycopg.Connection):
     """Loads values and returns"""
-    with conn.cursor() as cur:
-        cur.executemany("""INSERT INTO tag (tag_name) 
-                        VALUES (%s) RETURNING *""", tags, returning=True)
-        ids = []
-        while True:
-            ids.append(cur.fetchone())
-            if not cur.nextset():
-                break
-        conn.commit()
-        return ids
+    try:
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO tag (tag_name) 
+                            VALUES (%s) RETURNING *""", tags, returning=True)
+            ids = []
+            while True:
+                ids.append(cur.fetchone())
+                if not cur.nextset():
+                    break
+            conn.commit()
+            return ids
+    except :
+        return {}
 
 
 def get_game_platform_assignments(conn: psycopg.Connection):

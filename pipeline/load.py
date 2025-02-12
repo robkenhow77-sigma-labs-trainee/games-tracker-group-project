@@ -162,22 +162,30 @@ if __name__ == "__main__":
     new_pubs = get_items_for_upload('publisher', new_games_example, pubs_and_ids)
     new_genres = get_items_for_upload('genre', new_games_example, genres_and_ids)
 
-
+    # Game table must be formatted differently
     new_games = format_games_for_upload(new_games)
 
-    print(new_games)
-    
+    # Upload tables and return values
+    new_game_titles_and_ids = make_id_mapping(lf.execute_and_return_games(new_games, connection), 'game')
+    new_tags_and_ids = make_id_mapping(lf.execute_and_return_tags(new_tags, connection), 'tag')
+    new_devs_and_ids = make_id_mapping(lf.execute_and_return_devs(new_devs, connection), 'developer')
+    new_pubs_and_ids = make_id_mapping(lf.execute_and_return_pubs(new_pubs, connection), 'publisher')
+    new_genres_and_ids =  make_id_mapping(lf.execute_and_return_genres(new_genres, connection), 'genre')
 
 
-    new_game_titles_and_ids = lf.execute_and_return_games(new_games, connection)
-    new_tags_and_ids = lf.execute_and_return_tags(new_tags, connection)
-    new_devs_and_ids = lf.execute_and_return_devs(new_devs, connection)
-    new_pubs_and_ids = lf.execute_and_return_pubs(new_pubs, connection)
-    new_genres_and_ids =  lf.execute_and_return_genres(new_genres, connection)
+    # Update names and ids with the new ones
+    game_titles_and_ids.update(new_game_titles_and_ids)
+    tags_and_ids.update(new_tags_and_ids)
+    devs_and_ids.update(new_devs_and_ids)
+    pubs_and_ids.update(new_pubs_and_ids)
+    genres_and_ids.update(new_genres_and_ids)
 
-    # print(new_tags_and_ids)
 
-    # update names and ids with the new ones
+    print(game_titles_and_ids,
+    tags_and_ids,
+    devs_and_ids,
+    pubs_and_ids,
+    genres_and_ids)
 
 
 
