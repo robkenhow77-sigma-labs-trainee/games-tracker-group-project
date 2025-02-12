@@ -1,3 +1,5 @@
+"""Extracts script that pulls game data from undocumented GraphQL API"""
+
 import requests
 
 
@@ -76,11 +78,10 @@ def extract_games(url: str):
 
     return None
 
-
 if __name__ == "__main__":
-    
+
     data = extract_games("https://graphql.epicgames.com/graphql")
-    
+
     ## How to extract elements from data!
     if data:
         games = data["data"]["Catalog"]["searchStore"]["elements"]
