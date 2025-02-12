@@ -1,8 +1,12 @@
 """Extract script by webscraping steam store page"""
+from rich.live import Live
+from rich.progress import Progress, BarColumn, TimeRemainingColumn
+import logging
 import argparse
 import re
 from datetime import datetime, timedelta
 
+import logging
 import requests
 from bs4 import BeautifulSoup
 from rich.progress import Progress
@@ -13,27 +17,60 @@ from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Scrape Steam search page for games released on a specific date.")
+        description="Scrape Steam search page for games released on a specific date."
+    )
     parser.add_argument(
         '--scroll_to_date',
         type=str,
         required=False,
         help="The release date to stop scrolling at, in the format 'DD MMM, YYYY' (e.g., '10 Feb, 2025')"
     )
+    parser.add_argument(
+        '--log_output',
+        type=str,
+        choices=['console', 'file'],
+        default='console',
+        help="Specify whether to log to 'console' or 'file' (default: console)."
+    )
     return parser.parse_args()
+
 
 def init_driver():
     """sets up the selenium driver"""
-    # Set up Chrome driver
+    # Set up Chrome driver to scroll a webpage so that we can load more urls.
     options = webdriver.ChromeOptions()
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=options)
     return driver
+
+
+def setup_logging(output: str, filename="game_track.log", level=20):
+    """Setup the basicConfig."""
+    log_format = "{asctime} - {levelname} - {message}"
+    log_datefmt = "%Y-%m-%d %H:%M"
+    if output == "file":
+        logging.basicConfig(
+            filename=filename,
+            encoding="utf-8",
+            filemode="a",
+            level=level,
+            format=log_format,
+            style="{",
+            datefmt=log_datefmt
+        )
+        logging.info("Logging to file: %s", filename)
+    else:
+        logging.basicConfig(
+            level=level,
+            format=log_format,
+            style="{",
+            datefmt=log_datefmt
+        )
+        logging.info("Logging to console.")
 
 
 def scrape_newest(url: str, target_date: str) -> list[dict]:
@@ -43,9 +80,10 @@ def scrape_newest(url: str, target_date: str) -> list[dict]:
     page_data_list = []
 
     with Progress() as progress:
-        task = progress.add_task(
-            "[cyan]Scrolling through Steam search...", total=None)
+        task = progress.add_task("[cyan]Processing Steam games...", total=None)
+
         found_target_date = False
+        game_links = []
 
         while not found_target_date:
             soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -65,14 +103,18 @@ def scrape_newest(url: str, target_date: str) -> list[dict]:
         game_links = [link['href'] for link in soup.find_all('a', href=True)
                       if re.match(r'https://store\.steampowered\.com/app/\d+', link["href"])]
 
+        progress.update(task, total=len(game_links))
+
         for link in game_links:
             game_data = get_data(link)
-            print(game_data.get('title'))
+            logging.info('Processed %s', game_data.get('title'))
             page_data_list.append(game_data)
-            progress.update(task, advance=1, total=len(game_links))
+            progress.update(task, advance=1)
 
     driver.quit()
     return page_data_list
+
+
 
 def fetch_genres(soup: BeautifulSoup) -> list[str]:
     """Gets the genres out of a soup"""
@@ -128,8 +170,9 @@ def fetch_platform_score(soup: BeautifulSoup) -> str:
     if review_tag:
         tooltip_text = review_tag.get("data-tooltip-html", "")
         match = re.search(r"(\d+)%", tooltip_text)
-        if match:
-            return match.group(1)
+        if not match:
+            logging.error("Couldn't find review score")
+        return match.group(1) if match else None
 
 
 def fetch_platform_price(soup: BeautifulSoup) -> str:
@@ -150,7 +193,8 @@ def fetch_platform_price(soup: BeautifulSoup) -> str:
         discount_price = soup.find(class_="discount_original_price")
         if discount_price:
             price = re.sub(r'[^0-9]', '', discount_price.text)
-
+    if not price:
+        logging.warning("Couldn't find price")
     return price if price else None
 
 def fetch_platform_discount(soup: BeautifulSoup) -> str:
@@ -158,8 +202,9 @@ def fetch_platform_discount(soup: BeautifulSoup) -> str:
     discount_percent = soup.find(class_="discount_pct")
     if discount_percent:
         match = re.search(r"(\d+)%", discount_percent.text)
-        if match:
-            return match.group(1) if match else None
+        if not match:
+            logging.info("Couldn't find platform discount")
+        return match.group(1) if match else None
 
 
 def fetch_release_date(soup: BeautifulSoup) -> str:
@@ -168,12 +213,15 @@ def fetch_release_date(soup: BeautifulSoup) -> str:
     if release_date:
         release_text = release_date.text.strip().replace("Release Date:", "").strip()
         return release_text
+    logging.error("Couldn't find release date")
     return None
 
 def fetch_game_image(soup: BeautifulSoup) -> str:
     """gets the url for the game image"""
     image = soup.find(class_="game_header_image_full").get("src")
-    return image
+    if not image:
+        logging.error("Couldn't find image")
+    return image if image else None
 
 def fetch_age_rating(soup: BeautifulSoup) -> str:
     """Gets age rating if it exists"""
@@ -185,6 +233,8 @@ def fetch_age_rating(soup: BeautifulSoup) -> str:
         age_rating = age_rating_tag['src']
         match = re.match(
             r'https://store.cloudflare.steamstatic.com/public/shared/images/game_ratings/PEGI/(\d+)', age_rating)
+        if not match:
+            logging.warning("Couldn't find age rating")
         return match.group(1) if match else None
 
 def get_data(link: str) -> dict:
@@ -224,22 +274,27 @@ def get_data(link: str) -> dict:
     data['age_rating'] = fetch_age_rating(soup)
     return data
 
+
 def steam_handler(event, context):
     """Handler function for lambda running steam pipeline"""
     args = parse_args()
+    setup_logging(args.log_output)
     url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998%2C10&supportedlang=english&ndl=1"
+
     if args.scroll_to_date:
         try:
             scroll_to_date = datetime.strptime(
-                args.scroll_to_date, "%d %b, %Y").strftime("%d %b, %Y")
+                args.scroll_to_date, "%d %b, %Y"
+            ).strftime("%d %b, %Y")
         except ValueError:
-            print(
-                "Error: The date format should like '10 Feb, 2025'.")
+            logging.error("Error: The date format should be '10 Feb, 2025'.")
             return
     else:
         scroll_to_date = (datetime.now() - timedelta(1)).strftime("%d %b, %Y")
+
     data = scrape_newest(url, scroll_to_date)
     return f"Completed {len(data)} entries"
+
 
 
 if __name__ == "__main__":
