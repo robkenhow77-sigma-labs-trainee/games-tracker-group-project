@@ -279,7 +279,7 @@ def steam_handler(event, context):
     """Handler function for lambda running steam pipeline"""
     args = parse_args()
     setup_logging(args.log_output)
-    url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998%2C10&supportedlang=english&ndl=1"
+    url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998&supportedlang=english&ndl=1"
 
     if args.scroll_to_date:
         try:
