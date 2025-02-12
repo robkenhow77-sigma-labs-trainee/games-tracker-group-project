@@ -1,19 +1,20 @@
 """Script containing all tests for the functions in transform.py."""
 # pylint: skip-file
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 
 from transform import (get_data, is_valid_data, is_valid_title, is_valid_genres, is_valid_publisher,
                        is_valid_developer, is_valid_tag, is_valid_score, is_valid_price, is_valid_discount,
                        is_valid_release, is_valid_image, format_data, format_string,
-                       format_integer, format_release, is_valid_age)
+                       format_integer, format_release, is_valid_age, format_genre_list, format_developer_list,
+                       format_publisher_list, format_tag_list)
 
 #TODO: rewrite tests that will fail due to it not being today.
 #TODO: write tests for string fail where the text is too long
 string_validation_fail_test = [123, True, datetime.now(), -2.99, None, "", " "]
-string_validation_succeed_test= ["A correct string", "Testing. punctuation!", "numbers 123"]
+string_validation_succeed_test= ["A correct string", "Testing. punctuation!", "numbers 123", "adding", "more", 'for', "zip"]
 
 # Tests for is_valid_title
 @pytest.mark.parametrize("test_input", string_validation_succeed_test)
@@ -39,7 +40,7 @@ def test_valid_title_too_long():
     politics modernizes, upgrades paranoia, and tries to get a grip.
     """) is False
 
-# Tests for is_valid_genres
+
 @pytest.mark.parametrize("test_input", string_validation_succeed_test)
 def test_valid_genres_positive(test_input):
     """Tests if is_valid_genres returns True when valid genres are passed."""
@@ -69,15 +70,20 @@ def test_valid_genres_too_long():
     """]) is False
 
 
+@pytest.mark.parametrize("test_input", [[x, y] for x, y in zip(string_validation_fail_test, string_validation_succeed_test)])
+def test_valid_genres_positive_if_one_passes(test_input):
+    assert is_valid_genres(test_input) is True
+
+
 @pytest.mark.parametrize("test_input", string_validation_fail_test)
 def test_valid_genres_as_list_negative(test_input):
     """Tests if is_valid_genres returns False when valid genres are passed."""
     assert is_valid_genres([test_input, test_input]) is False
 
 
-def test_valid_genres_positive_empty_array():
+def test_valid_genres_negative_empty_array():
     """Tests if is_valid_genres returns False when invalid genres are passed."""
-    assert is_valid_genres([]) is True
+    assert is_valid_genres([]) is False
 
 
 # Tests for is_valid_publisher
@@ -116,9 +122,14 @@ def test_valid_publisher_as_list_negative(test_input):
     assert is_valid_publisher([test_input, test_input]) is False
 
 
-def test_valid_publishers_positive_empty_array():
+def test_valid_publishers_negative_empty_array():
     """Tests if is_valid_publishers returns False when invalid publishers are passed."""
-    assert is_valid_publisher([]) is True
+    assert is_valid_publisher([]) is False
+
+
+@pytest.mark.parametrize("test_input", [[x, y] for x, y in zip(string_validation_fail_test, string_validation_succeed_test)])
+def test_valid_publisher_positive_if_one_passes(test_input):
+    assert is_valid_publisher(test_input) is True
 
 
 @pytest.mark.parametrize("test_input", string_validation_succeed_test)
@@ -156,9 +167,14 @@ def test_valid_developer_as_list_negative(test_input):
     assert is_valid_developer([test_input, test_input]) is False
 
 
-def test_valid_developer_positive_empty_array():
+def test_valid_developer_negative_empty_array():
     """Tests if is_valid_genres returns False when invalid genres are passed."""
-    assert is_valid_developer([]) is True
+    assert is_valid_developer([]) is False
+
+
+@pytest.mark.parametrize("test_input", [[x, y] for x, y in zip(string_validation_fail_test, string_validation_succeed_test)])
+def test_valid_developer_positive_if_one_passes(test_input):
+    assert is_valid_developer(test_input) is True
 
 
 @pytest.mark.parametrize("test_input", string_validation_succeed_test)
@@ -196,9 +212,14 @@ def test_valid_tag_as_list_negative(test_input):
     assert is_valid_tag([test_input, test_input]) is False
 
 
-def test_valid_tag_positive_empty_array():
+def test_valid_tag_negative_empty_array():
     """Tests if is_valid_genres returns False when invalid genres are passed."""
-    assert is_valid_tag([]) is True
+    assert is_valid_tag([]) is False
+
+
+@pytest.mark.parametrize("test_input", [[x, y] for x, y in zip(string_validation_fail_test, string_validation_succeed_test)])
+def test_valid_tag_positive_if_one_passes(test_input):
+    assert is_valid_tag(test_input) is True
 
 
 pos_score = ['0', '100', '55', '  60   ']
@@ -333,12 +354,6 @@ def test_format_string(string, expected):
     """Tests format_string function."""
     assert format_string(string) == expected
 
-data = [([" ", "string   "], ["", "string"]), (["normal", "normal%20test"], ["normal", "normal test"])]
-@pytest.mark.parametrize("string,expected", data)
-def test_format_list(string, expected):
-    """Tests format_list function."""
-    assert format_list(string) == expected
-
 data = [("1", 1), ("2   ", 2), ("   100 ", 100), (None, None)]
 @pytest.mark.parametrize("string,expected", data)
 def test_format_integer(string, expected):
@@ -355,3 +370,111 @@ def test_format_release():
 def test_valid_game(test_input):
     """Tests that a valid game passes."""
     assert is_valid_data(test_input)
+
+list_test_values = [("fail", []), ([], []), ([123, "test"], ["test"]),
+(["test1", "test2"], ["test1", "test2"]),(["    test", False, 123, "test2  "], ["test","test2"])]
+
+@pytest.mark.parametrize("test_input,correct_output", list_test_values)
+def test_format_genre(test_input, correct_output):
+    """Tests the format_genre_list function."""
+    assert format_genre_list(test_input) == correct_output
+
+
+@pytest.mark.parametrize("test_input,correct_output", list_test_values)
+def test_format_developer(test_input, correct_output):
+    """Tests the format_developer_list function."""
+    assert format_developer_list(test_input) == correct_output
+
+
+@pytest.mark.parametrize("test_input,correct_output", list_test_values)
+def test_format_publisher(test_input, correct_output):
+    """Tests the format_publisher_list function."""
+    assert format_publisher_list(test_input) == correct_output
+
+
+@pytest.mark.parametrize("test_input,correct_output", list_test_values)
+def test_format_tag(test_input, correct_output):
+    """Tests the format_tag_list function."""
+    assert format_tag_list(test_input) == correct_output
+
+
+def test_valid_release_delta_input():
+    """Tests that games before today are allowed if timedelta is set."""
+    today = datetime.now().date()
+    a_week_ago = today - timedelta(days=7)
+    string_a_week_ago = datetime.strftime(a_week_ago, "%d %b, %Y")
+    assert is_valid_release(string_a_week_ago, 7)
+
+input_game = {'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}
+expected_output = {'title': 'Hearts of Iron IV', 'genres': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'platform_score': 90,'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'platform_price': 4199, 'platform_discount': None, 'release_date': datetime(2025, 2, 12, 0, 0), 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': '7'}
+
+def test_format_data_invalid_publisher():
+    """Tests that an empty list is returned for publisher if no valid specified publisher."""
+    test_input = input_game
+    test_input['publisher'] = ""
+    test_output = expected_output
+    test_output['publisher'] = []
+    assert format_data(test_input) == test_output
+
+
+def test_format_data_invalid_developer():
+    """Tests that an empty list is returned for developer if no valid specified developer."""
+    test_input = input_game
+    test_input['developer'] = ""
+    test_output = expected_output
+    test_output['developer'] = []
+    assert format_data(test_input) == test_output
+
+
+def test_format_data_invalid_tag():
+    """Tests that an empty list is returned for tag if no valid specified tag."""
+    test_input = input_game
+    test_input['tag'] = ""
+    test_output = expected_output
+    test_output['tag'] = []
+    assert format_data(test_input) == test_output
+
+
+def test_format_data_invalid_score():
+    """Tests that None is returned for score if no valid specified score."""
+    test_input = input_game
+    test_input['platform_score'] = ""
+    test_output = expected_output
+    test_output['platform_score'] = None
+    assert format_data(test_input) == test_output
+
+
+def test_format_data_invalid_discount():
+    """Tests that None is returned for discount if no valid specified discount."""
+    test_input = input_game
+    test_input['platform_discount'] = ""
+    test_output = expected_output
+    test_output['platform_discount'] = None
+    assert format_data(test_input) == test_output
+
+
+def test_format_data_invalid_release():
+    """Tests that None is returned for release if no valid specified release."""
+    test_input = input_game
+    test_input['release_date'] = ""
+    test_output = expected_output
+    test_output['release_date'] = None
+    assert format_data(test_input) == test_output
+
+
+def test_format_data_invalid_image():
+    """Tests that None is returned for image if no valid specified image."""
+    test_input = input_game
+    test_input['game_image'] = ""
+    test_output = expected_output
+    test_output['game_image'] = None
+    assert format_data(test_input) == test_output
+
+
+def test_format_data_invalid_age():
+    """Tests that None is returned for age if no valid specified age."""
+    test_input = input_game
+    test_input['age_rating'] = ""
+    test_output = expected_output
+    test_output['age_rating'] = None
+    assert format_data(test_input) == test_output
