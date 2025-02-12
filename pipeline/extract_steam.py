@@ -115,7 +115,6 @@ def scrape_newest(url: str, target_date: str) -> list[dict]:
     return page_data_list
 
 
-
 def fetch_genres(soup: BeautifulSoup) -> list[str]:
     """Gets the genres out of a soup"""
     genres = []
@@ -140,7 +139,6 @@ def fetch_publisher(soup: BeautifulSoup) -> list:
     return publishers
 
 
-
 def fetch_developer(soup: BeautifulSoup) -> list:
     """Gets the developers from the soup"""
     developers = []
@@ -153,6 +151,7 @@ def fetch_developer(soup: BeautifulSoup) -> list:
             if match:
                 developers.append(match.group(1))
     return developers
+
 
 def fetch_tags(soup: BeautifulSoup) -> list[str]:
     """gets the tags from the soup"""
@@ -197,6 +196,7 @@ def fetch_platform_price(soup: BeautifulSoup) -> str:
         logging.warning("Couldn't find price")
     return price if price else None
 
+
 def fetch_platform_discount(soup: BeautifulSoup) -> str:
     """Gets the discounted price in percentage"""
     discount_percent = soup.find(class_="discount_pct")
@@ -216,12 +216,14 @@ def fetch_release_date(soup: BeautifulSoup) -> str:
     logging.error("Couldn't find release date")
     return None
 
+
 def fetch_game_image(soup: BeautifulSoup) -> str:
     """gets the url for the game image"""
     image = soup.find(class_="game_header_image_full").get("src")
     if not image:
         logging.error("Couldn't find image")
     return image if image else None
+
 
 def fetch_age_rating(soup: BeautifulSoup) -> str:
     """Gets age rating if it exists"""
@@ -236,6 +238,7 @@ def fetch_age_rating(soup: BeautifulSoup) -> str:
         if not match:
             logging.warning("Couldn't find age rating")
         return match.group(1) if match else None
+
 
 def get_data(link: str) -> dict:
     """Scrapes page for this data.
@@ -299,4 +302,3 @@ def steam_handler(event, context):
 
 if __name__ == "__main__":
     steam_handler(None, None)
-    # print(get_data("https://store.steampowered.com/app/394360/Hearts_of_Iron_IV/"))
