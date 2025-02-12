@@ -2,6 +2,7 @@
 
 # Native imports
 from os import environ as ENV
+from datetime import datetime
 
 # Third-party imports 
 import psycopg
@@ -56,21 +57,32 @@ def get_items_for_upload(table: str, new_games: list[dict], current_items: dict)
     return [(item,) for item in items_for_upload]
 
 
+def get_games_for_upload(new_games: list[dict], current_games: dict):
+    """Gets a set of current games, 
+    then gets a set of games that have been scraped and cleaned, 
+    then gets any game names that are in the scraped games and not in the database,
+    then adds the dictionaries of ga,es not in the databases."""
+    current_games = set(current_games.keys())
+    new_game_names = set(game["game_name"] for game in new_games)
+    games_to_upload = [game for game in new_game_names if game not in current_games]
+    return [game for game in new_games if game["game_name"] in games_to_upload]
+    
 
-
-
-# Dev_assignment, pub_assignment
-def get_new_item_ids(table: str, new_games: list[dict], conn: psycopg.Connection):
-    """Gets the ids that the items will have when they get uploaded to the database"""
-    items_for_upload = get_items_for_upload(table, new_games, conn)
-    ids = get_ids(table, conn)
-    max_id = max([game[f"{table}_id"] for game in ids])
-    return assign_new_ids(items_for_upload, max_id)
-
-
-def assign_new_ids(new_games: list[str], max_game_id: int) -> dict:
-    """assigns an id based on the current db max_id"""
-    return {game: max_game_id + i for i, game in enumerate(new_games, 1)}
+def format_games_for_upload(games: list[dict]):
+    """Returns the tuples to be uploaded"""
+    age_map = {
+        "":""
+    }
+    games_for_upload = []
+    for game in games:
+        row = (
+            game["game_name"],
+            game["release_date"],
+            game["game_image"],
+            game["age_rating_id"], # NEED TO MAP
+            game["is_nsfw"]
+        )
+    return games_for_upload
 
 
 def pub_or_dev_game_assignment(game_ids: dict, pub_or_dev_ids: dict) -> list[tuple]:
@@ -111,43 +123,75 @@ if __name__ == "__main__":
     connection = psycopg.connect(conn_string, row_factory=dict_row)
 
     new_games_example = [{
-        "game": "fortnite",
+        "game_name": "fortnite",
         "developer": ["treyarch", 'epic', 'some other dev'],
         "tag": ["action"],
         "genre": "mystic",
-        "publisher": "sigma"
-        },{
-        "game": "rocket league",
+        "publisher": "sigma",
+        "release_date": datetime.now(),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating_id": 18
+        },
+        {
+        "game_name": "rocket league",
         "developer": "EA",
         "tag": ["action", "racing"],
         "genre": ["mystic", "horror"],
-        "publisher": "sigma"
+        "publisher": "sigma",
+        "release_date": datetime.now(),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating_id": 18
         }]
 
     # Data to be loaded from db
     # game titles and ids, tag and id, dev and id, pub and id and genre and id
-    game_titles_and_ids = make_id_mapping(get_ids('game', connection), 'game')
-    tags_and_ids = make_id_mapping(get_ids('tag', connection), 'tag')
-    devs_and_ids = make_id_mapping(get_ids('developer', connection), 'developer')
-    pubs_and_ids = make_id_mapping(get_ids('publisher', connection), 'publisher')
-    genres_and_ids = make_id_mapping(get_ids('genre', connection), 'genre')
+    game_titles_and_ids = make_id_mapping(lf.get_game_ids(connection), 'game')
+    tags_and_ids = make_id_mapping(lf.get_tag_ids(connection), 'tag')
+    devs_and_ids = make_id_mapping(lf.get_developer_ids(connection), 'developer')
+    pubs_and_ids = make_id_mapping(lf.get_publisher_ids(connection), 'publisher')
+    genres_and_ids = make_id_mapping(lf.get_genre_ids(connection), 'genre')
     # return example: {'treyarch': 1}
 
+    # Load known values: game titles and ids, tag and id, dev and id, pub and id and genre and id
+    new_games = get_games_for_upload(new_games_example, game_titles_and_ids)
+    new_tags = get_items_for_upload('tag', new_games_example, tags_and_ids)
+    new_devs = get_items_for_upload('developer', new_games_example, devs_and_ids)
+    new_pubs = get_items_for_upload('publisher', new_games_example, pubs_and_ids)
+    new_genres = get_items_for_upload('genre', new_games_example, genres_and_ids)
+
+
+    new_games = format_games_for_upload(new_games)
+
+    print(new_games,
+    new_tags,
+    new_devs,
+    new_pubs,
+    new_genres)
+
+
+    new_game_titles_and_ids = lf.execute_and_return_games(new_games, connection)
+    new_tags_and_ids = lf.execute_and_return_tags(new_tags, connection)
+    new_devs_and_ids = lf.execute_and_return_devs(new_devs, connection)
+    new_pubs_and_ids = lf.execute_and_return_pubs(new_pubs, connection)
+    new_genres_and_ids =  lf.execute_and_return_genres(new_genres, connection)
+
+    # print(new_tags_and_ids)
+
+    # update names and ids with the new ones
+
+
+
     # Get the game platform assignments
-    sql = """
-    SELECT game_id, platform_id
-    FROM game_platform_assignment
-    """
-    with connection.cursor() as cur:
-        cur.execute(sql)
-        game_and_platform_ids = cur.fetchall()
+    game_platform_assignments = lf.get_game_platform_assignments(connection)
     
     # Get any games on all platforms
-    game_ids_on_all_platforms = get_games_if_on_all_platforms(game_and_platform_ids)
+    game_ids_on_all_platforms = get_games_if_on_all_platforms(game_platform_assignments)
 
     # Get new tags, games, publishers, developers and genres
     devs = get_items_for_upload('developer', new_games_example, devs_and_ids)
-    print(devs)
+    # print(devs)
     
     
 
