@@ -7,7 +7,7 @@ import pytest
 
 from transform import (get_data, is_valid_data, is_valid_title, is_valid_genres, is_valid_publisher,
                        is_valid_developer, is_valid_tag, is_valid_score, is_valid_price, is_valid_discount,
-                       is_valid_release, is_valid_image, format_data, format_string, format_list,
+                       is_valid_release, is_valid_image, format_data, format_string,
                        format_integer, format_release, is_valid_age)
 
 #TODO: rewrite tests that will fail due to it not being today.
@@ -117,11 +117,10 @@ def test_valid_publisher_as_list_negative(test_input):
 
 
 def test_valid_publishers_positive_empty_array():
-    """Tests if is_valid_genres returns False when invalid genres are passed."""
+    """Tests if is_valid_publishers returns False when invalid publishers are passed."""
     assert is_valid_publisher([]) is True
 
 
-# Tests for is_valid_developer
 @pytest.mark.parametrize("test_input", string_validation_succeed_test)
 def test_valid_developer_positive(test_input):
     """Tests if is_valid_developer returns True when a valid developer is passed."""
@@ -162,7 +161,6 @@ def test_valid_developer_positive_empty_array():
     assert is_valid_developer([]) is True
 
 
-# Tests for is_valid_tag
 @pytest.mark.parametrize("test_input", string_validation_succeed_test)
 def test_valid_tag_positive(test_input):
     """Tests if is_valid_tag returns True when valid tags are passed."""
@@ -203,7 +201,6 @@ def test_valid_tag_positive_empty_array():
     assert is_valid_tag([]) is True
 
 
-# Tests for is_valid_score
 pos_score = ['0', '100', '55', '  60   ']
 @pytest.mark.parametrize("test_input", pos_score)
 def test_valid_score_positive(test_input):
@@ -217,8 +214,8 @@ def test_valid_score_negative(test_input):
     """Tests if is_valid_score returns False when an invalid score is passed."""
     assert is_valid_score(test_input) is False
 
-#TODO: add free option
-pos_price = ['10', '100', '5500', '       9 ']
+
+pos_price = ['10', '100', '5500', '       9 ', '0']
 @pytest.mark.parametrize("test_input", pos_price)
 def test_valid_price_positive(test_input):
     """Tests if is_valid_price returns True when a valid price is passed."""
@@ -232,7 +229,6 @@ def test_valid_price_negative(test_input):
     assert is_valid_price(test_input) is False
 
 
-# Tests for is_valid_discount
 pos_discount = ['0', '100', '55', '1', None, '  11  ']
 @pytest.mark.parametrize("test_input", pos_discount)
 def test_valid_discount_positive(test_input):
@@ -247,7 +243,6 @@ def test_valid_discount_negative(test_input):
     assert is_valid_discount(test_input) is False
 
 
-# Tests for is_valid_release
 #TODO: parameterise this
 def test_valid_release_positive():
     """Tests if is_valid_release returns True when a valid release date is passed."""
@@ -266,7 +261,6 @@ def test_valid_release_day_way_out_of_range():
     assert is_valid_release("10 Jan, 2001") is False
 
 
-# Tests for is_valid_image
 pos_image = ['https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786']
 @pytest.mark.parametrize("test_input", pos_image)
 def test_valid_image_positive(test_input):
@@ -309,89 +303,28 @@ def test_valid_age_negative(test_input):
 valid_games = [{'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}]
 
 
-# Define the list of required keys
-REQUIRED_KEYS = [
+@pytest.mark.parametrize("missing_key", [
     'title', 'genres', 'publisher', 'developer', 'tag',
     'platform_score', 'platform_price', 'platform_discount',
-    'release_date', 'game_image', 'age_rating', 'platform_score'
-]
-
-# Define a function that checks if all required keys are present
-def has_all_required_keys(game):
-    return all(key in game for key in REQUIRED_KEYS)
-
-# Sample test cases
-@pytest.mark.parametrize("game,expected", [
-    (
-        # Valid example
-        {'title': 'Hearts of Iron IV', 'genres': ['Strategy'], 'publisher': [],
-         'developer': [], 'tag': [], 'platform_score': '90', 'platform_price': '4199',
-         'platform_discount': None, 'release_date': '12 Feb, 2025',
-         'game_image': '<https://shared.cloudflare.steamstatic.com/...>', 'age_rating': '7'},
-        True
-    ),
-    (
-        # Missing a key
-        {'title': 'Hearts of Iron IV', 'genres': ['Strategy'], 'publisher': [],
-         'developer': [], 'tag': [], 'platform_score': '90', 'platform_price': '4199',
-         'platform_discount': None, 'release_date': '12 Feb, 2025', 'age_rating': '7'},
-        False
-    ),
-    (
-        # Extra key but still valid
-        {'title': 'Hearts of Iron IV', 'genres': ['Strategy'], 'publisher': [],
-         'developer': [], 'tag': [], 'platform_score': '90', 'platform_price': '4199',
-         'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': '<https://shared.cloudflare.steamstatic.com/...>',
-         'age_rating': '7', 'extra_key': 'some_value'},
-        True
-    ),
+    'release_date', 'game_image', 'age_rating'
 ])
-def test_valid_game_keys_present(game, expected):
-    assert has_all_required_keys(game) == expected
+def test_is_valid_data_with_missing_keys(missing_key):
+    # Base dictionary with all valid keys
+    valid_game = {'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}
+
+    # Remove one key to simulate the missing key scenario
+    invalid_game = valid_game.copy()
+    invalid_game.pop(missing_key)
+
+    # Assert that the function returns False when a key is missing
+    assert not is_valid_data(invalid_game)
 
 
-# Define a function that checks if all required keys are present
-def has_all_required_keys(game):
-    return all(key in game for key in REQUIRED_KEYS)
-
-# Valid complete game example
-VALID_GAME = {
-    'title': 'Hearts of Iron IV', 
-    'genres': ['Strategy'], 
-    'publisher': [],
-    'developer': [], 
-    'tag': [], 
-    'platform_score': '90', 
-    'platform_price': '4199',
-    'platform_discount': None, 
-    'release_date': '12 Feb, 2025', 
-    'game_image': '<https://shared.cloudflare.steamstatic.com/...>', 
-    'age_rating': '7'
-}
-
-# Test cases where each key is missing one at a time
-@pytest.mark.parametrize("game,expected", [
-    # Valid game (all keys present)
-    (VALID_GAME, True)
-] + [
-    # Create a test case for each missing key
-    (
-        {key: value for key, value in VALID_GAME.items() if key != missing_key},
-        False
-    )
-    for missing_key in REQUIRED_KEYS
-])
-def test_keys_present(game, expected):
-    assert has_all_required_keys(game) == expected
-
-
-# Format function tests would involve more thorough testing frameworks, such as using mocked data.
-# Here's an example for format_data:
 #TODO: parameterise this
 def test_format_data():
     """Tests format_data to ensure it returns correctly formatted data."""
     input_data = {'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}
-    expected_output = {'title': 'Hearts of Iron IV', 'genre': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'score': 90,'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'price': 4199, 'discount': None, 'release': datetime(2025, 2, 12, 0, 0), 'image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': '7'}
+    expected_output = {'title': 'Hearts of Iron IV', 'genres': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'platform_score': 90,'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'platform_price': 4199, 'platform_discount': None, 'release_date': datetime(2025, 2, 12, 0, 0), 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': '7'}
     assert format_data(input_data) == expected_output
 
 data = [(" ", ""), ("string   ", "string"), ("normal", "normal"), ("normal%20test", "normal test")]
