@@ -4,3 +4,4 @@ pytest
 rich
 selenium
 webdriver_manager
+logging
