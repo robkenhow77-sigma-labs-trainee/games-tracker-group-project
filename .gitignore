@@ -96,6 +96,9 @@ venv/
 workshops/kaggle/kaggle.json
 pipeline/data
 
+*.log
+
+
 # Terraform
 .terraform
 .terraform.lock.hcl

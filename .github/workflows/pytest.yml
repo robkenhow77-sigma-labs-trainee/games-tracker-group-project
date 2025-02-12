@@ -21,8 +21,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run pipeline tests
+      - name: Run Pytest if Tests Exist
         run: |
           cd pipeline
-          pip install -r requirements.txt
-          pytest . --maxfail=1
+          if find . -name "test_*.py" | grep .; then
+            echo "Test files found. Running pytest..."
+            pip install -r requirements.txt
+            pytest . --maxfail=1
+          else
+            echo "No test files found. Skipping pytest."
+          fi
