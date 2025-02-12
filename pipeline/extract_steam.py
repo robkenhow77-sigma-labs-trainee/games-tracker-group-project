@@ -186,7 +186,7 @@ def fetch_platform_price(soup: BeautifulSoup) -> str:
     if not price:
         game_purchase_price = soup.find(class_="game_purchase_price")
         if game_purchase_price and "Free To Play" in game_purchase_price.text:
-            price = "Free To Play"
+            price = "Free To Play!"
 
     if not price:
         discount_price = soup.find(class_="discount_original_price")
