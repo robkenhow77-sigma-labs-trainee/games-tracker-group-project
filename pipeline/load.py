@@ -48,7 +48,6 @@ def get_items_not_in_current(new: list[str], current: list[str]):
     return [word for word in new if word not in current]
 
 
-
 # Get devs, pubs, tags, genres and games for upload
 def get_items_for_upload(table: str, new_games: list[dict], conn: psycopg.Connection):
     """Gets all the new genres for uploading to the database"""
@@ -95,6 +94,15 @@ def get_game_assignments(conn: psycopg.Connection):
         return cur.fetchall()
 
 
+
+def make_game_platform_assignment_data(new_games: list[dict], conn: psycopg.Connection):
+    new_game_ids = get_new_item_ids('game', new_games, conn)
+    current_game_ids = make_id_mapping(get_ids('game', conn), 'game')
+    current_game_ids.update(new_game_ids)
+    latest_game_ids = current_game_ids
+    latest_game_ids
+
+
 if __name__ == "__main__":
     load_dotenv()
     conn_string = f"postgresql://{ENV['DB_USERNAME']}:{ENV["DB_PASSWORD"]}@{ENV["DB_HOST"]}:{ENV["DB_PORT"]}/{ENV["DB_NAME"]}"
@@ -109,11 +117,12 @@ if __name__ == "__main__":
         "publisher": "sigma"
         }]
 
-
-    new_game_ids = get_new_item_ids('game', new_games_example, connection)
-    current_game_ids = make_id_mapping(get_ids('game', connection))
-    print(current_game_ids)
     
-  
-  
+
+
+
+   
+
+
+
     connection.close()
