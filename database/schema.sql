@@ -20,7 +20,7 @@ CREATE TABLE "game"(
     "release_date" DATE NOT NULL,
     "game_image" VARCHAR(255) NOT NULL,
     "age_rating_id" SMALLINT NOT NULL,
-    "is_nfsw" BOOLEAN NOT NULL
+    "is_nsfw" BOOLEAN NOT NULL
 );
 
 CREATE TABLE "genre"(
