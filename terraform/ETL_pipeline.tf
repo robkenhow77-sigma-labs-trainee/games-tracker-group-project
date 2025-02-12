@@ -1,48 +1,48 @@
 # ECR definition for all three ETL pipelines
 
 data "aws_ecr_repository" "c15-play-stream-steam-etl-pipeline-ecr" {
-    name = "c15-play-stream-steam-etl-pipeline-ecr"
+    name        = "c15-play-stream-steam-etl-pipeline-ecr"
 }
 
 data "aws_ecr_image" "steam-latest-image" {
-  repository_name = data.aws_ecr_repository.c15-play-stream-steam-etl-pipeline-ecr.name
-  most_recent = true
+  repository_name         = data.aws_ecr_repository.c15-play-stream-steam-etl-pipeline-ecr.name
+  most_recent             = true
 }
 
 # ECR definition for the Epic ETL pipeline
 
 data "aws_ecr_repository" "c15-play-stream-epic-etl-pipeline-ecr" {
-    name = "c15-play-stream-epic-etl-pipeline-ecr"
+    name                  = "c15-play-stream-epic-etl-pipeline-ecr"
 }
 
 data "aws_ecr_image" "epic-latest-image" {
-  repository_name = data.aws_ecr_repository.c15-play-stream-epic-etl-pipeline-ecr.name
-  most_recent = true
+  repository_name         = data.aws_ecr_repository.c15-play-stream-epic-etl-pipeline-ecr.name
+  most_recent             = true
 }
 
 # ECR definition for the GOG ETL pipeline
 
 data "aws_ecr_repository" "c15-play-stream-gog-etl-pipeline-ecr" {
-    name = "c15-play-stream-gog-etl-pipeline-ecr"
+    name                  = "c15-play-stream-gog-etl-pipeline-ecr"
 }
 
 data "aws_ecr_image" "gog-latest-image" {
-  repository_name = data.aws_ecr_repository.c15-play-stream-gog-etl-pipeline-ecr.name
-  most_recent = true
+  repository_name         = data.aws_ecr_repository.c15-play-stream-gog-etl-pipeline-ecr.name
+  most_recent             = true
 }
 
 # IAM role for the Lambda Function
 
 resource "aws_iam_role" "lambda_task_role" {
-  name = "c15-play-stream-task-role"
+  name                    = "c15-play-stream-task-role"
 
   assume_role_policy = jsonencode({
-    Version = "2012-10-17",
+    Version               = "2012-10-17",
     Statement = [
       {
-        Action    = "sts:AssumeRole",
-        Principal = { Service = "lambda.amazonaws.com" },
-        Effect    = "Allow"
+        Action            = "sts:AssumeRole",
+        Principal         = { Service = "lambda.amazonaws.com" },
+        Effect            = "Allow"
       }
     ]
   })
@@ -51,7 +51,7 @@ resource "aws_iam_role" "lambda_task_role" {
 # IAM Policy to allow the Lambda to run the ECR and execute the image inside
 
 resource "aws_iam_policy" "etl-pipeline-lambda-iam-policy" {
-    name = "c15-play-stream-etl-pipeline-lambda-iam-policy"
+    name                  = "c15-play-stream-etl-pipeline-lambda-iam-policy"
     policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -70,18 +70,18 @@ resource "aws_iam_policy" "etl-pipeline-lambda-iam-policy" {
 
 # Policy attached to the Lambda Role
 resource "aws_iam_role_policy_attachment" "state_machine_iam_role_lambda" {
-  role       = aws_iam_role.lambda_task_role
-  policy_arn = aws_iam_policy.etl-pipeline-lambda-iam-policy.arn
+  role                    = aws_iam_role.lambda_task_role
+  policy_arn              = aws_iam_policy.etl-pipeline-lambda-iam-policy.arn
 }
 
 # Lambda Function for the Steam ETL pipeline
 
 resource "aws_lambda_function" "c15-play-stream-steam-etl-pipeline-lambda-function" {
-    function_name = "c15-play-stream-etl-pipeline-lambda-function"
-    package_type = "Image"
-    image_uri = data.aws_ecr_image.steam-latest-image.image_uri
-    memory_size = 128
-    timeout = 35
+    function_name         = "c15-play-stream-etl-pipeline-lambda-function"
+    package_type          = "Image"
+    image_uri             = data.aws_ecr_image.steam-latest-image.image_uri
+    memory_size           = 128
+    timeout               = 35
 
     environment {
         variables = {
@@ -92,17 +92,17 @@ resource "aws_lambda_function" "c15-play-stream-steam-etl-pipeline-lambda-functi
         DB_USER      = var.DB_USERNAME
         }
     }
-    role = aws_iam_role.lambda_task_role.arn
+    role                  = aws_iam_role.lambda_task_role.arn
 }
 
 # Lambda Function for the Epic ETL pipeline
 
 resource "aws_lambda_function" "c15-play-stream-epic-etl-pipeline-lambda-function" {
-    function_name = "c15-play-stream-epic-etl-pipeline-lambda-function"
-    package_type = "Image"
-    image_uri = data.aws_ecr_image.epic-latest-image.image_uri
-    memory_size = 128
-    timeout = 35
+    function_name         = "c15-play-stream-epic-etl-pipeline-lambda-function"
+    package_type          = "Image"
+    image_uri             = data.aws_ecr_image.epic-latest-image.image_uri
+    memory_size           = 128
+    timeout               = 35
 
     environment {
         variables = {
@@ -113,7 +113,7 @@ resource "aws_lambda_function" "c15-play-stream-epic-etl-pipeline-lambda-functio
         DB_USER      = var.DB_USERNAME
         }
     }
-    role = aws_iam_role.lambda_task_role.arn
+    role                  = aws_iam_role.lambda_task_role.arn
 }
 
 # Lambda Function for the GOG ETL pipeline
