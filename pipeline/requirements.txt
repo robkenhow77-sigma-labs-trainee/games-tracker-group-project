@@ -1,2 +1,8 @@
+requests
+beautifulsoup4
 pytest
+rich
+selenium
+webdriver_manager
+logging
 pylint
