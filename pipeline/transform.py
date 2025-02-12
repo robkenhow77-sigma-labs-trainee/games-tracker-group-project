@@ -5,13 +5,9 @@ from datetime import datetime, timedelta
 
 from requests import get
 
+DAYS_BEFORE_TODAY_THAT_WILL_BE_ACCEPTED = 0
+
 #TODO: ensure logger is imported and config-ed
-
-#TODO: write function that gets data from extract
-def get_data() -> list[dict]:
-    """Gets the data from extract."""
-    ...
-
 
 def clean_data(data: list[dict]) -> list[dict]:
     """Cleans the data extracted from the Steam scraper."""
@@ -67,8 +63,8 @@ def is_valid_genres(genres: list[str]) -> bool:
     """Returns true if genres are valid."""
 
     if not isinstance(genres, list):
-            logging.info("%s is not a valid genre, not a list", genre)
-            return False
+        logging.info("%s is not a valid genre, not a list", genres)
+        return False
 
     #genreless games are not okay
     if len(genres) == 0:
@@ -101,8 +97,8 @@ def is_valid_publisher(publishers: list[str]) -> bool:
     """Returns true if publishers are valid."""
 
     if not isinstance(publishers, list):
-            logging.info("%s is not a valid publisher, not a list", publishers)
-            return False
+        logging.info("%s is not a valid publisher, not a list", publishers)
+        return False
 
     #publisherless games are not okay
     if len(publishers) == 0:
@@ -125,7 +121,7 @@ def is_valid_publisher(publishers: list[str]) -> bool:
         if len(publisher) > 26:
             logging.info("%s is not a valid publisher, too long.", publisher)
             continue
-        
+
         valid_publishers.append(publisher)
 
     return len(valid_publishers) > 0
@@ -135,8 +131,8 @@ def is_valid_developer(developers: list[str]) -> bool:
     """Returns true if developers are valid."""
 
     if not isinstance(developers, list):
-            logging.info("%s is not a valid developers, not a list", developers)
-            return False
+        logging.info("%s is not a valid developers, not a list", developers)
+        return False
 
     #developerless games are not okay
     if len(developers) == 0:
@@ -160,7 +156,7 @@ def is_valid_developer(developers: list[str]) -> bool:
         if len(developer) > 26:
             logging.info("%s is not a valid developer, too long.", developer)
             continue
-    
+
         valid_developers.append(developer)
 
     return len(valid_developers) > 0
@@ -170,8 +166,8 @@ def is_valid_tag(tags: list[str]) -> bool:
     """Returns true if tags are valid."""
 
     if not isinstance(tags, list):
-            logging.info("%s is not a valid tag, not a list", tags)
-            return False
+        logging.info("%s is not a valid tag, not a list", tags)
+        return False
 
     #tagless games are not okay
     if len(tags) == 0:
@@ -260,19 +256,20 @@ def is_valid_discount(discount: int) -> bool:
     return True
 
 
-def is_valid_release(release: str, days_before_today_allowed=0) -> bool:
+def is_valid_release(release: str,
+                     days_before_today_allowed=DAYS_BEFORE_TODAY_THAT_WILL_BE_ACCEPTED) -> bool:
     """Returns true if release is valid."""
 
     try:
         datetime_release = datetime.strptime(release, "%d %b, %Y")
     except Exception as e:
         logging.info("""%s is not in the valid release form.
-                                %s""", (release,e))
+                                %s""", release, e)
         return False
 
     earliest_allowed_date = datetime.now().date() - timedelta(days=days_before_today_allowed)
 
-    if not (earliest_allowed_date <= datetime_release.date() <= datetime.now().date()):
+    if not earliest_allowed_date <= datetime_release.date() <= datetime.now().date():
         logging.info("%s is not within the allowed release date range.", release)
         return False
 
@@ -395,8 +392,8 @@ def format_genre_list(values: list[str]) -> list[str]:
     formatted_list = []
 
     for value in values:
-           if isinstance(value, str) and is_valid_genres([value]):
-               formatted_list.append(format_string(value))
+        if isinstance(value, str) and is_valid_genres([value]):
+            formatted_list.append(format_string(value))
 
     return formatted_list
 
@@ -410,8 +407,8 @@ def format_developer_list(values: list[str]) -> list[str]:
     formatted_list = []
 
     for value in values:
-           if isinstance(value, str) and is_valid_developer([value]):
-               formatted_list.append(format_string(value))
+        if isinstance(value, str) and is_valid_developer([value]):
+            formatted_list.append(format_string(value))
 
     return formatted_list
 
@@ -425,8 +422,8 @@ def format_publisher_list(values: list[str]) -> list[str]:
     formatted_list = []
 
     for value in values:
-           if isinstance(value, str) and is_valid_publisher([value]):
-               formatted_list.append(format_string(value))
+        if isinstance(value, str) and is_valid_publisher([value]):
+            formatted_list.append(format_string(value))
 
     return formatted_list
 
@@ -440,8 +437,8 @@ def format_tag_list(values: list[str]) -> list[str]:
     formatted_list = []
 
     for value in values:
-           if isinstance(value, str) and is_valid_tag([value]):
-               formatted_list.append(format_string(value))
+        if isinstance(value, str) and is_valid_tag([value]):
+            formatted_list.append(format_string(value))
 
     return formatted_list
 
@@ -496,21 +493,3 @@ if __name__ == "__main__":
                     'age_rating': '7'}]
 
     print(clean_data(test_input))
-
-    valid_games = [{'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': '12 Feb, 2025', 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}]
-
-    valid_game = valid_games[0]
-
-    list_of_games_missing_value = [
-    {key:(False if (key == changing_key and changing_key not in ['title', 'genre', 'price', 'platform']) else value)
-    for key, value in valid_game.items()} for changing_key in valid_game]
-
-    # Generate a list of games but how it should look after formatting.
-    list_of_games_missing_value_formatted = [
-    {key:(None if (key == changing_key and changing_key not in ['title', 'genre', 'price', 'platform']) else value)
-    for key, value in valid_game.items()} for changing_key in valid_game]
-
-    print("\n\n\n")
-    print(list_of_games_missing_value)
-    print("\n\n\n")
-    print(list_of_games_missing_value_formatted)

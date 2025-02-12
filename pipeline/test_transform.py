@@ -12,7 +12,6 @@ from transform import (get_data, is_valid_data, is_valid_title, is_valid_genres,
                        format_publisher_list, format_tag_list)
 
 #TODO: rewrite tests that will fail due to it not being today.
-#TODO: write tests for string fail where the text is too long
 string_validation_fail_test = [123, True, datetime.now(), -2.99, None, "", " "]
 string_validation_succeed_test= ["A correct string", "Testing. punctuation!", "numbers 123", "adding", "more", 'for', "zip"]
 
