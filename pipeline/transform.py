@@ -1,12 +1,10 @@
 """Script containing all functions pertaining to cleaning the data before insertion."""
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from requests import get
 
-#TODO: add age formatting and validation to this
-#TODO: add ability to insert data from previous days with timedelta
 #TODO: ensure logger is imported and config-ed
 
 #TODO: write function that gets data from extract
@@ -38,7 +36,7 @@ def is_valid_data(game: dict) -> bool:
     missing_keys = [key for key in expected_keys if key not in game.keys()]
 
     if missing_keys:
-        logging.error("game is not a valid entry, missing keys: %s", missing_keys)
+        logging.info("game is not a valid entry, missing keys: %s", missing_keys)
         return False
 
     return (is_valid_title(game['title']) and is_valid_genres(game['genres']) and
@@ -49,17 +47,17 @@ def is_valid_title(title: str) -> bool:
     """Returns true if title is valid."""
 
     if not isinstance(title, str):
-        logging.error("%s is not a valid title, not a string", title)
+        logging.info("%s is not a valid title, not a string", title)
         return False
 
     title = title.strip()
 
     if len(title) > 101:
-        logging.error("%s is not a valid title, too long", title)
+        logging.info("%s is not a valid title, too long", title)
         return False
 
     if len(title) == 0:
-        logging.error("%s is not a valid title, empty title", title)
+        logging.info("%s is not a valid title, empty title", title)
         return False
 
     return True
@@ -69,7 +67,7 @@ def is_valid_genres(genres: list[str]) -> bool:
     """Returns true if genres are valid."""
 
     if not isinstance(genres, list):
-            logging.error("%s is not a valid genre, not a list", genre)
+            logging.info("%s is not a valid genre, not a list", genre)
             return False
 
     #genreless games are not okay
@@ -80,34 +78,30 @@ def is_valid_genres(genres: list[str]) -> bool:
 
     for genre in genres:
 
-        valid = True
-
         if not isinstance(genre, str):
-            logging.error("%s is not a valid genre, not a string", genre)
-            valid = False
+            logging.info("%s is not a valid genre, not a string", genre)
+            continue
 
-        if valid:
-            genre = genre.strip()
+        genre = genre.strip()
 
-        if valid and len(genre) > 31:
-            logging.error("%s is not a valid genre, too long.", genre)
-            valid = False
+        if len(genre) > 31:
+            logging.info("%s is not a valid genre, too long.", genre)
+            continue
 
-        if valid and len(genre) == 0:
-            logging.error("%s is not a valid genre, cannot be empty.", genre)
-            valid = False
+        if len(genre) == 0:
+            logging.info("%s is not a valid genre, cannot be empty.", genre)
+            continue
 
-        if valid:
-            valid_genres.append(genre)
+        valid_genres.append(genre)
 
     return len(valid_genres) > 0
 
-#TODO: write tests that pass even if one in list fails but not others
+
 def is_valid_publisher(publishers: list[str]) -> bool:
     """Returns true if publishers are valid."""
 
     if not isinstance(publishers, list):
-            logging.error("%s is not a valid publisher, not a list", publishers)
+            logging.info("%s is not a valid publisher, not a list", publishers)
             return False
 
     #publisherless games are not okay
@@ -118,25 +112,21 @@ def is_valid_publisher(publishers: list[str]) -> bool:
 
     for publisher in publishers:
 
-        valid = True
-
         if not isinstance(publisher, str):
-            logging.error("%s is not a valid publisher, not a string", publisher)
-            valid = False
+            logging.info("%s is not a valid publisher, not a string", publisher)
+            continue
 
-        if valid:
-            publisher = publisher.strip()
+        publisher = publisher.strip()
 
-        if len(publisher) == 0 and valid:
-            logging.error("%s is not a valid publisher, cannot be empty", publisher)
-            valid = False
+        if len(publisher) == 0:
+            logging.info("%s is not a valid publisher, cannot be empty", publisher)
+            continue
 
-        if len(publisher) > 26 and valid:
-            logging.error("%s is not a valid publisher, too long.", publisher)
-            valid = False
+        if len(publisher) > 26:
+            logging.info("%s is not a valid publisher, too long.", publisher)
+            continue
         
-        if valid:
-            valid_publishers.append(publisher)
+        valid_publishers.append(publisher)
 
     return len(valid_publishers) > 0
 
@@ -145,7 +135,7 @@ def is_valid_developer(developers: list[str]) -> bool:
     """Returns true if developers are valid."""
 
     if not isinstance(developers, list):
-            logging.error("%s is not a valid developers, not a list", developers)
+            logging.info("%s is not a valid developers, not a list", developers)
             return False
 
     #developerless games are not okay
@@ -156,25 +146,22 @@ def is_valid_developer(developers: list[str]) -> bool:
 
     for developer in developers:
 
-        valid = True
 
         if not isinstance(developer, str):
-            logging.error("%s is not a valid developer, not a string", developer)
-            valid = False
+            logging.info("%s is not a valid developer, not a string", developer)
+            continue
 
-        if valid:
-            developer = developer.strip()
+        developer = developer.strip()
 
-        if valid and len(developer) == 0:
-            logging.error("%s is not a valid developer, cannot be empty", developer)
-            valid = False
+        if len(developer) == 0:
+            logging.info("%s is not a valid developer, cannot be empty", developer)
+            continue
 
-        if valid and len(developer) > 26:
-            logging.error("%s is not a valid developer, too long.", developer)
-            valid = False
+        if len(developer) > 26:
+            logging.info("%s is not a valid developer, too long.", developer)
+            continue
     
-        if valid:
-            valid_developers.append(developer)
+        valid_developers.append(developer)
 
     return len(valid_developers) > 0
 
@@ -183,7 +170,7 @@ def is_valid_tag(tags: list[str]) -> bool:
     """Returns true if tags are valid."""
 
     if not isinstance(tags, list):
-            logging.error("%s is not a valid tag, not a list", tags)
+            logging.info("%s is not a valid tag, not a list", tags)
             return False
 
     #tagless games are not okay
@@ -194,25 +181,21 @@ def is_valid_tag(tags: list[str]) -> bool:
 
     for tag in tags:
 
-        valid = True
-
         if not isinstance(tag, str):
-            logging.error("%s is not a valid tag, not a string", tag)
-            valid = False
+            logging.info("%s is not a valid tag, not a string", tag)
+            continue
 
-        if valid:
-            tag = tag.strip()
+        tag = tag.strip()
 
-        if valid and len(tag) == 0:
-            logging.error("%s is not a valid tag, cannot be empty", tag)
-            valid = False
+        if len(tag) == 0:
+            logging.info("%s is not a valid tag, cannot be empty", tag)
+            continue
 
-        if valid and len(tag) > 26:
-            logging.error("%s is not a valid tag, too long.", tag)
-            valid = False
-        
-        if valid:
-            valid_tags.append(tag)
+        if len(tag) > 26:
+            logging.info("%s is not a valid tag, too long.", tag)
+            continue
+
+        valid_tags.append(tag)
 
     return len(valid_tags) > 0
 
@@ -221,17 +204,17 @@ def is_valid_score(score: str) -> bool:
     """Returns true if score is valid."""
 
     if not isinstance(score, str):
-        logging.error("%s is not a valid score, not a string", score)
+        logging.info("%s is not a valid score, not a string", score)
         return False
 
     score = score.strip()
 
     if not score.isnumeric():
-        logging.error("%s is not a valid score, not an integer.", score)
+        logging.info("%s is not a valid score, not an integer.", score)
         return False
 
     if not 0 <= int(score) <= 100:
-        logging.error("%s is not a valid score, not between 0 and 100.", score)
+        logging.info("%s is not a valid score, not between 0 and 100.", score)
         return False
 
     return True
@@ -241,13 +224,13 @@ def is_valid_price(price: int) -> bool:
     """Returns true if price is valid."""
 
     if not isinstance(price, str):
-        logging.error("%s is not a valid price, not a string", price)
+        logging.info("%s is not a valid price, not a string", price)
         return False
 
     price = price.strip()
 
     if not price.isnumeric():
-        logging.error("%s is not a valid price, not numeric.", price)
+        logging.info("%s is not a valid price, not numeric.", price)
         return False
 
     return True
@@ -261,17 +244,17 @@ def is_valid_discount(discount: int) -> bool:
         return True
 
     if not isinstance(discount, str):
-        logging.error("%s is not a valid discount, not a string", discount)
+        logging.info("%s is not a valid discount, not a string", discount)
         return False
 
     discount = discount.strip()
 
     if not discount.isnumeric():
-        logging.error("%s is not a valid price, not numeric.", discount)
+        logging.info("%s is not a valid price, not numeric.", discount)
         return False
 
     if not 0 <= int(discount) <= 100:
-        logging.error("%s is not a valid discount, not between 0 and 100.", discount)
+        logging.info("%s is not a valid discount, not between 0 and 100.", discount)
         return False
 
     return True
@@ -282,14 +265,15 @@ def is_valid_release(release: str, days_before_today_allowed=0) -> bool:
 
     try:
         datetime_release = datetime.strptime(release, "%d %b, %Y")
-    except ValueError:
-        logging.error("%s is not in the valid release form.", release)
+    except Exception as e:
+        logging.info("""%s is not in the valid release form.
+                                %s""", (release,e))
         return False
 
-    earliest_allowed_date = datetime.now().date() - datetime.timedelta(days=days_before_today_allowed)
+    earliest_allowed_date = datetime.now().date() - timedelta(days=days_before_today_allowed)
 
     if not (earliest_allowed_date <= datetime_release.date() <= datetime.now().date()):
-        logging.error("%s is not within the allowed release date range.", release)
+        logging.info("%s is not within the allowed release date range.", release)
         return False
 
     return True
@@ -299,28 +283,28 @@ def is_valid_image(image: str) -> bool:
     """Returns true if image is valid."""
 
     if not isinstance(image, str):
-        logging.error("%s is not a valid image, not a string", image)
+        logging.info("%s is not a valid image, not a string", image)
         return False
 
     image = image.strip()
 
     if len(image) > 256:
-        logging.error("%s is not a valid image, url too long", image)
+        logging.info("%s is not a valid image, url too long", image)
         return False
 
     if len(image) == 0:
-        logging.error("%s is not a valid image, empty string", image)
+        logging.info("%s is not a valid image, empty string", image)
         return False
 
     try:
         response = get(image, timeout=5)
     except Exception as e:
-        logging.error("""%s is not a valid image, not loading properly.
+        logging.info("""%s is not a valid image, not loading properly.
                         Error: %s""", image, e)
         return False
 
     if not response.status_code == 200:
-        logging.error("%s is not a valid image, not loading properly.", image)
+        logging.info("%s is not a valid image, not loading properly.", image)
         return False
 
     return True
@@ -333,13 +317,13 @@ def is_valid_age(age: str) -> bool:
         return True
 
     if not isinstance(age, str):
-        logging.error("%s is not a valid age rating, not a string", age)
+        logging.info("%s is not a valid age rating, not a string", age)
         return False
 
     age = age.strip()
 
     if age not in ['3', '7', '12', '16', '18']:
-        logging.error("%s is not a valid age rating, not a standard PEGI age", age)
+        logging.info("%s is not a valid age rating, not a standard PEGI age", age)
         return False
 
     return True
@@ -357,7 +341,6 @@ def format_data(game: dict) -> bool:
     formatted_data['platform'] = "Steam"
 
     # Optional data formatting
-    # TODO: NEED TO WRITE A TEST SUITE FOR THIS ARRRRGJSIGJDOIGJAOIFJGOLEIRAHP
     if is_valid_publisher(game['publisher']):
         formatted_data['publisher'] = format_publisher_list(game['publisher'])
     else:
@@ -377,7 +360,7 @@ def format_data(game: dict) -> bool:
     if is_valid_discount(game['platform_discount']):
         formatted_data['platform_discount'] = format_integer(game['platform_discount'])
     else:
-        formatted_data['discount'] = None
+        formatted_data['platform_discount'] = None
     if is_valid_release(game['release_date']):
         formatted_data['release_date'] = format_release(game['release_date'])
     else:
