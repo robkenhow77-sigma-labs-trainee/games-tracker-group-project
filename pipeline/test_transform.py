@@ -6,9 +6,7 @@ import pytest
 
 from transform import (get_data, is_valid_data, is_valid_title, is_valid_genres, is_valid_publisher,
                        is_valid_developer, is_valid_tag, is_valid_score, is_valid_price, is_valid_discount,
-                       is_valid_release, is_valid_image, format_data, format_title, format_genres,
-                       format_publisher, format_developer, format_tag, format_score, format_price,
-                       format_discount, format_release, format_image)
+                       is_valid_release, is_valid_image, format_data, format_release)
 
 
 #TODO: write tests for string fail where the text is too long
@@ -29,6 +27,16 @@ def test_valid_title_negative(test_input):
     assert is_valid_title(test_input) is False
 
 
+def test_valid_title_too_long():
+    """Tests if is_valid_title returns False when invalid data is passed."""
+    assert is_valid_title("""
+    [[ ]] The story goes like this: Earth is captured by a technocapital singularity as renaissance
+    rationalitization and oceanic navigation lock into commoditization take-off.
+    Logistically accelerating techno-economic interactivity crumbles social order in
+    auto-sophisticating machine runaway. As markets learn to manufacture intelligence,
+    politics modernizes, upgrades paranoia, and tries to get a grip.
+    """) is False
+
 # Tests for is_valid_genres
 @pytest.mark.parametrize("test_input", string_validation_succeed_test)
 def test_valid_genres_positive(test_input):
@@ -48,15 +56,26 @@ def test_valid_genres_negative(test_input):
     assert is_valid_genres([test_input]) is False
 
 
+def test_valid_genres_too_long():
+    """Tests if is_valid_genres returns False when invalid genres are passed."""
+    assert is_valid_genres(["""
+    [[ ]] The story goes like this: Earth is captured by a technocapital singularity as renaissance
+    rationalitization and oceanic navigation lock into commoditization take-off.
+    Logistically accelerating techno-economic interactivity crumbles social order in
+    auto-sophisticating machine runaway. As markets learn to manufacture intelligence,
+    politics modernizes, upgrades paranoia, and tries to get a grip.
+    """]) is False
+
+
 @pytest.mark.parametrize("test_input", string_validation_fail_test)
 def test_valid_genres_as_list_negative(test_input):
     """Tests if is_valid_genres returns False when valid genres are passed."""
     assert is_valid_genres([test_input, test_input]) is False
 
 
-def test_valid_genres_negative_empty_array():
+def test_valid_genres_positive_empty_array():
     """Tests if is_valid_genres returns False when invalid genres are passed."""
-    assert is_valid_genres([]) is False
+    assert is_valid_genres([]) is True
 
 
 # Tests for is_valid_publisher
@@ -78,15 +97,26 @@ def test_valid_publisher_negative(test_input):
     assert is_valid_publisher([test_input]) is False
 
 
+def test_valid_publisher_too_long():
+    """Tests if is_valid_publisher returns False when an invalid publisher is passed."""
+    assert is_valid_publisher(["""
+    [[ ]] The story goes like this: Earth is captured by a technocapital singularity as renaissance
+    rationalitization and oceanic navigation lock into commoditization take-off.
+    Logistically accelerating techno-economic interactivity crumbles social order in
+    auto-sophisticating machine runaway. As markets learn to manufacture intelligence,
+    politics modernizes, upgrades paranoia, and tries to get a grip.
+    """]) is False
+
+
 @pytest.mark.parametrize("test_input", string_validation_fail_test)
 def test_valid_publisher_as_list_negative(test_input):
     """Tests if is_valid_publisher returns False when an invalid publisher is passed."""
     assert is_valid_publisher([test_input, test_input]) is False
 
 
-def test_valid_publishers_negative_empty_array():
+def test_valid_publishers_positive_empty_array():
     """Tests if is_valid_genres returns False when invalid genres are passed."""
-    assert is_valid_publisher([]) is False
+    assert is_valid_publisher([]) is True
 
 
 # Tests for is_valid_developer
@@ -108,15 +138,26 @@ def test_valid_developer_negative(test_input):
     assert is_valid_developer([test_input]) is False
 
 
+def test_valid_developer_too_long():
+    """Tests if is_valid_developer returns False when an invalid developer is passed."""
+    assert is_valid_developer(["""
+    [[ ]] The story goes like this: Earth is captured by a technocapital singularity as renaissance
+    rationalitization and oceanic navigation lock into commoditization take-off.
+    Logistically accelerating techno-economic interactivity crumbles social order in
+    auto-sophisticating machine runaway. As markets learn to manufacture intelligence,
+    politics modernizes, upgrades paranoia, and tries to get a grip.
+    """]) is False
+
+
 @pytest.mark.parametrize("test_input", string_validation_fail_test)
 def test_valid_developer_as_list_negative(test_input):
     """Tests if is_valid_developer returns False when an invalid developer is passed."""
     assert is_valid_developer([test_input, test_input]) is False
 
 
-def test_valid_developer_negative_empty_array():
+def test_valid_developer_positive_empty_array():
     """Tests if is_valid_genres returns False when invalid genres are passed."""
-    assert is_valid_developer([]) is False
+    assert is_valid_developer([]) is True
 
 
 # Tests for is_valid_tag
@@ -138,35 +179,55 @@ def test_valid_tag_negative(test_input):
     assert is_valid_tag([test_input]) is False
 
 
+def test_valid_tag_too_long():
+    """Tests if is_valid_tag returns False when invalid tags are passed."""
+    assert is_valid_tag(["""
+    [[ ]] The story goes like this: Earth is captured by a technocapital singularity as renaissance
+    rationalitization and oceanic navigation lock into commoditization take-off.
+    Logistically accelerating techno-economic interactivity crumbles social order in
+    auto-sophisticating machine runaway. As markets learn to manufacture intelligence,
+    politics modernizes, upgrades paranoia, and tries to get a grip.
+    """]) is False
+
+
 @pytest.mark.parametrize("test_input", string_validation_fail_test)
 def test_valid_tag_as_list_negative(test_input):
     """Tests if is_valid_tag returns False when invalid tags are passed."""
     assert is_valid_tag([test_input, test_input]) is False
 
 
+def test_valid_tag_positive_empty_array():
+    """Tests if is_valid_genres returns False when invalid genres are passed."""
+    assert is_valid_tag([]) is True
+
+
 # Tests for is_valid_score
-#TODO: parameterise this
-def test_valid_score_positive():
+pos_score = ['0', '100', '55']
+@pytest.mark.parametrize("test_input", pos_score)
+def test_valid_score_positive(test_input):
     """Tests if is_valid_score returns True when a valid score is passed."""
-    assert is_valid_score('80') is True
+    assert is_valid_score(test_input) is True
 
-#TODO: parameterise this
-def test_valid_score_negative():
+
+neg_score = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10"]
+@pytest.mark.parametrize("test_input", pos_score)
+def test_valid_score_negative(test_input):
     """Tests if is_valid_score returns False when an invalid score is passed."""
-    assert is_valid_score(-10) is False
-    assert is_valid_score("Not a Number") is False
+    assert is_valid_score(test_input) is False
 
-#TODO: parameterise this
-# Tests for is_valid_price
-def test_valid_price_positive():
+#TODO: add free option
+pos_price = ['10', '100', '5500']
+@pytest.mark.parametrize("test_input", pos_price)
+def test_valid_price_positive(test_input):
     """Tests if is_valid_price returns True when a valid price is passed."""
-    assert is_valid_price("3000") is True
+    assert is_valid_price(test_input) is True
 
-#TODO: parameterise this
-def test_valid_price_negative():
+
+neg_price = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10"]
+@pytest.mark.parametrize("test_input", neg_price)
+def test_valid_price_negative(test_input):
     """Tests if is_valid_price returns False when an invalid price is passed."""
-    assert is_valid_price(1.99) is False
-    assert is_valid_price("Free") is False
+    assert is_valid_price(test_input) is False
 
 #TODO: parameterise this
 # Tests for is_valid_discount
