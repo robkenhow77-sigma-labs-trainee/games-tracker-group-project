@@ -97,7 +97,11 @@ def pub_or_dev_game_assignment(game_ids: dict, pub_or_dev_ids: dict) -> list[tup
 
 # Game_platform_assignment
 # Check if the game exists on all 3 platforms
-def get_game_assignments(conn: psycopg.Connection):
+def make_current_assignment_tuples(current_assignments: list[dict], dev_or_pub_or_platform: str):
+    return [(game["game_id"], game[dev_or_pub_or_platform]) for game in current_assignments]
+
+
+def get_game_platform_assignment_counts(conn: psycopg.Connection):
     """Gets the game assignment table"""
     query = """
         SELECT game_id, COUNT(platform_id) 
@@ -107,14 +111,6 @@ def get_game_assignments(conn: psycopg.Connection):
     with conn.cursor() as cur:
         cur.execute(query)
         return cur.fetchall()
-
-
-def make_game_platform_assignment_data(new_games: list[dict], conn: psycopg.Connection):
-    new_game_ids = get_new_item_ids('game', new_games, conn)
-    current_game_ids = make_id_mapping(get_ids('game', conn), 'game')
-    current_game_ids.update(new_game_ids)
-    latest_game_ids = current_game_ids
-    latest_game_ids
 
 
 if __name__ == "__main__":
@@ -132,7 +128,11 @@ if __name__ == "__main__":
         "release_date": datetime.now(),
         "game_image": "random",
         "is_nsfw": True,
-        "age_rating_id": 18
+        "age_rating_id": 18,
+        "platform": "Steam",
+        "score": 90,
+        "price": 20000,
+        "discount": 99
         },
         {
         "game_name": "rocket league",
@@ -143,7 +143,11 @@ if __name__ == "__main__":
         "release_date": datetime.now(),
         "game_image": "random",
         "is_nsfw": True,
-        "age_rating_id": 18
+        "age_rating_id": 18,
+        "platform": "GOG",
+        "score": 10,
+        "price": 20,
+        "discount": 0
         }]
 
     # Data to be loaded from db
@@ -167,11 +171,11 @@ if __name__ == "__main__":
     new_games = format_games_for_upload(new_games)
 
     # Upload tables and return values
-    new_game_titles_and_ids = make_id_mapping(lf.execute_and_return_games(new_games, connection), 'game')
-    new_tags_and_ids = make_id_mapping(lf.execute_and_return_tags(new_tags, connection), 'tag')
-    new_devs_and_ids = make_id_mapping(lf.execute_and_return_devs(new_devs, connection), 'developer')
-    new_pubs_and_ids = make_id_mapping(lf.execute_and_return_pubs(new_pubs, connection), 'publisher')
-    new_genres_and_ids = make_id_mapping(lf.execute_and_return_genres(new_genres, connection), 'genre')
+    new_game_titles_and_ids = make_id_mapping(lf.upload_and_return_games(new_games, connection), 'game')
+    new_tags_and_ids = make_id_mapping(lf.upload_and_return_tags(new_tags, connection), 'tag')
+    new_devs_and_ids = make_id_mapping(lf.upload_and_return_devs(new_devs, connection), 'developer')
+    new_pubs_and_ids = make_id_mapping(lf.upload_and_return_pubs(new_pubs, connection), 'publisher')
+    new_genres_and_ids = make_id_mapping(lf.upload_and_return_genres(new_genres, connection), 'genre')
 
 
     # Update names and ids with the new ones
@@ -183,22 +187,37 @@ if __name__ == "__main__":
 
 
     # Update game_publisher_assignment, game_developer_assignment
-    game_dev_assignments = lf.assign_developers(new_games_example, game_titles_and_ids, devs_and_ids) #### NEED TO CHECK FOR DUPLIACTES
-    game_pub_assignments = lf.assign_publishers(new_games_example, game_titles_and_ids, pubs_and_ids)
+    current_game_developer_assignments = lf.get_developer_game_assignments(connection)
+    current_game_publisher_assignments = lf.get_publisher_game_assignments(connection)
+    current_game_dev_tuples = make_current_assignment_tuples(current_game_developer_assignments, 'developer_id')
+    current_game_pub_tuples = make_current_assignment_tuples(current_game_publisher_assignments, 'publisher_id')
+
+    game_dev_assignments = lf.assign_developers(new_games_example, game_titles_and_ids, devs_and_ids, current_game_dev_tuples)
+    game_pub_assignments = lf.assign_publishers(new_games_example, game_titles_and_ids, pubs_and_ids, current_game_pub_tuples)
 
     lf.upload_developer_assignment(game_dev_assignments, connection)
     lf.upload_publisher_assignment(game_pub_assignments, connection)
 
-    # Get new tags, games, publishers, developers and genres
-    devs = get_items_for_upload('developer', new_games_example, devs_and_ids)
-
-   
-
-    # # Get the game platform assignments
-    # game_platform_assignments = lf.get_game_platform_assignments(connection)
+    # Game_platform assignment
+    current_game_platform_assignments = lf.get_game_platform_assignments(connection)
+    platform_mapping = make_id_mapping(lf.get_platform_mapping(connection), 'platform')
+    current_game_platform_tuples = make_current_assignment_tuples(current_game_platform_assignments, 'platform_id')
+    game_platform_tuples = lf.assign_game_platform(new_games_example, game_titles_and_ids, platform_mapping, current_game_platform_tuples)    
+    new_game_platform_assignments = lf.upload_and_return_game_platform_assignment(game_platform_tuples, connection)
     
-    #  # Get any games on all platforms
-    # game_ids_on_all_platforms = get_games_if_on_all_platforms(game_platform_assignments)
+    current_game_platform_assignments =  {row['platform_assignment_id']: row['game_id'] for row in current_game_platform_assignments}
+    new_game_platform_assignments =  {row['platform_assignment_id']: row['game_id'] for row in new_game_platform_assignments}
+    current_game_platform_assignments.update(new_game_platform_assignments)
+
+    # Game_genre_platform_assignment & tag_game_platform_assignment
+    # Get current tables
+    # get mapping for genre_name: genre_id anf tag_name: tag_id
+    # make current tuples
+    # make proposed tuples
+    # upload if nto in proposed
+
+
+    # NEED TO MAP AGE!!!
 
 
     connection.close()
