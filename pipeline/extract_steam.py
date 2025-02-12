@@ -298,7 +298,5 @@ def steam_handler(event, context):
     data = scrape_newest(url, scroll_to_date)
     return f"Completed {len(data)} entries"
 
-
-
 if __name__ == "__main__":
     steam_handler(None, None)
