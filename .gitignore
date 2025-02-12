@@ -95,3 +95,4 @@ venv/
 
 workshops/kaggle/kaggle.json
 pipeline/data
+*.log
