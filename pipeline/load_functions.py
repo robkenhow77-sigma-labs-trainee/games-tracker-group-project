@@ -93,7 +93,7 @@ def execute_and_return_pubs(pubs: list[tuple], conn: psycopg.Connection):
         return ids
 
 
-def execute_and_return_genre(genre: list[tuple], conn: psycopg.Connection):
+def execute_and_return_genres(genre: list[tuple], conn: psycopg.Connection):
     """Loads values and returns"""
     with conn.cursor() as cur:
         cur.executemany("""INSERT INTO genre (genre_name) 
@@ -121,3 +121,20 @@ def execute_and_return_tags(tags: list[tuple], conn: psycopg.Connection):
         return ids
 
 
+def get_game_platform_assignments(conn: psycopg.Connection):
+    sql = """
+    SELECT game_id, platform_id
+    FROM game_platform_assignment
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        return cur.fetchall()
+
+
+# Dev_assignment, pub_assignment
+# def get_new_item_ids(table: str, new_games: list[dict], conn: psycopg.Connection, get_ids):
+#     """Gets the ids that the items will have when they get uploaded to the database"""
+#     items_for_upload = get_items_for_upload(table, new_games, conn)
+#     ids = get_ids(table, conn)
+#     max_id = max([game[f"{table}_id"] for game in ids])
+#     return assign_new_ids(items_for_upload, max_id)
