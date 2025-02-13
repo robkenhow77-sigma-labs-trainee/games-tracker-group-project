@@ -46,25 +46,26 @@ def scrape_newest(url: str) -> list[dict]:
     return page_data_list
 
 
-def fetch_title(soup):
+def fetch_title(soup) -> str:
+    """Gets the title of the game"""
     return soup.find(class_='productcard-basics__title').text.strip()
 
 
-def fetch_genres(soup: BeautifulSoup):
+def fetch_genres(soup: BeautifulSoup) -> list[str]:
     """Gets the genres of the page"""
     genres_div = soup.find("div", class_="details__content table__row-content")
     genres = [a.text.strip() for a in genres_div.find_all("a")]
     return genres
 
 
-def fetch_publisher(soup: BeautifulSoup):
+def fetch_publisher(soup: BeautifulSoup) -> list[str]:
     """Extracts the publisher"""
     links = soup.find_all("a", href=True)
     publishers = [link.text.strip() for link in links if re.search(r'publisher',link.get("href", ""))]
     return publishers
 
 
-def fetch_developer(soup: BeautifulSoup):
+def fetch_developer(soup: BeautifulSoup) -> list[str]:
     """Extracts the developer"""
     links = soup.find_all("a", href=True)
     developers = [link.text.strip() for link in links if re.search(
@@ -72,23 +73,23 @@ def fetch_developer(soup: BeautifulSoup):
     return developers
 
 
-def fetch_tags(soup: BeautifulSoup):
+def fetch_tags(soup: BeautifulSoup) -> list[str]:
     """Extracts the tags"""
     tags = soup.find_all(class_='details__link details__link--tag')
     return [tag.text for tag in tags]
 
 
-def fetch_platform_score(soup):
+def fetch_platform_score(soup: BeautifulSoup) -> str:
     """Gets the review score of the game"""
     return soup.find(class_='average-item__value').text
 
 
-def fetch_platform_price(soup: BeautifulSoup):
+def fetch_platform_price(soup: BeautifulSoup) -> str:
     """Gets the price of the game on the platform"""
     return soup.find(class_='product-actions-price__base-amount').text
 
 
-def fetch_platform_discount(soup: BeautifulSoup):
+def fetch_platform_discount(soup: BeautifulSoup) -> str:
     """fetches the platform discount"""
     discounted_price = soup.find(
         "span", class_="product-actions-price__discount")
@@ -99,7 +100,7 @@ def fetch_platform_discount(soup: BeautifulSoup):
     return None
 
 
-def fetch_release_date(soup: BeautifulSoup):
+def fetch_release_date(soup: BeautifulSoup) -> str:
     """Extracts the release date from the product details section."""
     script_tag = soup.find("script", type="application/ld+json")
     if script_tag:
@@ -108,7 +109,7 @@ def fetch_release_date(soup: BeautifulSoup):
         return release_date if release_date else None
 
 
-def fetch_game_image(soup: BeautifulSoup):
+def fetch_game_image(soup: BeautifulSoup) -> str:
     """Gets the game images"""
     image = soup.find(class_='productcard-player__logo').get('srcset')
     if not image:
@@ -116,7 +117,7 @@ def fetch_game_image(soup: BeautifulSoup):
     return image if image else None
 
 
-def fetch_age_rating(soup: BeautifulSoup):
+def fetch_age_rating(soup: BeautifulSoup) -> str:
     """Gets the age rating from the age restriction class"""
     age_div = soup.find(class_='age-restrictions')
 
