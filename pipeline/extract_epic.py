@@ -91,7 +91,7 @@ if __name__ == "__main__":
             print(f"Developer: {game['developerDisplayName']}")
             print(f"Publisher: {game['publisherDisplayName']}")
             print(f"Seller: {game['seller']['name']}")
-            print(f'Current Price: {game['currentPrice']}')
+            print(f"Current Price: {game['currentPrice']}")
 
             print("\nPrice Details:")
             price_info = game.get("price", {}).get("totalPrice", {})
