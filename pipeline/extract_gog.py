@@ -2,12 +2,11 @@
 import re
 from time import sleep
 import json
-import requests
 import logging
+import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
 
@@ -110,12 +109,14 @@ def fetch_release_date(soup: BeautifulSoup):
         return release_date if release_date else None
 
 def fetch_game_image(soup: BeautifulSoup):
+    """Gets the game images"""
     image = soup.find(class_='productcard-player__logo').get('srcset')
     if not image:
         logging.error("Couldn't find image")
     return image if image else None
 
 def fetch_age_rating(soup: BeautifulSoup):
+    """Gets the age rating from the age restriction class"""
     age_div = soup.find(class_='age-restrictions')
 
     if age_div:
