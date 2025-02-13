@@ -1,2 +1,5 @@
 pytest
 pylint
+streamlit
+python-dotenv
+boto3
