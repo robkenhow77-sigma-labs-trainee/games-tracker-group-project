@@ -273,14 +273,18 @@ def genre_page_response():
     """page response of genres"""
     return """
     <a href="https://store.steampowered.com/genre/action"></a>
+    <a href="https://store.steampowered.com/genre/rpg"></a>
+
 """
+
 
 def test_fetch_genre(genre_page_response: str):
     """tests the fetch genres function gets the genre from the page response."""
     soup = BeautifulSoup(
         genre_page_response, "html.parser"
     )
-    assert fetch_genres(soup) == ['action']
+    assert fetch_genres(soup) == ['action', 'rpg']
+
 
 @pytest.fixture
 def publisher_page_response():
@@ -313,6 +317,7 @@ def test_fetch_developer(developer_page_response):
     soup = BeautifulSoup(developer_page_response, "html.parser")
     assert fetch_developer(soup) == ['bethesda']
 
+
 @pytest.fixture
 def platform_score_page_response():
     """Page response for platform score"""
@@ -320,10 +325,12 @@ def platform_score_page_response():
     <div class="user_reviews_summary_row" data-tooltip-html="TEST TEST 69% TEST TEST.">
 """
 
+
 def test_fetch_plaform_score(platform_score_page_response):
     """Tests the fetch platform score function actually extracts the score from the html"""
     soup = BeautifulSoup(platform_score_page_response, "html.parser")
     assert fetch_platform_score(soup) == '69'
+
 
 @pytest.fixture
 def platform_price_page_response():
@@ -337,6 +344,7 @@ def test_fetch_platform_price(platform_price_page_response):
     soup = BeautifulSoup(platform_price_page_response, "html.parser")
     assert fetch_platform_price(soup) == '1000'
 
+
 @pytest.fixture
 def platform_price_discount_page_response():
     """Page response for page discount"""
@@ -344,10 +352,12 @@ def platform_price_discount_page_response():
     <div class="discount_pct">50%</div>
 """
 
+
 def test_fetch_platform_discount(platform_price_discount_page_response):
     """Tests the fetch platform discount"""
     soup = BeautifulSoup(platform_price_discount_page_response, "html.parser")
     assert fetch_platform_discount(soup) == '50'
+
 
 @pytest.fixture
 def release_date_page_response():
@@ -355,9 +365,12 @@ def release_date_page_response():
     return """
     <div class="release_date">TEST</div>    
 """
+
+
 def test_fetch_release_date(release_date_page_response):
     soup = BeautifulSoup(release_date_page_response, "html.parser")
     assert fetch_release_date(soup) == 'TEST'
+
 
 @pytest.fixture
 def age_rating_page_response():
@@ -367,8 +380,100 @@ def age_rating_page_response():
             <img src="https://store.cloudflare.steamstatic.com/public/shared/images/game_ratings/PEGI/69">
         </a>
     </div>
-"""
+    """
 
 def test_fetch_rating(age_rating_page_response):
     soup = BeautifulSoup(age_rating_page_response, "html.parser")
-    assert fetch_age_rating(soup)
+    assert fetch_age_rating(soup) == '69'
+
+
+# class TestFetchGenres(unittest.TestCase):
+
+#     def setUp(self):
+#         """Set up the mock BeautifulSoup instance"""
+#         self.soup = MagicMock(spec=BeautifulSoup)
+
+#     def test_fetch_genres_empty_href(self):
+#         """Test when links have empty href attributes"""
+
+#         mock_link_1 = MagicMock()
+#         mock_link_2 = MagicMock()
+#         mock_link_1["href"] = ""
+#         mock_link_2["href"] = ""
+
+#         self.soup.find_all.return_value = [mock_link_1, mock_link_2]
+
+#         result = fetch_genres(self.soup)
+
+#         self.assertEqual(result, [])
+
+#     def test_fetch_genres_no_genre(self):
+#         """Test when no genre is found"""
+#         self.soup.find_all.return_value = [
+#             MagicMock(href="https://store.steampowered.com/some/other/link"),
+#             MagicMock(href="https://store.steampowered.com/another/one")
+#         ]
+
+#         result = fetch_genres(self.soup)
+
+#         self.assertEqual(result, [])
+
+#     def test_fetch_genres_multiple_links(self):
+#         """Test when multiple genres are found in multiple links"""
+
+#         mock_link_1 = MagicMock()
+#         mock_link_2 = MagicMock()
+#         mock_link_3 = MagicMock()
+#         mock_link_1["href"] = "https://store.steampowered.com/genre/adventure"
+#         mock_link_2["href"] = "https://store.steampowered.com/genre/rpg"
+#         mock_link_3["href"] = "https://store.steampowered.com/genre/simulation"
+
+#         self.soup.find_all.return_value = [mock_link_1, mock_link_2, mock_link_3]
+#         result, href, link = fetch_genres(self.soup)
+
+#         self.assertEqual(result, ["adventure", "rpg", "simulation"])
+
+#     def test_fetch_genres_invalid_url(self):
+#         """Test when an invalid URL format is provided"""
+#         self.soup.find_all.return_value = [
+#             MagicMock(href="https://store.steampowered.com/genre/invalid?query=1"),
+#             MagicMock(href="https://store.steampowered.com/genre/?query=invalid")
+#         ]
+
+#         result = fetch_genres(self.soup)
+
+#         self.assertEqual(result, [])
+
+#     def test_fetch_genres_partial_match(self):
+#         """Test when URL has partial match but not the full genre link"""
+#         self.soup.find_all.return_value = [
+#             MagicMock(href="https://store.steampowered.com/someother/genre/action"),
+#             MagicMock(href="https://store.steampowered.com/genre/rpg?ref=home")
+#         ]
+        
+#         result = fetch_genres(self.soup)
+        
+#         self.assertEqual(result, ["rpg"])
+
+
+#     def test_fetch_genres_genre_with_special_characters(self):
+#         """Test when the genre has special characters in it"""
+#         self.soup.find_all.return_value = [
+#             MagicMock(href="https://store.steampowered.com/genre/first-person-shooter"),
+#             MagicMock(href="https://store.steampowered.com/genre/survival-horror")
+#         ]
+        
+#         result = fetch_genres(self.soup)
+        
+#         self.assertEqual(result, ["first-person-shooter", "survival-horror"])
+
+#     def test_fetch_genres_extra_query_params(self):
+#         """Test when the genre URL contains extra query parameters"""
+#         self.soup.find_all.return_value = [
+#             MagicMock(href="https://store.steampowered.com/genre/racing?utm_source=test"),
+#             MagicMock(href="https://store.steampowered.com/genre/fighting?ref=home")
+#         ]
+        
+#         result = fetch_genres(self.soup)
+        
+#         self.assertEqual(result, ["racing", "fighting"])

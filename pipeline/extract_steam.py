@@ -85,7 +85,6 @@ def find_target_date(driver: ChromeDriverManager, target_date: str) -> None:
         for release_date in release_dates:
             if release_date.text.strip() == target_date:
                 found_target_date = True
-                break #is this necessary?
 
         if not found_target_date:
             body = driver.find_element(By.TAG_NAME, "body")
@@ -132,10 +131,13 @@ def fetch_genres(soup: BeautifulSoup) -> list[str]:
     """Gets the genres out of a soup"""
     genres = []
     for link in soup.find_all('a', href=True):
-        match = re.search(
-            r'https://store\.steampowered\.com/genre/([^/?]+)', link["href"])
-        if match:
-            genres.append(match.group(1))
+        href = link.get("href", "")  # Use .get() to ensure a string fallback
+        if isinstance(href, str):  # Ensure href is a string before proceeding
+            match = re.search(
+                r"https://store\.steampowered\.com/genre/([^/?]+)", href
+            )
+            if match:
+                genres.append(match.group(1))
     return genres
 
 
