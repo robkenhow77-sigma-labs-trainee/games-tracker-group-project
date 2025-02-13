@@ -1,5 +1,6 @@
-"""Useful functions for load """
+"""Useful functions for load"""
 import psycopg
+
 
 def get_game_ids(conn: psycopg.Connection):
     """Simple query function"""
@@ -45,6 +46,16 @@ def get_genre_ids(conn: psycopg.Connection):
     """Simple query function"""
     query = f"""
         SELECT * FROM genre;
+    """
+    with conn.cursor() as cur:
+        cur.execute(query)
+        return cur.fetchall()
+
+
+def get_age_rating_mapping(conn: psycopg.Connection):
+    """Simple query function"""
+    query = f"""
+        SELECT * FROM age_rating;
     """
     with conn.cursor() as cur:
         cur.execute(query)
@@ -150,18 +161,13 @@ def assign_publishers(new_games_list: list[dict], game_id_mapping: dict, publish
     """Maps the names to the ids and the pubs to ids, for the assignment table"""
     values = []
     for game in new_games_list:
-        if isinstance(game["publisher"], list):
-            publishers = game["publisher"]
-            for publisher in publishers:
-                values.append((
-                    game_id_mapping[game["game_name"]],
-                    publisher_mapping[publisher]
-                ))
-        else:
+        publishers = game["publisher"]
+        for publisher in publishers:
             values.append((
                 game_id_mapping[game["game_name"]],
-                publisher_mapping[game["publisher"]]
+                publisher_mapping[publisher]
             ))
+        
     return [value for value in values if value not in current]
 
 
@@ -169,18 +175,13 @@ def assign_developers(new_games_list: list[dict], game_id_mapping: dict, develop
     """Maps the names to the ids and the pubs to ids, for the assignment table"""
     values = []
     for game in new_games_list:
-        if isinstance(game["developer"], list):
-            developers = game["developer"]
-            for developer in developers:
-                values.append((
-                    game_id_mapping[game["game_name"]],
-                    developer_mapping[developer]
-                ))
-        else:
+        developers = game["developer"]
+        for developer in developers:
             values.append((
                 game_id_mapping[game["game_name"]],
-                developer_mapping[game["developer"]]
+                developer_mapping[developer]
             ))
+       
     return [value for value in values if value not in current]
 
 
@@ -251,7 +252,7 @@ def upload_and_return_game_platform_assignment(data: list[tuple], conn: psycopg.
     try:
         with conn.cursor() as cur:
             cur.executemany("""INSERT INTO game_platform_assignment (game_id, platform_id, platform_score, platform_price, platform_discount) 
-            VALUES (%s, %s, %s, %s, %s) RETURNING platform_assignment_id, game_id""", data, returning=True)
+            VALUES (%s, %s, %s, %s, %s) RETURNING platform_assignment_id, game_id, platform_id""", data, returning=True)
             ids = []
             while True:
                 ids.append(cur.fetchone())
@@ -325,6 +326,7 @@ def upload_genre_game_platform_assignment(data: list[tuple], conn: psycopg.Conne
         with conn.cursor() as cur:
             cur.executemany("""INSERT INTO genre_game_platform_assignment (genre_id, platform_assignment_id) 
             VALUES (%s, %s)""", data)
+            conn.commit()
     except:
         return None
 
@@ -335,5 +337,78 @@ def upload_tag_game_platform_assignment(data: list[tuple], conn: psycopg.Connect
         with conn.cursor() as cur:
             cur.executemany("""INSERT INTO tag_game_platform_assignment (tag_id, platform_assignment_id) 
             VALUES (%s, %s)""", data)
+            conn.commit()
     except:
         return None
+
+
+def make_id_mapping(ids_and_items: list[dict], item: str):
+    """Creates a dictionary in the form item: id"""
+    return {id_and_item[f'{item}_name']: id_and_item[f'{item}_id'] for id_and_item in ids_and_items}
+
+
+def get_new_items_set(item: str, games_list_dict: list[dict]) -> list[str]:
+    """Gets the specified item from each dictionary
+    Eg. get all the game titles
+    """
+    items = set()
+    for game in games_list_dict:
+        value = game[item]
+        for val in value:
+            items.add(val)
+    return items
+
+
+def get_items_not_in_current(new: list[str], current: list[str]):
+    """Checks the new list to find any strings not in the current list. 
+    Eg. new tags that aren't already in the database"""
+    return [word for word in new if word not in current]
+
+
+# Get devs, pubs, tags, genres and games for upload
+def get_items_for_upload(table: str, new_games: list[dict], current_items: dict):
+    """Gets all the new genres for uploading to the database"""
+    new = get_new_items_set(table, new_games)
+    items_for_upload = get_items_not_in_current(new, current_items.keys())
+    return [(item,) for item in items_for_upload]
+
+
+def get_games_for_upload(new_games: list[dict], current_games: dict):
+    """Gets a set of current games, 
+    then gets a set of games that have been scraped and cleaned, 
+    then gets any game names that are in the scraped games and not in the database,
+    then adds the dictionaries of ga,es not in the databases."""
+    current_games = set(current_games.keys())
+    new_game_names = set(game["game_name"] for game in new_games)
+    games_to_upload = [game for game in new_game_names if game not in current_games]
+    return [game for game in new_games if game["game_name"] in games_to_upload]
+    
+
+def format_games_for_upload(games: list[dict], age_rating_mapping: dict):
+    """Returns the tuples to be uploaded"""
+    games_for_upload = []
+    for game in games:
+        games_for_upload.append((
+            game["game_name"],
+            game["release_date"],
+            game["game_image"],
+            age_rating_mapping[game["age_rating_id"]], # NEED TO MAP
+            game["is_nsfw"]
+        ))
+
+    return games_for_upload
+
+
+def pub_or_dev_game_assignment(game_ids: dict, pub_or_dev_ids: dict) -> list[tuple]:
+    """Returns a list of tuples for uploading to the database"""
+    assignments = []
+    for game_id in game_ids.values():
+        for pub_dev_id in pub_or_dev_ids.values():
+            assignments.append((game_id, pub_dev_id))
+    return assignments
+
+
+# Game_platform_assignment
+def make_current_assignment_tuples(current_assignments: list[dict], dev_or_pub_or_platform: str):
+    return [(game["game_id"], game[dev_or_pub_or_platform]) for game in current_assignments]
+
