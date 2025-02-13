@@ -149,7 +149,7 @@ if __name__ == "__main__":
     CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
     db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
 
-    new_games_example = [{
+    NEW_GAMES_EXAMPLE = [{
         "game_name": "BO3",
         "developer": ["treyarch", 'epic', 'some other dev', "someone"],
         "tag": ["action"],
@@ -180,4 +180,5 @@ if __name__ == "__main__":
         "discount": 0
         }]
 
-    load_data(new_games_example, db_connection)
+
+    load_data(NEW_GAMES_EXAMPLE, db_connection)
