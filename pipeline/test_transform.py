@@ -516,7 +516,7 @@ def test_format_data_invalid_image():
     test_output['game_image'] = "N/A"
     assert format_data(test_input) == test_output
 
-
+    
 def test_format_data_invalid_age():
     """Tests that None is returned for age if no valid specified age."""
     test_input = input_game
@@ -524,3 +524,4 @@ def test_format_data_invalid_age():
     test_output = expected_output
     test_output['age_rating'] = "Not Assigned"
     assert format_data(test_input) == test_output
+
