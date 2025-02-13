@@ -2,6 +2,7 @@
 import re
 from time import sleep
 import requests
+import logging
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -13,7 +14,10 @@ def get_soup(url: str) -> BeautifulSoup:
     """Fetches the page content using Selenium and returns a BeautifulSoup object"""
 
     service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service)
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")
+    driver = webdriver.Chrome(service=Service(
+        ChromeDriverManager().install()), options=options)
 
     driver.get(url)
     sleep(3)
@@ -27,7 +31,9 @@ def scrape_newest(url: str) -> list[dict]:
     """
     Scrapes all the newest games from GOG games
     """
-    soup = get_soup(url)
+    response = requests.get(url)
+
+    soup = BeautifulSoup(response.text, features='html.parser')
     game_links = [link['href'] for link in soup.find_all('a', href=True)
                   if re.match(r'https://www\.gog\.com/en/game/', link["href"])]
 
@@ -92,17 +98,19 @@ def fetch_platform_discount(soup: BeautifulSoup):
 def fetch_release_date(soup: BeautifulSoup):
     """Extracts the release date from the product details section."""
     release_date_span = soup.find(
-        "div", class_="details__content table__row-content")
-    print(release_date_span)
+        "span", class_="product-actions-price__discount")
+    return release_date_span.text
 
 def fetch_game_image(soup: BeautifulSoup):
-    pass
+    image = soup.find(class_='productcard-player__logo').get('srcset')
+    if not image:
+        logging.error("Couldn't find image")
+    return image if image else None
 
 
 def get_data(link: str) -> dict:
     """Gets the needed data from GOG website"""
-    response = requests.get(link)
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = get_soup(link)
     data = {}
     data['title'] = fetch_title(soup)
     data['genres'] = fetch_genres(soup)
@@ -113,6 +121,7 @@ def get_data(link: str) -> dict:
     data['platform_price'] = fetch_platform_price(soup)
     data['platform_discount'] = fetch_platform_discount(soup)
     data['release_date'] = fetch_release_date(soup)
+    data['game_image'] = fetch_game_image(soup)
 
 
 
