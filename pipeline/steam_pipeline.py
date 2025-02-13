@@ -14,6 +14,27 @@ from transform import clean_data
 from load import load_data
 
 
+def change_keys(data: list[dict]):
+    updated_keys = []
+    for game in data:
+        updated_keys.append({
+        "game_name": game['title'],
+        "developer":  game['developer'],
+        "tag":  game['tag'],
+        "genre": game['genres'],
+        "publisher":  game['publisher'],
+        "release_date": game['release_date'],
+        "game_image": game['game_image'],
+        "is_nsfw": False, # NEED TO CHANGE!!
+        "age_rating": game['age_rating'],
+        "platform": game['platform'],
+        "score": game['platform_score'],
+        "price": game['platform_price'],
+        "discount": game['platform_discount']
+        })
+    return updated_keys
+
+
 def lambda_handler(event=None, context=None):
     """Function to run entire Steam ETL pipeline"""
     # Initialise
@@ -34,12 +55,11 @@ def lambda_handler(event=None, context=None):
 
     # Transform
     cleaned_data = clean_data(scraped_data)
+    clean_data = change_keys(clean_data)
 
     # Load
     load_data(cleaned_data, db_connection)
 
 
-
 if __name__ == "__main__":
     lambda_handler()
-    
