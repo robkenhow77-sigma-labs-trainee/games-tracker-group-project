@@ -266,7 +266,7 @@ def is_valid_discount(discount: int) -> bool:
 
     #Not on discount currently
     if discount is None:
-        return True
+        return False
 
     if not isinstance(discount, str):
         logging.info("%s is not a valid discount, not a string", discount)
@@ -340,7 +340,7 @@ def is_valid_age(age: str) -> bool:
     """Returns if the age conforms to PEGI standards."""
 
     if age is None:
-        return True
+        return False
 
     if not isinstance(age, str):
         logging.info("%s is not a valid age rating, not a string", age)
