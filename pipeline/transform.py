@@ -74,23 +74,30 @@ def is_valid_genres(genres: list[str]) -> bool:
 
     for genre in genres:
 
-        if not isinstance(genre, str):
-            logging.info("%s is not a valid genre, not a string", genre)
-            continue
-
-        genre = genre.strip()
-
-        if len(genre) > 31:
-            logging.info("%s is not a valid genre, too long.", genre)
-            continue
-
-        if len(genre) == 0:
-            logging.info("%s is not a valid genre, cannot be empty.", genre)
-            continue
-
-        valid_genres.append(genre)
+        if is_valid_genre(genre):
+            valid_genres.append(genre)
 
     return len(valid_genres) > 0
+
+
+def is_valid_genre(genre: str) -> bool:
+    """Returns true if genre is valid."""
+
+    if not isinstance(genre, str):
+        logging.info("%s is not a valid genre, not a string", genre)
+        return False
+
+    genre = genre.strip()
+
+    if len(genre) > 51:
+        logging.info("%s is not a valid genre, too long.", genre)
+        return False
+
+    if len(genre) == 0:
+        logging.info("%s is not a valid genre, cannot be empty.", genre)
+        return False
+
+    return True
 
 
 def is_valid_publisher(publishers: list[str]) -> bool:
@@ -108,23 +115,30 @@ def is_valid_publisher(publishers: list[str]) -> bool:
 
     for publisher in publishers:
 
-        if not isinstance(publisher, str):
-            logging.info("%s is not a valid publisher, not a string", publisher)
-            continue
-
-        publisher = publisher.strip().replace('%20', ' ')
-
-        if len(publisher) == 0:
-            logging.info("%s is not a valid publisher, cannot be empty", publisher)
-            continue
-
-        if len(publisher) > 26:
-            logging.info("%s is not a valid publisher, too long.", publisher)
-            continue
-
-        valid_publishers.append(publisher)
+        if is_valid_pub(publisher):
+            valid_publishers.append(publisher)
 
     return len(valid_publishers) > 0
+
+
+def is_valid_pub(publisher: str) -> bool:
+    """Returns true if publisher is valid."""
+
+    if not isinstance(publisher, str):
+        logging.info("%s is not a valid publisher, not a string", publisher)
+        return False
+
+    publisher = publisher.strip().replace('%20', ' ')
+
+    if len(publisher) == 0:
+        logging.info("%s is not a valid publisher, cannot be empty", publisher)
+        return False
+
+    if len(publisher) > 151:
+        logging.info("%s is not a valid publisher, too long.", publisher)
+        return False
+    
+    return True
 
 
 def is_valid_developer(developers: list[str]) -> bool:
@@ -142,24 +156,30 @@ def is_valid_developer(developers: list[str]) -> bool:
 
     for developer in developers:
 
-
-        if not isinstance(developer, str):
-            logging.info("%s is not a valid developer, not a string", developer)
-            continue
-
-        developer = developer.strip().replace('%20', ' ')
-
-        if len(developer) == 0:
-            logging.info("%s is not a valid developer, cannot be empty", developer)
-            continue
-
-        if len(developer) > 26:
-            logging.info("%s is not a valid developer, too long.", developer)
-            continue
-
-        valid_developers.append(developer)
+        if is_valid_dev(developer):
+            valid_developers.append(developer)
 
     return len(valid_developers) > 0
+
+
+def is_valid_dev(developer: str) -> bool:
+    """Checks a single developer."""
+
+    if not isinstance(developer, str):
+        logging.info("%s is not a valid developer, not a string", developer)
+        return False
+
+    developer = developer.strip().replace('%20', ' ')
+
+    if len(developer) == 0:
+        logging.info("%s is not a valid developer, cannot be empty", developer)
+        return False
+
+    if len(developer) > 151:
+        logging.info("%s is not a valid developer, too long.", developer)
+        return False
+
+    return True
 
 
 def is_valid_tag(tags: list[str]) -> bool:
@@ -177,23 +197,32 @@ def is_valid_tag(tags: list[str]) -> bool:
 
     for tag in tags:
 
-        if not isinstance(tag, str):
-            logging.info("%s is not a valid tag, not a string", tag)
-            continue
-
-        tag = tag.strip().replace('%20', ' ')
-
-        if len(tag) == 0:
-            logging.info("%s is not a valid tag, cannot be empty", tag)
-            continue
-
-        if len(tag) > 26:
-            logging.info("%s is not a valid tag, too long.", tag)
-            continue
-
-        valid_tags.append(tag)
+        if is_valid_single_tag(tag):
+            valid_tags.append(tag)
 
     return len(valid_tags) > 0
+
+
+def is_valid_single_tag(tag: str) -> bool:
+    """
+    Returns true if the single tag is valid, false if otherwise.
+    """
+
+    if not isinstance(tag, str):
+        logging.info("%s is not a valid tag, not a string", tag)
+        return False
+
+    tag = tag.strip().replace('%20', ' ')
+
+    if len(tag) == 0:
+        logging.info("%s is not a valid tag, cannot be empty", tag)
+        return False
+
+    if len(tag) > 51:
+        logging.info("%s is not a valid tag, too long.", tag)
+        return False
+
+    return True
 
 
 def is_valid_score(score: str) -> bool:
