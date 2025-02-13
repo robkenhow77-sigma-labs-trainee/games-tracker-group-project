@@ -294,14 +294,14 @@ def test_valid_price_negative(test_input):
     assert is_valid_price(test_input) is False
 
 
-pos_discount = ['0', '100', '55', '1', None, '  11  ']
+pos_discount = ['0', '100', '55', '1', '  11  ']
 @pytest.mark.parametrize("test_input", pos_discount)
 def test_valid_discount_positive(test_input):
     """Tests if is_valid_discount returns True when a valid discount percentage is passed."""
     assert is_valid_discount(test_input) is True
 
 
-neg_discount = [100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", "110", [], ""]
+neg_discount = [100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", "110", [], "", None]
 @pytest.mark.parametrize("test_input", neg_discount)
 def test_valid_discount_negative(test_input):
     """Tests if is_valid_discount returns False when an invalid discount is passed."""
@@ -351,14 +351,14 @@ def test_valid_image_too_long():
     """) is False
 
 
-pos_price = ['3', '7', '12', '       16 ', '18 ', None]
+pos_price = ['3', '7', '12', '       16 ', '18 ']
 @pytest.mark.parametrize("test_input", pos_price)
 def test_valid_age_positive(test_input):
     """Tests if is_valid_price returns True when a valid price is passed."""
     assert is_valid_age(test_input) is True
 
 
-neg_price = [100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", [], "", "15", " "]
+neg_price = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", [], "", "15", " "]
 @pytest.mark.parametrize("test_input", neg_price)
 def test_valid_age_negative(test_input):
     """Tests if is_valid_price returns False when an invalid price is passed."""
@@ -391,7 +391,7 @@ def test_format_data():
     today = datetime.now().date()
     today_string = datetime.strftime(today, "%d %b, %Y")
     input_data = {'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': today_string, 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}
-    expected_output = {'title': 'Hearts of Iron IV', 'genres': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'platform_score': 90,'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'platform_price': 4199, 'platform_discount': None, 'release_date': today, 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': 'PEGI 7'}
+    expected_output = {'title': 'Hearts of Iron IV', 'genres': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'platform_score': 90,'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'platform_price': 4199, 'platform_discount': 0, 'release_date': today, 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': 'PEGI 7'}
     assert format_data(input_data) == expected_output
 
 data = [(" ", ""), ("string   ", "string"), ("normal", "normal"), ("normal%20test", "normal test")]
@@ -452,7 +452,7 @@ def test_valid_release_delta_input():
     assert is_valid_release(string_a_week_ago, 7)
 
 input_game = {'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': datetime.strftime(datetime.now(), "%d %b, %Y"), 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}
-expected_output = {'title': 'Hearts of Iron IV', 'genres': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'platform_score': 90,'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'platform_price': 4199, 'platform_discount': None, 'release_date': datetime.now().date(), 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': 'PEGI 7'}
+expected_output = {'title': 'Hearts of Iron IV', 'genres': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'platform_score': 90,'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'platform_price': 4199, 'platform_discount': 0, 'release_date': datetime.now().date(), 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': 'PEGI 7'}
 
 def test_format_data_invalid_publisher():
     """Tests that an empty list is returned for publisher if no valid specified publisher."""
