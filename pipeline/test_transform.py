@@ -9,7 +9,8 @@ from transform import (is_valid_data, is_valid_title, is_valid_genres, is_valid_
                        is_valid_developer, is_valid_tag, is_valid_score, is_valid_price, is_valid_discount,
                        is_valid_release, is_valid_image, format_data, format_string,
                        format_integer, format_release, is_valid_age, format_genre_list, format_developer_list,
-                       format_publisher_list, format_tag_list)
+                       format_publisher_list, format_tag_list, is_valid_genre, is_valid_pub, is_valid_dev,
+                       is_valid_single_tag)
 
 #TODO: rewrite tests that will fail due to it not being today.
 string_validation_fail_test = [123, True, datetime.now(), -2.99, None, "", " "]
@@ -192,6 +193,50 @@ def test_valid_tag_as_list_positive(test_input):
 def test_valid_tag_negative(test_input):
     """Tests if is_valid_tag returns False when invalid tags are passed."""
     assert is_valid_tag([test_input]) is False
+
+test_list = [
+    ("Action", True),
+    ("Drama123", True),
+    ("Comedy!!", True),
+    ("Sci-Fi", True),
+    ("Thril_ler", True),
+    ("", False),
+    (" ", False),
+    ("""
+    [[ ]] The story goes like this: Earth is captured by a technocapital singularity as renaissance
+    rationalitization and oceanic navigation lock into commoditization take-off.
+    Logistically accelerating techno-economic interactivity crumbles social order in
+    auto-sophisticating machine runaway. As markets learn to manufacture intelligence,
+    politics modernizes, upgrades paranoia, and tries to get a grip.
+    """, False),
+    ("  ", False),
+    (123, False),
+    (None, False), 
+    ("genre with spaces", True),
+    (False, False)]
+
+@pytest.mark.parametrize("test_input,output", test_list)
+def test_is_valid_genre(test_input, output):
+    """Tests is_valid_genre outputs the correct output."""
+    assert is_valid_genre(test_input) == output
+
+
+@pytest.mark.parametrize("test_input,output", test_list)
+def test_is_valid_pub(test_input, output):
+    """Tests is_valid_pub outputs the correct output."""
+    assert is_valid_pub(test_input) == output
+
+
+@pytest.mark.parametrize("test_input,output", test_list)
+def test_is_valid_dev(test_input, output):
+    """Tests is_valid_dev outputs the correct output."""
+    assert is_valid_dev(test_input) == output
+
+
+@pytest.mark.parametrize("test_input,output", test_list)
+def test_is_valid_single_tag(test_input, output):
+    """Tests is_valid_single_tag outputs the correct output."""
+    assert is_valid_single_tag(test_input) == output
 
 
 def test_valid_tag_too_long():
