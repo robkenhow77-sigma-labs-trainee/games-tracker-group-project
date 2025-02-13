@@ -188,7 +188,7 @@ def fetch_platform_price(soup: BeautifulSoup) -> str:
     if not price:
         game_purchase_price = soup.find(class_="game_purchase_price")
         if game_purchase_price and "Free To Play" in game_purchase_price.text:
-            price = "Free To Play!"
+            price = "0"
 
     if not price:
         discount_price = soup.find(class_="discount_original_price")
@@ -298,6 +298,7 @@ def steam_handler(event, context):
         scroll_to_date = (datetime.now() - timedelta(1)).strftime("%d %b, %Y")
 
     data = scrape_newest(url, scroll_to_date)
+    print(data)
     return f"Completed {len(data)} entries"
 
 if __name__ == "__main__":
