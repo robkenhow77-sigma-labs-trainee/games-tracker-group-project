@@ -46,7 +46,7 @@ def scrape_newest(url: str) -> list[dict]:
     return page_data_list
 
 
-def fetch_title(soup) -> str:
+def fetch_title(soup: BeautifulSoup) -> str:
     """Gets the title of the game"""
     return soup.find(class_='productcard-basics__title').text.strip()
 
