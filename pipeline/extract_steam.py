@@ -72,6 +72,31 @@ def setup_logging(output: str, filename="game_track.log", level=20):
         logging.info("Logging to console.")
 
 
+def find_target_date(driver: ChromeDriverManager, target_date: str) -> None:
+    """Scrolls through the page until target date is found"""
+    found_target_date = False
+    scroll_attempts = 0
+
+    while not found_target_date:
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        release_dates = soup.find_all(
+            'div', class_='col search_released responsive_secondrow')
+
+        for release_date in release_dates:
+            if release_date.text.strip() == target_date:
+                found_target_date = True
+                break #is this necessary?
+
+        if not found_target_date:
+            body = driver.find_element(By.TAG_NAME, "body")
+            body.send_keys(Keys.END)
+            scroll_attempts += 1
+
+        if scroll_attempts == 100: # Change 100 to change how many max scrolls you want.
+            logging.error('Date not found after %s scrolls.', scroll_attempts)
+            raise ValueError(f'Date not found after {scroll_attempts} scrolls.')
+
+
 def scrape_newest(url: str, target_date: str) -> list[dict]:
     """
     Scrolls until it finds a game with the target release date, 
@@ -84,23 +109,9 @@ def scrape_newest(url: str, target_date: str) -> list[dict]:
     with Progress() as progress:
         task = progress.add_task("[cyan]Processing Steam games...", total=None)
 
-        found_target_date = False
+        find_target_date(driver, target_date)
+
         game_links = []
-
-        while not found_target_date:
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-            release_dates = soup.find_all(
-                'div', class_='col search_released responsive_secondrow')
-
-            for release_date in release_dates:
-                if release_date.text.strip() == target_date:
-                    found_target_date = True
-                    break
-
-            if not found_target_date:
-                body = driver.find_element(By.TAG_NAME, "body")
-                body.send_keys(Keys.END)
-
         soup = BeautifulSoup(driver.page_source, "html.parser")
         game_links = [link['href'] for link in soup.find_all('a', href=True)
                       if re.match(r'https://store\.steampowered\.com/app/\d+', link["href"])]
