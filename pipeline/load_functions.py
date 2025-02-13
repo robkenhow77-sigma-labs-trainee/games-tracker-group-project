@@ -386,7 +386,6 @@ def get_items_not_in_current(new: list[str], current: list[str]):
     return [word for word in new if word not in current]
 
 
-# Get devs, pubs, tags, genres and games for upload
 def get_items_for_upload(table: str, new_games: list[dict], current_items: dict):
     """Gets all the new items for uploading, that aren't already in the database"""
     new = get_new_items_set(table, new_games)
@@ -398,7 +397,7 @@ def get_games_for_upload(new_games: list[dict], current_games: dict):
     """Gets a set of current games, 
     then gets a set of games that have been scraped and cleaned, 
     then gets any game names that are in the scraped games and not in the database,
-    then adds the dictionaries of ga,es not in the databases."""
+    then adds the dictionaries of games not in the databases."""
     current_games = set(current_games.keys())
     new_game_names = set(game["game_name"] for game in new_games)
     games_to_upload = [game for game in new_game_names if game not in current_games]
@@ -435,4 +434,8 @@ def make_current_dev_or_pub_game_assignment_tuples(current_assignments: list[dic
     """takes the current publisher or developer game assignments
     and makes tuples in the form (game_id, pub/dev_id).
     This allows the new tuples to be checked against the existing."""
+    return [(game["game_id"], game[dev_or_pub_or_platform]) for game in current_assignments]
+
+
+def make_current_game_platform_assignment_tuples(current_assignments: list[dict], dev_or_pub_or_platform: str):
     return [(game["game_id"], game[dev_or_pub_or_platform]) for game in current_assignments]
