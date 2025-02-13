@@ -15,6 +15,7 @@ from load import load_data
 
 
 def change_keys(data: list[dict]):
+    """Converts the key names from the transform script to match the load script"""
     updated_keys = []
     for game in data:
         updated_keys.append({
@@ -55,7 +56,7 @@ def lambda_handler(event=None, context=None):
 
     # Transform
     cleaned_data = clean_data(scraped_data)
-    clean_data = change_keys(clean_data)
+    cleaned_data = change_keys(cleaned_data)
 
     # Load
     load_data(cleaned_data, db_connection)
