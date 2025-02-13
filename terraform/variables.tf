@@ -37,6 +37,6 @@ variable "DB_NAME" {
     type = string  
 }
 
-variable "ACCOUNT_NUMBER" {
+variable "ABDI_EMAIL" {
     type = string
 }
