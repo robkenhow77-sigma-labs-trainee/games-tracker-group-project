@@ -41,6 +41,8 @@ def lambda_handler(event=None, context=None):
     # Initialise
     args = parse_args()
     target_date = args.scroll_to_date
+    if target_date is None:
+        target_date = "11 Feb, 2025"
     load_dotenv()
     user = ENV['DB_USERNAME']
     password = ENV["DB_PASSWORD"]
