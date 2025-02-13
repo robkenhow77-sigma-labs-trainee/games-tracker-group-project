@@ -8,7 +8,6 @@ from requests import get
 DAYS_BEFORE_TODAY_THAT_WILL_BE_ACCEPTED = 0
 
 #TODO: ensure logger is imported and config-ed
-#TODO: clean image data!
 
 def clean_data(data: list[dict]) -> list[dict]:
     """Cleans the data extracted from the Steam scraper."""
@@ -138,7 +137,7 @@ def is_valid_pub(publisher: str) -> bool:
     if len(publisher) > 151:
         print("%s is not a valid publisher, too long.", publisher)
         return False
-    
+
     return True
 
 
@@ -255,9 +254,9 @@ def is_valid_score(score: str) -> bool:
         if not score.isnumeric():
             print("%s is not a valid score, not an integer.", score)
             return False
-        
+
         score = int(score) * 20
-        
+
         if not 0 <= int(score) <= 100:
             print("%s is not a valid score, not between 0 and 100.", score)
             return False
@@ -312,7 +311,7 @@ def is_valid_release(release: str,
     if not isinstance(release, str):
         print("%s is not a string, not a valid release date.", release)
         return False
-    
+
     try:
         release = release[:10]
     except:
@@ -528,7 +527,7 @@ def format_score(score: str) -> int:
 
     else:
         score = int(score) * 20
-    
+
     return int(score)
 
 
@@ -550,33 +549,10 @@ def format_release(release: str) -> datetime:
 
 if __name__ == "__main__":
 
-    test_input = [{'title': 'Hearts of Iron IV',
-                    'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy',
-                                'Simulation', 'Strategy'],
-                    'publisher': [],
-                    'developer': [],
-                    'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy',
-                            'War', 'Historical', 'Military',
-                            'Alternate%20History', 'Multiplayer', 'Simulation',
-                            'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer',
-                            'RTS', 'Diplomacy', 'Sandbox',
-                            'Co-op', 'Strategy%20RPG', 'Competitive',
-                            'Open%20World', 'Action'],
-                    'platform_score': '90',
-                    'platform_price': '4199',
-                    'platform_discount': None,
-                    'release_date': '12 Feb, 2025', 
-                    'game_image':
-                    'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786',
-                    'age_rating': '7'}]
+    test_input = [{'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, ', 'Exploration, ', 'Great Soundtrack, ', 'Choices Matter, ', 'Open World, ', 'Third Person, ', 'Sexual Content, ', 'Violent, ', 'Nudity, ', 'Gore, ', 'Multiple Endings, ', 'Mature, ', 'Magic, ', 'Medieval, ', 'Vampire, ', 'Werewolves', 'Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, '], 'platform_score': '4.8', 'platform_price': '34.99', 'platform_discount': '80', 'release_date': '2016-08-30T00:00:00+03:00', 'game_image': '\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png 1x,\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_960x570.png 2x\n            ', 'age_rating': '18'}]
 
-    Data = [{'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, ', 'Exploration, ', 'Great Soundtrack, ', 'Choices Matter, ', 'Open World, ', 'Third Person, ', 'Sexual Content, ', 'Violent, ', 'Nudity, ', 'Gore, ', 'Multiple Endings, ', 'Mature, ', 'Magic, ', 'Medieval, ', 'Vampire, ', 'Werewolves', 'Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, '], 'platform_score': '4.8', 'platform_price': '34.99', 'platform_discount': '80', 'release_date': '2016-08-30T00:00:00+03:00', 'game_image': '\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png 1x,\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_960x570.png 2x\n            ', 'age_rating': '18'}]
-
-    clean = clean_data(Data)
-    print(Data)
+    clean = clean_data(test_input)
+    print(test_input)
     print(clean)
-    print(len(Data))
+    print(len(test_input))
     print(len(clean))
-
-    for data in clean:
-        print(data['release_date'])
