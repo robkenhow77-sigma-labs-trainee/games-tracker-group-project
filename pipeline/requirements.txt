@@ -6,3 +6,6 @@ selenium
 webdriver_manager
 logging
 pylint
+pytest-cov
+requests
+logging
