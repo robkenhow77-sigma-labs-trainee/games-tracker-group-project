@@ -382,11 +382,11 @@ def format_data(game: dict) -> bool:
     if is_valid_score(game['platform_score']):
         formatted_data['platform_score'] = format_integer(game['platform_score'])
     else:
-        formatted_data['platform_score'] = None
+        formatted_data['platform_score'] = -1
     if is_valid_discount(game['platform_discount']):
         formatted_data['platform_discount'] = format_integer(game['platform_discount'])
     else:
-        formatted_data['platform_discount'] = None
+        formatted_data['platform_discount'] = 0
     if is_valid_release(game['release_date']):
         formatted_data['release_date'] = format_release(game['release_date'])
     else:
@@ -394,11 +394,11 @@ def format_data(game: dict) -> bool:
     if is_valid_image(game['game_image']):
         formatted_data['game_image'] = format_string(game['game_image'])
     else:
-        formatted_data['game_image'] = None
+        formatted_data['game_image'] = "N/A"
     if is_valid_age(game['age_rating']):
-        formatted_data['age_rating'] = format_string(game['age_rating'])
+        formatted_data['age_rating'] = "PEGI " + format_string(game['age_rating'])
     else:
-        formatted_data['age_rating'] = None
+        formatted_data['age_rating'] = "Not Assigned"
 
     return formatted_data
 
