@@ -1,9 +1,27 @@
 """The extraction script for GOG"""
 import re
-
+from time import sleep
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 
+
+def get_soup(url: str) -> BeautifulSoup:
+    """Fetches the page content using Selenium and returns a BeautifulSoup object"""
+
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service)
+
+    driver.get(url)
+    sleep(3)
+
+    page_source = driver.page_source
+    driver.quit()
+
+    return BeautifulSoup(page_source, "html.parser")
 
 def scrape_newest(url: str) -> list[dict]:
     """
@@ -11,7 +29,7 @@ def scrape_newest(url: str) -> list[dict]:
     """
 
     response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = get_soup(url)
     game_links = [link['href'] for link in soup.find_all('a', href=True)
                   if re.match(r'https://www\.gog\.com/en/game/', link["href"])]
 
