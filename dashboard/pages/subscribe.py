@@ -37,7 +37,7 @@ def is_already_subscribed(client, email, topic_arn):
     print('existing subs: ', existing_subs)
 
     for sub in existing_subs:
-        if sub['Protocol'] == 'email' and sub['Endpoint'] == email and sub['SubscriptionArn'] != 'PendingConfirmation':
+        if sub['Protocol'] == 'email' and sub['Endpoint'] == email and sub['SubscriptionArn'] != 'PendingConfirmation' and sub['SubscriptionArn'] != 'Deleted':
             return True 
         return False
             
@@ -80,6 +80,7 @@ def subscribe_user(email, genre, weekly_digest):
                     Protocol="email",
                     Endpoint=email 
                 )
+                st.success(f'Your email has been subscribed to the weekly digest')
                 print(f'Subscribed {email} to newsletter')
             except Exception as e:
                 st.error(f'Subscription to newsletter failed: {e}')
