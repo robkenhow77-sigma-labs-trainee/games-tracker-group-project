@@ -16,13 +16,17 @@ import load_functions as lf
 if __name__ == "__main__":
     # initialise
     load_dotenv()
-    conn_string = f"""postgresql://{ENV['DB_USERNAME']}:
-        {ENV["DB_PASSWORD"]}@{ENV["DB_HOST"]}:{ENV["DB_PORT"]}/{ENV["DB_NAME"]}"""
-    connection = psycopg.connect(conn_string, row_factory=dict_row)
+    user = ENV['DB_USERNAME']
+    password = ENV["DB_PASSWORD"]
+    host = ENV["DB_HOST"]
+    port = ENV["DB_PORT"]
+    name = ENV["DB_NAME"]
+    CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
+    connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
 
     new_games_example = [{
         "game_name": "BO3",
-        "developer": ["treyarch", 'epic', 'some other dev'],
+        "developer": ["treyarch", 'epic', 'some other dev', "someone"],
         "tag": ["action"],
         "genre": ["mystic"],
         "publisher": ["sigma", "activision"],
@@ -59,6 +63,7 @@ if __name__ == "__main__":
     devs_and_ids = lf.make_id_mapping(lf.get_developer_ids(connection), 'developer')
     pubs_and_ids = lf.make_id_mapping(lf.get_publisher_ids(connection), 'publisher')
     genres_and_ids = lf.make_id_mapping(lf.get_genre_ids(connection), 'genre')
+
 
     # Gets a list of games, tags, developers, publishers and genres
     # that are not in the database, and need to be uploaded
@@ -172,4 +177,4 @@ if __name__ == "__main__":
     lf.upload_tag_game_platform_assignment(new_tag_game_platform_tuples, connection)
 
     # Close the connection to the database
-    connection.close()
+    connection.close()  # pylint: disable=no-member

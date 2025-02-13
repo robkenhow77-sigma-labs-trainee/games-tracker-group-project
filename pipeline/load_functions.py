@@ -2,71 +2,59 @@
 import psycopg
 
 
-def get_game_ids(conn: psycopg.Connection):
+def get_game_ids(conn: psycopg.Connection) -> list[dict]:
     """Gets the game name and ids"""
-    query = f"""
-        SELECT * FROM game;
-    """
+    query = "SELECT * FROM game;"
     with conn.cursor() as cur:
         cur.execute(query)
         return cur.fetchall()
 
 
-def get_publisher_ids(conn: psycopg.Connection):
+def get_publisher_ids(conn: psycopg.Connection) -> list[dict]:
     """Gets the publisher names and ids"""
-    query = f"""
-        SELECT * FROM publisher;
-    """
+    query = "SELECT * FROM publisher;"
     with conn.cursor() as cur:
         cur.execute(query)
         return cur.fetchall()
-    
 
-def get_developer_ids(conn: psycopg.Connection):
+
+def get_developer_ids(conn: psycopg.Connection) -> list[dict]:
     """Gets the developer names and ids"""
-    query = f"""
-        SELECT * FROM developer;
-    """
+    query = "SELECT * FROM developer;"
     with conn.cursor() as cur:
         cur.execute(query)
         return cur.fetchall()
 
 
-def get_tag_ids(conn: psycopg.Connection):
+def get_tag_ids(conn: psycopg.Connection) -> list[dict]:
     """Gets the tag names and ids"""
-    query = f"""
-        SELECT * FROM tag;
-    """
+    query = "SELECT * FROM tag;"
     with conn.cursor() as cur:
         cur.execute(query)
         return cur.fetchall()
 
 
-def get_genre_ids(conn: psycopg.Connection):
+def get_genre_ids(conn: psycopg.Connection) -> list[dict]:
     """Gets the genre names and ids"""
-    query = f"""
-        SELECT * FROM genre;
-    """
+    query = "SELECT * FROM genre;"
     with conn.cursor() as cur:
         cur.execute(query)
         return cur.fetchall()
 
 
-def get_age_rating_mapping(conn: psycopg.Connection):
+def get_age_rating_mapping(conn: psycopg.Connection) -> list[dict]:
     """Gets the age_ratings and ids"""
-    query = f"""
-        SELECT * FROM age_rating;
-    """
+    query = " SELECT * FROM age_rating;"
     with conn.cursor() as cur:
         cur.execute(query)
         return cur.fetchall()
 
 
-def upload_and_return_devs(devs: list[tuple], conn: psycopg.Connection):
+def upload_and_return_devs(devs: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new developers and returns their names and ids"""
     try:
         with conn.cursor() as cur:
-            cur.executemany("""INSERT INTO developer (developer_name) 
+            cur.executemany("""INSERT INTO developer (developer_name)
                             VALUES (%s) RETURNING *""", devs, returning=True)
             ids = []
             while True:
@@ -79,12 +67,13 @@ def upload_and_return_devs(devs: list[tuple], conn: psycopg.Connection):
         return {}
 
 
-def upload_and_return_games(games: list[tuple], conn: psycopg.Connection):
+def upload_and_return_games(games: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new games and returns their names and ids"""
     try:
         with conn.cursor() as cur:
-            cur.executemany("""INSERT INTO game (game_name, release_date, game_image, age_rating_id, is_nsfw) 
-                            VALUES (%s, %s, %s, %s, %s) RETURNING game_id, game_name""", games, returning=True)
+            cur.executemany("""
+                INSERT INTO game (game_name, release_date, game_image, age_rating_id, is_nsfw)
+                VALUES (%s, %s, %s, %s, %s) RETURNING game_id, game_name""", games, returning=True)
             ids = []
             while True:
                 ids.append(cur.fetchone())
@@ -96,11 +85,11 @@ def upload_and_return_games(games: list[tuple], conn: psycopg.Connection):
         return {}
 
 
-def upload_and_return_pubs(pubs: list[tuple], conn: psycopg.Connection):
+def upload_and_return_pubs(pubs: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new publishers and returns their names and ids"""
     try:
         with conn.cursor() as cur:
-            cur.executemany("""INSERT INTO publisher (publisher_name) 
+            cur.executemany("""INSERT INTO publisher (publisher_name)
                             VALUES (%s) RETURNING *""", pubs, returning=True)
             ids = []
             while True:
@@ -113,11 +102,11 @@ def upload_and_return_pubs(pubs: list[tuple], conn: psycopg.Connection):
         return {}
 
 
-def upload_and_return_genres(genre: list[tuple], conn: psycopg.Connection):
+def upload_and_return_genres(genre: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new genres and returns their names and ids"""
     try:
         with conn.cursor() as cur:
-            cur.executemany("""INSERT INTO genre (genre_name) 
+            cur.executemany("""INSERT INTO genre (genre_name)
                             VALUES (%s) RETURNING *""", genre, returning=True)
             ids = []
             while True:
@@ -130,12 +119,13 @@ def upload_and_return_genres(genre: list[tuple], conn: psycopg.Connection):
         return {}
 
 
-def upload_and_return_tags(tags: list[tuple], conn: psycopg.Connection):
+def upload_and_return_tags(tags: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new tags and returns their names and ids"""
     try:
         with conn.cursor() as cur:
-            cur.executemany("""INSERT INTO tag (tag_name) 
-                            VALUES (%s) RETURNING *""", tags, returning=True)
+            cur.executemany("""
+                INSERT INTO tag (tag_name)
+                VALUES (%s) RETURNING *""", tags, returning=True)
             ids = []
             while True:
                 ids.append(cur.fetchone())
@@ -147,7 +137,7 @@ def upload_and_return_tags(tags: list[tuple], conn: psycopg.Connection):
         return {}
 
 
-def get_game_platform_assignments(conn: psycopg.Connection):
+def get_game_platform_assignments(conn: psycopg.Connection) -> list[dict]:
     """Gets the game_platform_assignment_ids, game_id and platform_id"""
     sql = """
     SELECT platform_assignment_id, game_id, platform_id
@@ -158,7 +148,8 @@ def get_game_platform_assignments(conn: psycopg.Connection):
         return cur.fetchall()
 
 
-def assign_publishers(new_games_list: list[dict], game_id_mapping: dict, publisher_mapping, current: list[tuple]):
+def assign_publishers(new_games_list: list[dict],
+    game_id_mapping: dict, publisher_mapping, current: list[tuple]) -> list[str]:
     """Maps the publisher names to their ids, maps the game names to their ids.
     Returns a list of tuples in the form (game_id, publisher_id).
     Only the tuples not in the current publisher assignment table are returned."""
@@ -170,11 +161,12 @@ def assign_publishers(new_games_list: list[dict], game_id_mapping: dict, publish
                 game_id_mapping[game["game_name"]],
                 publisher_mapping[publisher]
             ))
-        
+
     return [value for value in values if value not in current]
 
 
-def assign_developers(new_games_list: list[dict], game_id_mapping: dict, developer_mapping, current: list[tuple]):
+def assign_developers(new_games_list: list[dict],
+    game_id_mapping: dict, developer_mapping, current: list[tuple]) -> list[str]:
     """Maps the developer names to their ids, maps the game names to their ids.
     Returns a list of tuples in the form (game_id, developer_id).
     Only the tuples not in the current developer assignment table are returned."""
@@ -186,27 +178,27 @@ def assign_developers(new_games_list: list[dict], game_id_mapping: dict, develop
                 game_id_mapping[game["game_name"]],
                 developer_mapping[developer]
             ))
-       
+
     return [value for value in values if value not in current]
 
 
-def upload_developer_game_assignment(data: list[tuple], conn: psycopg.Connection):
+def upload_developer_game_assignment(data: list[tuple], conn: psycopg.Connection) -> None:
     """Uploads the new developer_game_assignments"""
     with conn.cursor() as cur:
-        cur.executemany("""INSERT INTO developer_game_assignment (game_id, developer_id) 
+        cur.executemany("""INSERT INTO developer_game_assignment (game_id, developer_id)
             VALUES (%s, %s)""", data)
     conn.commit()
 
 
-def upload_publisher_game_assignment(data: list[tuple], conn: psycopg.Connection):
+def upload_publisher_game_assignment(data: list[tuple], conn: psycopg.Connection) -> None:
     """Uploads the new publisher_game_assignments"""
     with conn.cursor() as cur:
-        cur.executemany("""INSERT INTO publisher_game_assignment (game_id, publisher_id) 
+        cur.executemany("""INSERT INTO publisher_game_assignment (game_id, publisher_id)
             VALUES (%s, %s)""", data)
         conn.commit()
 
 
-def get_publisher_game_assignments(conn: psycopg.Connection):
+def get_publisher_game_assignments(conn: psycopg.Connection) -> list[dict]:
     """Gets the publisher_game_assignments"""
     sql = """
     SELECT *
@@ -215,9 +207,9 @@ def get_publisher_game_assignments(conn: psycopg.Connection):
     with conn.cursor() as cur:
         cur.execute(sql)
         return cur.fetchall()
-    
 
-def get_developer_game_assignments(conn: psycopg.Connection):
+
+def get_developer_game_assignments(conn: psycopg.Connection) -> list[dict]:
     """Gets the developer_game_assignments"""
     sql = """
     SELECT *
@@ -228,7 +220,7 @@ def get_developer_game_assignments(conn: psycopg.Connection):
         return cur.fetchall()
 
 
-def get_platform_ids(conn: psycopg.Connection):
+def get_platform_ids(conn: psycopg.Connection) -> list[dict]:
     """Gets the platform names and ids"""
     sql = """
     SELECT *
@@ -239,8 +231,10 @@ def get_platform_ids(conn: psycopg.Connection):
         return cur.fetchall()
 
 
-def assign_game_platform(new_games_list: list[dict], game_id_mapping: dict, platform_mapping: dict, current: list[tuple]):
-    """Maps the game names to the ids and the publisher names to ids, for the game_platform_assignment table.
+def assign_game_platform(new_games_list: list[dict],
+    game_id_mapping: dict, platform_mapping: dict, current: list[tuple]) -> list[tuple]:
+    """Maps the game names to the ids and
+    the publisher names to ids, for the game_platform_assignment table.
     Returns a list of tuples. Only the assignments that exist in the database"""
     values = []
     for game in new_games_list:
@@ -258,12 +252,19 @@ def assign_game_platform(new_games_list: list[dict], game_id_mapping: dict, plat
     return values
 
 
-def upload_and_return_game_platform_assignment(data: list[tuple], conn: psycopg.Connection):
-    """Uploads the game_platform_assignments and returns platform_assignment_id, game_id, platform_id"""
+def upload_and_return_game_platform_assignment(data: list[tuple],
+    conn: psycopg.Connection) -> dict:
+    """Uploads the game_platform_assignments
+    and returns platform_assignment_id, game_id, platform_id"""
     try:
         with conn.cursor() as cur:
-            cur.executemany("""INSERT INTO game_platform_assignment (game_id, platform_id, platform_score, platform_price, platform_discount) 
-            VALUES (%s, %s, %s, %s, %s) RETURNING platform_assignment_id, game_id, platform_id""", data, returning=True)
+            cur.executemany("""
+            INSERT INTO game_platform_assignment 
+                (game_id, platform_id, platform_score,
+                platform_price, platform_discount) 
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING platform_assignment_id, game_id, platform_id""",
+            data, returning=True)
             ids = []
             while True:
                 ids.append(cur.fetchone())
@@ -275,7 +276,7 @@ def upload_and_return_game_platform_assignment(data: list[tuple], conn: psycopg.
         return {}
 
 
-def get_genre_game_platform_assignment(conn: psycopg.Connection):
+def get_genre_game_platform_assignment(conn: psycopg.Connection) -> list[dict]:
     """Gets the genre_game_platform_assignments"""
     sql = """
     SELECT *
@@ -286,7 +287,7 @@ def get_genre_game_platform_assignment(conn: psycopg.Connection):
         return cur.fetchall()
 
 
-def get_tag_game_platform_assignment(conn: psycopg.Connection):
+def get_tag_game_platform_assignment(conn: psycopg.Connection) -> list[dict]:
     """Gets the tag_game_platform_assignments"""
     sql = """
     SELECT *
@@ -299,8 +300,10 @@ def get_tag_game_platform_assignment(conn: psycopg.Connection):
 
 def assign_genre_game_platform(new_games_list: list[dict], game_id_mapping: dict,
         platform_mapping: dict, genre_mapping: dict,
-        game_platform_assignment_mapping: dict, current: list[tuple]):
-    """Maps the genre names to the ids and the game names and platform names to the game_platform_assignment_id, for the genre_game_platform_assignment table.
+        game_platform_assignment_mapping: dict, current: list[tuple]) -> list[tuple]:
+    """Maps the genre names to the ids and the game names and platform names
+     to the game_platform_assignment_id,
+    for the genre_game_platform_assignment table.
     Returns a list of tuples. Only the assignments that exist in the database"""
     values = []
     for game in new_games_list:
@@ -321,8 +324,10 @@ def assign_genre_game_platform(new_games_list: list[dict], game_id_mapping: dict
 
 def assign_tag_game_platform(new_games_list: list[dict], game_id_mapping: dict,
         platform_mapping: dict, tag_mapping: dict,
-        game_platform_assignment_mapping: dict, current: list[tuple]):
-    """Maps the tag names to the ids and the game names and platform names to the game_platform_assignment_id, for the tag_game_platform_assignment table.
+        game_platform_assignment_mapping: dict, current: list[tuple]) -> list[tuple]:
+    """Maps the tag names to the ids and the game names and
+    platform names to the game_platform_assignment_id,
+    for the tag_game_platform_assignment table.
     Returns a list of tuples. Only the assignments that exist in the database"""
     values = []
     for game in new_games_list:
@@ -341,34 +346,38 @@ def assign_tag_game_platform(new_games_list: list[dict], game_id_mapping: dict,
     return values
 
 
-def upload_genre_game_platform_assignment(data: list[tuple], conn: psycopg.Connection):
+def upload_genre_game_platform_assignment(data: list[tuple], conn: psycopg.Connection) -> None:
     """Uploads the genre_game_platform_assignments"""
     try:
         with conn.cursor() as cur:
-            cur.executemany("""INSERT INTO genre_game_platform_assignment (genre_id, platform_assignment_id) 
+            cur.executemany("""
+            INSERT INTO genre_game_platform_assignment (genre_id, platform_assignment_id)
             VALUES (%s, %s)""", data)
             conn.commit()
+            return None
     except:
         return None
 
 
-def upload_tag_game_platform_assignment(data: list[tuple], conn: psycopg.Connection):
+def upload_tag_game_platform_assignment(data: list[tuple], conn: psycopg.Connection) -> None:
     """Uploads the tag_game_platform_assignments"""
     try:
         with conn.cursor() as cur:
-            cur.executemany("""INSERT INTO tag_game_platform_assignment (tag_id, platform_assignment_id) 
+            cur.executemany("""
+            INSERT INTO tag_game_platform_assignment (tag_id, platform_assignment_id)
             VALUES (%s, %s)""", data)
             conn.commit()
+            return None
     except:
         return None
 
 
-def make_id_mapping(ids_and_items: list[dict], item: str):
+def make_id_mapping(ids_and_items: list[dict], item: str) -> dict:
     """Creates a dictionary in the form {item_name: id}"""
     return {id_and_item[f'{item}_name']: id_and_item[f'{item}_id'] for id_and_item in ids_and_items}
 
 
-def get_new_items_set(item: str, games_list_dict: list[dict]) -> list[str]:
+def get_new_items_set(item: str, games_list_dict: list[dict]) -> set[str]:
     """Gets the specified item from each dictionary
     Eg. get all the game titles. Uses a set to make sure their are no duplicates
     """
@@ -380,20 +389,20 @@ def get_new_items_set(item: str, games_list_dict: list[dict]) -> list[str]:
     return items
 
 
-def get_items_not_in_current(new: list[str], current: list[str]):
+def get_items_not_in_current(new: list[str], current: list[str]) -> list[str]:
     """Checks the new list to find any strings not in the current list. 
     Eg. new tags that aren't already in the database"""
     return [word for word in new if word not in current]
 
 
-def get_items_for_upload(table: str, new_games: list[dict], current_items: dict):
+def get_items_for_upload(table: str, new_games: list[dict], current_items: dict) -> list[tuple]:
     """Gets all the new items for uploading, that aren't already in the database"""
     new = get_new_items_set(table, new_games)
     items_for_upload = get_items_not_in_current(new, current_items.keys())
     return [(item,) for item in items_for_upload]
 
 
-def get_games_for_upload(new_games: list[dict], current_games: dict):
+def get_games_for_upload(new_games: list[dict], current_games: dict) -> list[dict]:
     """Gets a set of current games, 
     then gets a set of games that have been scraped and cleaned, 
     then gets any game names that are in the scraped games and not in the database,
@@ -402,9 +411,9 @@ def get_games_for_upload(new_games: list[dict], current_games: dict):
     new_game_names = set(game["game_name"] for game in new_games)
     games_to_upload = [game for game in new_game_names if game not in current_games]
     return [game for game in new_games if game["game_name"] in games_to_upload]
-    
 
-def format_games_for_upload(games: list[dict], age_rating_mapping: dict):
+
+def format_games_for_upload(games: list[dict], age_rating_mapping: dict) -> list[tuple]:
     """Returns a list of tuples to upload to the game table.
     Maps the age_rating to age_rating_id"""
     games_for_upload = []
@@ -430,12 +439,15 @@ def pub_or_dev_game_assignment(game_ids: dict, pub_or_dev_ids: dict) -> list[tup
     return assignments
 
 
-def make_current_dev_or_pub_game_assignment_tuples(current_assignments: list[dict], dev_or_pub_or_platform: str):
+def make_current_dev_or_pub_game_assignment_tuples(
+    current_assignments: list[dict], dev_or_pub_or_platform: str) -> list[tuple]:
     """takes the current publisher or developer game assignments
     and makes tuples in the form (game_id, pub/dev_id).
     This allows the new tuples to be checked against the existing."""
     return [(game["game_id"], game[dev_or_pub_or_platform]) for game in current_assignments]
 
 
-def make_current_game_platform_assignment_tuples(current_assignments: list[dict], dev_or_pub_or_platform: str):
+def make_current_game_platform_assignment_tuples(
+    current_assignments: list[dict], dev_or_pub_or_platform: str) -> list[tuple]:
+    """Makes the current """
     return [(game["game_id"], game[dev_or_pub_or_platform]) for game in current_assignments]
