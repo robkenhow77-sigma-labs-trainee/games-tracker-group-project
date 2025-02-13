@@ -291,7 +291,7 @@ def get_data(link: str) -> dict:
     return data
 
 
-def steam_handler(event, context):
+def steam_extract():
     """Handler function for lambda running steam pipeline"""
     args = parse_args()
     setup_logging(args.log_output)
@@ -312,5 +312,6 @@ def steam_handler(event, context):
     print(data)
     return f"Completed {len(data)} entries"
 
+
 if __name__ == "__main__":
-    steam_handler(None, None)
+    steam_extract()
