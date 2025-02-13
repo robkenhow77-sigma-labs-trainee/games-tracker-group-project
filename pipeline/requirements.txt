@@ -5,4 +5,11 @@ rich
 selenium
 webdriver_manager
 logging
+<<<<<<< HEAD
 pylint
+=======
+pylint
+pytest-cov
+requests
+logging
+>>>>>>> 139bdb899bfa29829f950826121f658bb75ee90c
