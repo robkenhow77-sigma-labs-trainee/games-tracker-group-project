@@ -1,6 +1,7 @@
 """The extraction script for GOG"""
 import re
 from time import sleep
+import json
 import requests
 import logging
 from bs4 import BeautifulSoup
@@ -13,15 +14,15 @@ from webdriver_manager.chrome import ChromeDriverManager
 def get_soup(url: str) -> BeautifulSoup:
     """Fetches the page content using Selenium and returns a BeautifulSoup object"""
 
-    service = Service(ChromeDriverManager().install())
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=options)
 
     driver.get(url)
     sleep(3)
-
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") # Some resources only load when scrolling
+    sleep(3)
     page_source = driver.page_source
     driver.quit()
 
@@ -44,10 +45,12 @@ def scrape_newest(url: str) -> list[dict]:
         page_data_list.append(game_data)
     return page_data_list
 
+
 def fetch_title(soup: BeautifulSoup):
     """Gets the title of the page"""
     title_tag = soup.find(class_='productcard-basics__title')
     return title_tag.text.strip()
+
 
 def fetch_genres(soup: BeautifulSoup):
     """Gets the genres of the page"""
@@ -77,10 +80,9 @@ def fetch_tags(soup: BeautifulSoup):
     return [tag.text for tag in tags]
 
 
-def fetch_platform_score(soup: BeautifulSoup):
+def fetch_platform_score(soup):
     """Gets the review score of the game"""
-    # TODO
-    return None
+    return soup.find(class_='average-item__value').text
 
 
 def fetch_platform_price(soup: BeautifulSoup):
@@ -89,23 +91,38 @@ def fetch_platform_price(soup: BeautifulSoup):
 
 
 def fetch_platform_discount(soup: BeautifulSoup):
-    """Extracts the discount percentage from the product price section."""
+    """fetches the platform discount"""
     discounted_price = soup.find(
-        "span", class_="product-actions-price__final-amount").text
-    return discounted_price
+        "span", class_="product-actions-price__discount")
+    if discounted_price:
+        match = re.search(r'(\d+)', discounted_price.text)
+        if match:
+            return match.group(1)
+    return None
 
 
 def fetch_release_date(soup: BeautifulSoup):
     """Extracts the release date from the product details section."""
-    release_date_span = soup.find(
-        "span", class_="product-actions-price__discount")
-    return release_date_span.text
+    script_tag = soup.find("script", type="application/ld+json")
+    if script_tag:
+        data = json.loads(script_tag.string)
+        release_date = data.get("releaseDate")
+        return release_date if release_date else None
 
 def fetch_game_image(soup: BeautifulSoup):
     image = soup.find(class_='productcard-player__logo').get('srcset')
     if not image:
         logging.error("Couldn't find image")
     return image if image else None
+
+def fetch_age_rating(soup: BeautifulSoup):
+    age_div = soup.find(class_='age-restrictions')
+
+    if age_div:
+        match = re.search(r'PEGI Rating:\s*(\d+)', age_div.text)
+        if not match:
+            logging.warning("Couldn't find age rating")
+        return match.group(1) if match else None
 
 
 def get_data(link: str) -> dict:
@@ -122,11 +139,12 @@ def get_data(link: str) -> dict:
     data['platform_discount'] = fetch_platform_discount(soup)
     data['release_date'] = fetch_release_date(soup)
     data['game_image'] = fetch_game_image(soup)
-
+    data['age_rating'] = fetch_age_rating(soup)
+    return data
 
 
 if __name__ == "__main__":
-    # scrape_newest(
-    #     'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025')
-
-    get_data("https://www.gog.com/en/game/primal_hearts")
+    data = scrape_newest(
+        'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025')
+    print(data)
+    # get_data("https://www.gog.com/en/game/foundation_supporter_edition")
