@@ -51,14 +51,13 @@ if __name__ == "__main__":
         }]
     
 
-    # Data to be loaded from db
-    # game titles and ids, tag and id, dev and id, pub and id and genre and id
+    # LOAD STEP 1: 
     game_titles_and_ids = lf.make_id_mapping(lf.get_game_ids(connection), 'game')
     tags_and_ids = lf.make_id_mapping(lf.get_tag_ids(connection), 'tag')
     devs_and_ids = lf.make_id_mapping(lf.get_developer_ids(connection), 'developer')
     pubs_and_ids = lf.make_id_mapping(lf.get_publisher_ids(connection), 'publisher')
     genres_and_ids = lf.make_id_mapping(lf.get_genre_ids(connection), 'genre')
-    # return example: {'treyarch': 1}
+    
 
     # Load known values: game titles and ids, tag and id, dev and id, pub and id and genre and id
     # New values that don't exist in the DB
