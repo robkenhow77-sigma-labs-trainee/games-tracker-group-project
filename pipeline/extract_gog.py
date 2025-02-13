@@ -14,7 +14,7 @@ def get_soup(url: str) -> BeautifulSoup:
     """Fetches the page content using Selenium and returns a BeautifulSoup object"""
 
     options = webdriver.ChromeOptions()
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=options)
 
