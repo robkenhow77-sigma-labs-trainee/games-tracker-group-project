@@ -45,10 +45,7 @@ def scrape_newest(url: str) -> list[dict]:
     return page_data_list
 
 
-def fetch_title(soup: BeautifulSoup):
-    """Gets the title of the page"""
-    title_tag = soup.find(class_='productcard-basics__title')
-    return title_tag.text.strip()
+title_tag = soup.find(class_='productcard-basics__title').text.strip()
 
 
 def fetch_genres(soup: BeautifulSoup):
