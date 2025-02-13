@@ -27,8 +27,6 @@ def scrape_newest(url: str) -> list[dict]:
     """
     Scrapes all the newest games from GOG games
     """
-
-    response = requests.get(url)
     soup = get_soup(url)
     game_links = [link['href'] for link in soup.find_all('a', href=True)
                   if re.match(r'https://www\.gog\.com/en/game/', link["href"])]
