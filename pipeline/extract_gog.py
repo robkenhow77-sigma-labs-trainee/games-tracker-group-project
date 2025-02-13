@@ -44,8 +44,8 @@ def scrape_newest(url: str) -> list[dict]:
         page_data_list.append(game_data)
     return page_data_list
 
-
-title_tag = soup.find(class_='productcard-basics__title').text.strip()
+def fetch_title(soup):
+    return soup.find(class_='productcard-basics__title').text.strip()
 
 
 def fetch_genres(soup: BeautifulSoup):
