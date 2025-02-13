@@ -17,7 +17,7 @@ RUN chmod +x ./chrome-installer.sh
 RUN ./chrome-installer.sh
 RUN rm ./chrome-installer.sh
 
-COPY extract_steam.py .
+COPY lambda_extract_steam.py .
 
 COPY transform.py .
 

@@ -9,7 +9,7 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from extract_steam import scrape_newest, parse_args
+from lambda_extract_steam import scrape_newest, parse_args
 from transform import clean_data
 from load import load_data
 
