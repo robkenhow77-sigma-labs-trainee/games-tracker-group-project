@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 import load_functions as lf
 
 
-
 if __name__ == "__main__":
     # initialise
     load_dotenv()
@@ -21,7 +20,7 @@ if __name__ == "__main__":
     connection = psycopg.connect(conn_string, row_factory=dict_row)
 
     new_games_example = [{
-        "game_name": "fortnite",
+        "game_name": "BO3",
         "developer": ["treyarch", 'epic', 'some other dev'],
         "tag": ["action"],
         "genre": ["mystic"],
@@ -51,18 +50,6 @@ if __name__ == "__main__":
         "discount": 0
         }]
     
-    #     {title: x,
-    # genres: [x, y, z],
-    # publisher: [x, y, z],
-    # developer: [x, y, z],
-    # tag: [x, y, z],
-    # platform_score: x,
-    # platform_price: x,
-    # platform_discount: x,
-    # release_date: x,
-    # game_image: x,
-    # age_rating: x
-    # }
 
     # Data to be loaded from db
     # game titles and ids, tag and id, dev and id, pub and id and genre and id
@@ -110,12 +97,12 @@ if __name__ == "__main__":
     game_dev_assignments = lf.assign_developers(new_games_example, game_titles_and_ids, devs_and_ids, current_game_dev_tuples)
     game_pub_assignments = lf.assign_publishers(new_games_example, game_titles_and_ids, pubs_and_ids, current_game_pub_tuples)
 
-    lf.upload_developer_assignment(game_dev_assignments, connection)
-    lf.upload_publisher_assignment(game_pub_assignments, connection)
+    lf.upload_developer_game_assignment(game_dev_assignments, connection)
+    lf.upload_publisher_game_assignment(game_pub_assignments, connection)
 
     # Game_platform assignment
     current_game_platform_assignments = lf.get_game_platform_assignments(connection)
-    platform_mapping = lf.make_id_mapping(lf.get_platform_mapping(connection), 'platform')
+    platform_mapping = lf.make_id_mapping(lf.get_platform_ids(connection), 'platform')
     current_game_platform_tuples = lf.make_current_assignment_tuples(current_game_platform_assignments, 'platform_id')
     game_platform_tuples = lf.assign_game_platform(new_games_example, game_titles_and_ids, platform_mapping, current_game_platform_tuples)    
     new_game_platform_assignments = lf.upload_and_return_game_platform_assignment(game_platform_tuples, connection)
