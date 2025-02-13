@@ -123,7 +123,7 @@ if __name__ == "__main__":
         "game_name": "fortnite",
         "developer": ["treyarch", 'epic', 'some other dev'],
         "tag": ["action"],
-        "genre": "mystic",
+        "genre": ["mystic"],
         "publisher": ["sigma", "activision"],
         "release_date": datetime.now(),
         "game_image": "random",
@@ -205,19 +205,36 @@ if __name__ == "__main__":
     game_platform_tuples = lf.assign_game_platform(new_games_example, game_titles_and_ids, platform_mapping, current_game_platform_tuples)    
     new_game_platform_assignments = lf.upload_and_return_game_platform_assignment(game_platform_tuples, connection)
     
-    current_game_platform_assignments =  {row['platform_assignment_id']: row['game_id'] for row in current_game_platform_assignments}
-    new_game_platform_assignments =  {row['platform_assignment_id']: row['game_id'] for row in new_game_platform_assignments}
+    current_game_platform_assignments =  {str((row['game_id'], row["platform_id"])): row['platform_assignment_id'] for row in current_game_platform_assignments}
+    new_game_platform_assignments =  {str((row['game_id'], row["platform_id"])): row['platform_assignment_id'] for row in new_game_platform_assignments}
     current_game_platform_assignments.update(new_game_platform_assignments)
 
     # Game_genre_platform_assignment & tag_game_platform_assignment
     # Get current tables
-    # get mapping for genre_name: genre_id anf tag_name: tag_id
-    # make current tuples
-    # make proposed tuples
-    # upload if nto in proposed
+    genre_game_platform_assignment = lf.get_genre_game_platform_assignment(connection)
+    tag_game_platform_assignment = lf.get_tag_game_platform_assignment(connection)
 
+    # get mapping for genre_name: genre_id anf tag_name: tag_id
+    genre_game_platform_mapping = {row['platform_assignment_id']: row['genre_id'] for row in genre_game_platform_assignment}
+    tag_game_platform_mapping = {row['platform_assignment_id']: row['tag_id'] for row in tag_game_platform_assignment}
+
+    # make current tuples
+    current_genre_game_platform_tuples = [(game["genre_id"], game['platform_assignment_id']) for game in genre_game_platform_mapping]
+    current_tag_game_platform_tuples = [(game["tag_id"], game['platform_assignment_id']) for game in tag_game_platform_mapping]
+
+    # make proposed tuples
+    new_genre_game_platform_tuples = lf.assign_genre_game_platform(new_games_example, game_titles_and_ids, platform_mapping, genres_and_ids, current_game_platform_assignments, current_genre_game_platform_tuples)
+    new_tag_game_platform_tuples = lf.assign_tag_game_platform(new_games_example, game_titles_and_ids, platform_mapping, tags_and_ids, current_game_platform_assignments, current_tag_game_platform_tuples)
+    print(new_genre_game_platform_tuples)
+    print(new_tag_game_platform_tuples)
+
+    # upload if not in proposed
+    lf.upload_genre_game_platform_assignment(new_genre_game_platform_tuples, connection)
+    lf.upload_tag_game_platform_assignment(new_tag_game_platform_tuples, connection)
 
     # NEED TO MAP AGE!!!
+    # ANYTHING THAT COULD BE A LIST SHOULD BE EVEN IF ONLY ONE ENTRY, THEN REMOVE ANY ISISNTANCE LIST ...
+    # CHECK EVERYTHING WORKS
 
 
     connection.close()

@@ -261,3 +261,79 @@ def upload_and_return_game_platform_assignment(data: list[tuple], conn: psycopg.
             return ids
     except :
         return {}
+
+
+def get_genre_game_platform_assignment(conn: psycopg.Connection):
+    sql = """
+    SELECT *
+    FROM genre_game_platform_assignment
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        return cur.fetchall()
+
+
+def get_tag_game_platform_assignment(conn: psycopg.Connection):
+    sql = """
+    SELECT *
+    FROM tag_game_platform_assignment
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        return cur.fetchall()
+
+
+def assign_genre_game_platform(new_games_list: list[dict], game_id_mapping: dict, platform_mapping: dict, genre_mapping: dict, game_platform_assignment_mapping: dict, current: list[tuple]):
+    values = []
+    for game in new_games_list:
+        game_id = game_id_mapping[game["game_name"]]
+        platform_id = platform_mapping[game["platform"]]
+        assignment_id = game_platform_assignment_mapping[str((game_id, platform_id))]
+        # MULTIPLE GENRES
+        for genre in game["genre"]:
+            new_assignment_tuple = (
+                genre_mapping[genre], assignment_id
+            )
+            if new_assignment_tuple not in current:
+                values.append((
+                new_assignment_tuple
+                ))
+    return values
+
+
+def assign_tag_game_platform(new_games_list: list[dict], game_id_mapping: dict, platform_mapping: dict, tag_mapping: dict, game_platform_assignment_mapping: dict, current: list[tuple]):
+    values = []
+    for game in new_games_list:
+        game_id = game_id_mapping[game["game_name"]]
+        platform_id = platform_mapping[game["platform"]]
+        assignment_id = game_platform_assignment_mapping[str((game_id, platform_id))]
+        # MULTIPLE tagS
+        for tag in game["tag"]:
+            new_assignment_tuple = (
+                tag_mapping[tag], assignment_id
+            )
+            if new_assignment_tuple not in current:
+                values.append((
+                new_assignment_tuple
+                ))
+    return values
+
+
+def upload_genre_game_platform_assignment(data: list[tuple], conn: psycopg.Connection):
+    """Loads values"""
+    try:
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO genre_game_platform_assignment (genre_id, platform_assignment_id) 
+            VALUES (%s, %s)""", data)
+    except:
+        return None
+
+
+def upload_tag_game_platform_assignment(data: list[tuple], conn: psycopg.Connection):
+    """Loads values"""
+    try:
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO tag_game_platform_assignment (tag_id, platform_assignment_id) 
+            VALUES (%s, %s)""", data)
+    except:
+        return None
