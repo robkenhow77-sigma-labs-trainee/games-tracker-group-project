@@ -28,6 +28,7 @@ variable "DB_PORT" {
 variable "DB_USERNAME" {
     type = string  
 }
+
 variable "DB_PASSWORD" {
     type = string
 }
@@ -36,6 +37,6 @@ variable "DB_NAME" {
     type = string  
 }
 
-variable "ACCOUNT_NUMBER" {
+variable "ABDI_EMAIL" {
     type = string
 }

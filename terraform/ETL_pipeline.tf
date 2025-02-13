@@ -247,7 +247,7 @@ resource "aws_iam_role" "report_scheduler_role" {
 
 # EventBridge Scheduler to run Step Function every day
 
-resource "aws_scheduler_schedule" "steam_etl_pipeline_schedule" {
+resource "aws_scheduler_schedule" "etl_pipeline_schedule" {
     name = "c15-play-stream-etl-pipeline-daily-trigger"
     schedule_expression   = "rate(1 day)"  # Runs every day
     flexible_time_window {
