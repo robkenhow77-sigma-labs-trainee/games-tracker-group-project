@@ -27,6 +27,7 @@ def get_soup(url: str) -> BeautifulSoup:
 
     return BeautifulSoup(page_source, "html.parser")
 
+
 def scrape_newest(url: str) -> list[dict]:
     """
     Scrapes all the newest games from GOG games
@@ -43,6 +44,7 @@ def scrape_newest(url: str) -> list[dict]:
         game_data = get_data(link)
         page_data_list.append(game_data)
     return page_data_list
+
 
 def fetch_title(soup):
     return soup.find(class_='productcard-basics__title').text.strip()
@@ -105,12 +107,14 @@ def fetch_release_date(soup: BeautifulSoup):
         release_date = data.get("releaseDate")
         return release_date if release_date else None
 
+
 def fetch_game_image(soup: BeautifulSoup):
     """Gets the game images"""
     image = soup.find(class_='productcard-player__logo').get('srcset')
     if not image:
         logging.error("Couldn't find image")
     return image if image else None
+
 
 def fetch_age_rating(soup: BeautifulSoup):
     """Gets the age rating from the age restriction class"""
@@ -144,5 +148,3 @@ def get_data(link: str) -> dict:
 if __name__ == "__main__":
     data = scrape_newest(
         'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025')
-    print(data)
-    # get_data("https://www.gog.com/en/game/foundation_supporter_edition")
