@@ -145,10 +145,8 @@ class TestSetupLogging(unittest.TestCase):
         output = "console"
         level = 20  # INFO level
 
-        # Call the setup_logging function
         setup_logging(output)
 
-        # Check that logging.basicConfig was called with the expected arguments
         mock_basic_config.assert_called_once_with(
             level=level,
             format="{asctime} - {levelname} - {message}",
@@ -156,18 +154,15 @@ class TestSetupLogging(unittest.TestCase):
             datefmt="%Y-%m-%d %H:%M"
         )
         
-        # Verify that logging.info was called with the correct message
         mock_info.assert_called_once_with("Logging to console.")
 
     @patch('logging.basicConfig')
     @patch('logging.info')
     def test_logging_with_different_level(self, mock_info, mock_basic_config):
-        # Test setup_logging with a custom logging level (DEBUG)
         output = "file"
         filename = "test.log"
         level = 10  # DEBUG level
 
-        # Call the setup_logging function
         setup_logging(output, filename, level)
 
         mock_basic_config.assert_called_once_with(
