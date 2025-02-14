@@ -16,8 +16,6 @@ from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-
-
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(

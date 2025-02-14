@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from transform import (is_valid_data, is_valid_title, is_valid_genres, is_valid_publisher,
+from steam_pipeline.steam_transform import (is_valid_data, is_valid_title, is_valid_genres, is_valid_publisher,
                        is_valid_developer, is_valid_tag, is_valid_score, is_valid_price, is_valid_discount,
                        is_valid_release, is_valid_image, format_data, format_string,
                        format_integer, format_release, is_valid_age, format_genre_list, format_developer_list,

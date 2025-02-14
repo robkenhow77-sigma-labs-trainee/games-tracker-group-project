@@ -10,7 +10,7 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-import load_functions as lf
+import steam_pipeline.steam_load_functions as lf
 
 
 def load_data(new_games_transformed: list[dict], connection: psycopg.Connection):

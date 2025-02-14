@@ -1,0 +1,12 @@
+beautifulsoup4
+logging
+logging
+pylint
+pytest
+pytest-cov
+requests
+requests
+rich
+selenium
+webdriver_manager
+psycopg[binary]
