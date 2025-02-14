@@ -76,7 +76,7 @@ def format_score(score: int) -> str:
 
 def format_date(date: datetime) -> str:
     """Returns the date formatted as DD/MM/YYYY"""
-    return datetime.strptime(date, "%d/%m/%Y")
+    return datetime.strftime(date, "%d/%m/%Y")
 
 
 if __name__ == "__main__":
