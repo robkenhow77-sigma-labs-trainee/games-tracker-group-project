@@ -4,7 +4,7 @@
 import unittest
 import pytest
 from unittest.mock import patch, MagicMock
-from extract_steam import find_target_date, setup_logging, parse_args, init_driver, fetch_age_rating, fetch_developer, fetch_game_image, fetch_platform_discount, fetch_genres, fetch_platform_price, fetch_platform_score, fetch_publisher, fetch_release_date, fetch_tags
+from steam_extract import find_target_date, setup_logging, parse_args, init_driver, fetch_age_rating, fetch_developer, fetch_game_image, fetch_platform_discount, fetch_genres, fetch_platform_price, fetch_platform_score, fetch_publisher, fetch_release_date, fetch_tags
 from bs4 import BeautifulSoup
 
 class TestParseArgs(unittest.TestCase):
@@ -44,10 +44,10 @@ class TestParseArgs(unittest.TestCase):
 
 class TestInitDriver(unittest.TestCase):
 
-    @patch('extract_steam.webdriver.Chrome')  # Mock webdriver.Chrome
-    @patch('extract_steam.ChromeDriverManager')  # Mock ChromeDriverManager
-    @patch('extract_steam.Service')  # Mock Service
-    @patch('extract_steam.webdriver.ChromeOptions')  # Mock ChromeOptions
+    @patch('steam_extract.webdriver.Chrome')  # Mock webdriver.Chrome
+    @patch('steam_extract.ChromeDriverManager')  # Mock ChromeDriverManager
+    @patch('steam_extract.Service')  # Mock Service
+    @patch('steam_extract.webdriver.ChromeOptions')  # Mock ChromeOptions
     def test_driver_init(self, MockChromeOptions, MockService, MockChromeDriverManager, MockChrome):
         """Tests the driver initialises with correct options."""
 
@@ -72,10 +72,10 @@ class TestInitDriver(unittest.TestCase):
 
         self.assertEqual(driver, mock_driver)
 
-    @patch('extract_steam.webdriver.Chrome')  # Mock webdriver.Chrome
-    @patch('extract_steam.ChromeDriverManager')  # Mock ChromeDriverManager
-    @patch('extract_steam.webdriver.chrome.service.Service')  # Mock Service
-    @patch('extract_steam.webdriver.ChromeOptions')  # Mock ChromeOptions
+    @patch('steam_extract.webdriver.Chrome')  # Mock webdriver.Chrome
+    @patch('steam_extract.ChromeDriverManager')  # Mock ChromeDriverManager
+    @patch('steam_extract.webdriver.chrome.service.Service')  # Mock Service
+    @patch('steam_extract.webdriver.ChromeOptions')  # Mock ChromeOptions
     def test_headless_option(self, MockChromeOptions, MockService, MockChromeDriverManager, MockChrome):
         """tests drive initialises with headless."""
 
@@ -185,8 +185,8 @@ class TestSetupLogging(unittest.TestCase):
 
 class TestFindTargetDate(unittest.TestCase):
 
-    @patch('extract_steam.ChromeDriverManager')
-    @patch('extract_steam.BeautifulSoup')
+    @patch('steam_extract.ChromeDriverManager')
+    @patch('steam_extract.BeautifulSoup')
     def test_target_date_found(self, mock_bs, MockDriver):
 
         mock_driver = MockDriver.return_value
@@ -203,8 +203,8 @@ class TestFindTargetDate(unittest.TestCase):
         mock_driver.find_element.assert_not_called()  # No need to scroll
         mock_driver.page_source = "<html><div class='col search_released responsive_secondrow'></div></html>"
 
-    @patch('extract_steam.ChromeDriverManager')
-    @patch('extract_steam.BeautifulSoup')
+    @patch('steam_extract.ChromeDriverManager')
+    @patch('steam_extract.BeautifulSoup')
     def test_target_date_found_after_one_scroll(self, mock_bs, MockDriver):
 
         mock_driver = MockDriver.return_value
@@ -227,9 +227,9 @@ class TestFindTargetDate(unittest.TestCase):
         mock_driver.find_element.assert_not_called()
 
 
-    @patch('extract_steam.ChromeDriverManager')
-    @patch('extract_steam.BeautifulSoup')
-    @patch('extract_steam.logging.error')
+    @patch('steam_extract.ChromeDriverManager')
+    @patch('steam_extract.BeautifulSoup')
+    @patch('steam_extract.logging.error')
     def test_target_date_not_found_after_100_scrolls(self, mock_log_error, mock_bs, MockDriver):
 
         mock_driver = MockDriver.return_value

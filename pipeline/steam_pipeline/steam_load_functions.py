@@ -422,7 +422,7 @@ def format_games_for_upload(games: list[dict], age_rating_mapping: dict) -> list
             game["game_name"],
             game["release_date"],
             game["game_image"],
-            age_rating_mapping[game["age_rating"]], # NEED TO MAP
+            age_rating_mapping[game["age_rating"]],
             game["is_nsfw"]
         ))
 
