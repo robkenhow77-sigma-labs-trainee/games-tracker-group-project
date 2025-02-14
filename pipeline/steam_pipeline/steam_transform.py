@@ -410,7 +410,7 @@ def format_string(string: str) -> str:
     if not string or not isinstance(string, str):
         return None
 
-    string.strip()
+    string = string.strip()
     string = urllib.parse.unquote(string)
 
     return string
