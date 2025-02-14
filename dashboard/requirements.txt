@@ -1,2 +1,6 @@
 pytest
 pylint
+psycopg2
+python-dotenv
+streamlit
+pandas
