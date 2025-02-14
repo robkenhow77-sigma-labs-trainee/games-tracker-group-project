@@ -6,10 +6,10 @@ from datetime import datetime
 
 import pandas as pd
 from psycopg2 import connect
-from psycopg2.extras import RealDictCursor
 from psycopg2.extensions import connection
 from dotenv import load_dotenv
 import streamlit as st
+from requests import get
 
 def get_connection() -> object:
     """Returns a connection to the database."""
@@ -29,16 +29,12 @@ def get_connection() -> object:
     return connection
 
 
-def get_cursor(conn: object) -> object:
-    """Returns a database cursor"""
-    return conn.cursor()
+def get_data(conn: connection) -> pd.DataFrame:
+    """Gets the data from the database"""
 
-
-def get_data(conn: object) -> object:
-
-    with get_cursor(conn) as cur:
+    with conn.cursor() as cur:
         cur.execute("""
-        SELECT g.game_id, g.game_name, gpa.platform_score, g.release_date, g.game_image, gpa.platform_price
+        SELECT g.game_id, g.game_name, gpa.platform_score, gpa.platform_release_date, g.game_image, gpa.platform_price
         FROM game g
         JOIN game_platform_assignment gpa
         ON g.game_id = gpa.game_id;
@@ -53,15 +49,9 @@ def get_data(conn: object) -> object:
 def format_price(price: int) -> str:
     """Returns the price in £ format."""
 
-    if price > 99:    
-        return "£" + str(price)[:-2] + "." + str(price)[-2:]
-
-    if price > 9:
-        return "£0." + str(price)[:]
-    
     if price > 0:
-        return "£0.0" + str(price)[:]
-    
+        return f"£{int(price) / 100:.2f}"
+
     return "Free to play"
 
 
@@ -70,7 +60,7 @@ def format_score(score: int) -> str:
 
     if score != -1:
         return str(score) + "/100"
-    
+
     return "No ratings on release."
 
 
@@ -83,11 +73,13 @@ if __name__ == "__main__":
 
     load_dotenv()
 
-    conn = get_connection()
+    connection_to_db = get_connection()
 
-    data = get_data(conn)
+    value_data = get_data(connection_to_db)
 
-    print(data)
+    connection_to_db.close()
+
+    print(value_data)
 
     st.write("Game Data Table:")
 
@@ -104,12 +96,19 @@ if __name__ == "__main__":
         st.write("Price")
     st.markdown("---")
 
-    for idx, row in data.iterrows():
+    for idx, row in value_data.iterrows():
         cols = st.columns(5)
         with cols[0]:
             st.write(f"{row["Title"]}")
         with cols[1]:
-            st.image(row["Image"], caption=row["Title"])
+            try: 
+                get(row['Image'])
+                if get(row['Image']).status_code == 200:
+                    st.image(row["Image"], caption=row["Title"])
+                else:
+                    st.write("NO VALID IMAGE")
+            except:
+                st.write("NO VALID IMAGE")
         with cols[2]:
             st.write(f"{format_date(row['Release Date'])}")
         with cols[3]:
