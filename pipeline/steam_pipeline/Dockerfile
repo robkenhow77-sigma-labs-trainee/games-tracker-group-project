@@ -19,11 +19,11 @@ RUN rm ./chrome-installer.sh
 
 COPY lambda_extract_steam.py .
 
-COPY transform.py .
+COPY steam_transform.py .
 
-COPY load.py .
+COPY steam_load.py .
 
-COPY load_functions.py .
+COPY steam_load_functions.py .
 
 COPY steam_pipeline.py .
 
