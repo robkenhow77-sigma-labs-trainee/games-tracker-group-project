@@ -4,7 +4,7 @@
 import unittest
 import pytest
 from unittest.mock import patch, MagicMock
-from steam_pipeline.steam_extract import find_target_date, setup_logging, parse_args, init_driver, fetch_age_rating, fetch_developer, fetch_game_image, fetch_platform_discount, fetch_genres, fetch_platform_price, fetch_platform_score, fetch_publisher, fetch_release_date, fetch_tags
+from steam_extract import find_target_date, setup_logging, parse_args, init_driver, fetch_age_rating, fetch_developer, fetch_game_image, fetch_platform_discount, fetch_genres, fetch_platform_price, fetch_platform_score, fetch_publisher, fetch_release_date, fetch_tags
 from bs4 import BeautifulSoup
 
 class TestParseArgs(unittest.TestCase):
