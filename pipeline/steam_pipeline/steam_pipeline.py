@@ -2,6 +2,7 @@
 
 # Native imports
 from os import environ as ENV
+from datetime import datetime, timedelta
 
 # Third-party imports
 import psycopg
@@ -9,7 +10,8 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from steam_lambda_extract import scrape_newest, parse_args
+# from steam_lambda_extract import scrape_newest, parse_args
+from steam_extract import scrape_newest, parse_args
 from steam_transform import clean_data
 from steam_load import load_data
 
@@ -33,6 +35,7 @@ def change_keys(data: list[dict]):
         "price": game['platform_price'],
         "discount": game['platform_discount']
         })
+    print(updated_keys)
     return updated_keys
 
 
@@ -42,7 +45,8 @@ def lambda_handler(event=None, context=None):
     args = parse_args()
     target_date = args.scroll_to_date
     if target_date is None:
-        target_date = "11 Feb, 2025"
+        target_date = datetime.now() - timedelta(days=10)
+        target_date = target_date.strftime('%d %b, %Y')
     load_dotenv()
     user = ENV['DB_USERNAME']
     password = ENV["DB_PASSWORD"]
