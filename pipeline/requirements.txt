@@ -9,3 +9,4 @@ requests
 rich
 selenium
 webdriver_manager
+psycopg[binary]
