@@ -23,11 +23,7 @@ def get_connection() -> object:
     port = ENV['DB_PORT']
     password = ENV['DB_PASSWORD']
 
-    connection = connect(dbname=dbname, user=user, password=password, host=host, port=port)
-
-    logging.info('Connected.')
-
-    return connection
+    return connect(dbname=dbname, user=user, password=password, host=host, port=port)
 
 
 @st.cache_data
@@ -103,9 +99,9 @@ if __name__ == "__main__":
         with cols[0]:
             st.write(f"{row["Title"]}")
         with cols[1]:
-            try: 
-                get(row['Image'])
-                if get(row['Image']).status_code == 200:
+            try:
+                get(row['Image'], timeout=5)
+                if get(row['Image'], timeout=5).status_code == 200:
                     st.image(row["Image"], caption=row["Title"])
                 else:
                     st.write("NO VALID IMAGE")
