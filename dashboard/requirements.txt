@@ -3,3 +3,4 @@ pylint
 streamlit
 python-dotenv
 boto3
+psycopg2
