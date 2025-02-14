@@ -60,17 +60,18 @@ def fetch_genres(soup: BeautifulSoup) -> list[str]:
 
 def fetch_publisher(soup: BeautifulSoup) -> list[str]:
     """Extracts the publisher"""
-    links = soup.find_all("a", href=True)
-    publishers = [link.text.strip() for link in links if re.search(r'publisher',link.get("href", ""))]
+    detail_tag = soup.find_all(class_='details__link ng-scope')
+    publishers = [x.text for x in detail_tag if re.search(
+        r'publisher', x.get('href', ''))]
     return publishers
 
 
 def fetch_developer(soup: BeautifulSoup) -> list[str]:
     """Extracts the developer"""
-    links = soup.find_all("a", href=True)
-    developers = [link.text.strip() for link in links if re.search(
-        r'developer', link.get("href", ""))]
-    return developers
+    detail_tag = soup.find_all(class_='details__link ng-scope')
+    publishers = [x.text for x in detail_tag if re.search(
+        r'developer', x.get('href', ''))]
+    return publishers
 
 
 def fetch_tags(soup: BeautifulSoup) -> list[str]:
@@ -149,3 +150,4 @@ def get_data(link: str) -> dict:
 if __name__ == "__main__":
     data = scrape_newest(
         'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025')
+    print(data)
