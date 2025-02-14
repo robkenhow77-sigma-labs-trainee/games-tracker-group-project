@@ -1,5 +1,5 @@
 """sample dashboard for sns integration"""
-from os import environ as ENV
+#from os import environ as ENV
 from dotenv import load_dotenv
 import streamlit as st
 
