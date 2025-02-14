@@ -9,7 +9,7 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from gog_lambda_extract import scrape_newest, parse_args
+from gog_lambda_extract import scrape_newest, lambda_driver, local_driver 
 from gog_transform import clean_data
 from gog_load import load_data
 
@@ -39,10 +39,7 @@ def change_keys(data: list[dict]):
 def lambda_handler(event=None, context=None):
     """Function to run entire Steam ETL pipeline"""
     # Initialise
-    args = parse_args()
-    target_date = args.scroll_to_date
-    if target_date is None:
-        target_date = "11 Feb, 2025"
+    target_date = "11 Feb, 2025"
     load_dotenv()
     user = ENV['DB_USERNAME']
     password = ENV["DB_PASSWORD"]
@@ -51,10 +48,13 @@ def lambda_handler(event=None, context=None):
     name = ENV["DB_NAME"]
     CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
     db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
+    
+    driver = local_driver()
+    # driver = lambda_driver()
 
     # Extract
-    url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998&supportedlang=english&ndl=1"
-    scraped_data = scrape_newest(url, target_date)
+    url = "https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025"
+    scraped_data = scrape_newest(url, driver)
 
     # Transform
     cleaned_data = clean_data(scraped_data)

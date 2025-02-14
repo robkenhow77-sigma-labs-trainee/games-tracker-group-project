@@ -10,7 +10,7 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-import gog_pipeline.gog_load_functions as lf
+import gog_load_functions as lf
 
 
 def load_data(new_games_transformed: list[dict], connection: psycopg.Connection):
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         "game_image": "random",
         "is_nsfw": True,
         "age_rating": "PEGI 16",
-        "platform": "Steam",
+        "platform": "GOG",
         "score": 90,
         "price": 20000,
         "discount": 99
