@@ -9,7 +9,8 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from steam_lambda_extract import scrape_newest, parse_args
+# from steam_lambda_extract import scrape_newest, parse_args
+from steam_extract import scrape_newest, parse_args
 from steam_transform import clean_data
 from steam_load import load_data
 
@@ -42,7 +43,7 @@ def lambda_handler(event=None, context=None):
     args = parse_args()
     target_date = args.scroll_to_date
     if target_date is None:
-        target_date = "11 Feb, 2025"
+        target_date = "1 Jan, 2025"
     load_dotenv()
     user = ENV['DB_USERNAME']
     password = ENV["DB_PASSWORD"]

@@ -40,13 +40,23 @@ def parse_args():
 
 
 def init_driver():
-
+    """sets up the selenium driver"""
+    # Set up Chrome driver to scroll a webpage so that we can load more urls.
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--headless')
-    chrome_options.binary_location = os.getcwd() + "/bin/headless-chromium"
+    chrome_options.add_argument('--headless')  # Ensure headless mode is set
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
 
-    driver = webdriver.Chrome(options=chrome_options)
+    # Set the correct binary path for Chromium
+    chrome_options.binary_location = os.path.join(os.getcwd(), "bin/headless-chromium")
 
+    # Specify the ChromeDriver binary location
+    chromedriver_path = os.path.join(os.getcwd(), "bin/chromedriver")
+
+    # Use Selenium's Service class to set the driver path
+    service = Service(executable_path=chromedriver_path)
+
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
     return driver
 
