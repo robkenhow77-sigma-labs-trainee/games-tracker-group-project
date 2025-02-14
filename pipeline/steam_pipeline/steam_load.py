@@ -22,7 +22,6 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
     pubs_and_ids = lf.make_id_mapping(lf.get_publisher_ids(connection), 'publisher')
     genres_and_ids = lf.make_id_mapping(lf.get_genre_ids(connection), 'genre')
 
-
     # Gets a list of games, tags, developers, publishers and genres
     # that are not in the database, and need to be uploaded
     new_games = lf.get_games_for_upload(new_games_transformed, game_titles_and_ids)
@@ -34,6 +33,7 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
     # Game table must be formatted differently as it has more than just name and id
     age_rating_map = lf.make_id_mapping(lf.get_age_rating_mapping(connection), "age_rating")
     new_games = lf.format_games_for_upload(new_games, age_rating_map)
+
 
     # Upload games, tags, developers, publishers and genres and return their new ids
     new_game_titles_and_ids = lf.make_id_mapping(
@@ -105,11 +105,10 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
         for row in new_game_platform_assignments}
     current_game_platform_assignments.update(new_game_platform_assignments)
 
-
     # LOAD STEP 3: Update the genre_game_platform_assignment and tag_game_platform_assignment
     genre_game_platform_assignment = lf.get_genre_game_platform_assignment(connection)
     tag_game_platform_assignment = lf.get_tag_game_platform_assignment(connection)
-
+    
     # Make tuples of the existing genre/tag_ids and platform_assignment_ids
     current_genre_game_platform_tuples = [(game["genre_id"],
         game['platform_assignment_id']) for game in genre_game_platform_assignment]
@@ -133,6 +132,8 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
 
 
 if __name__ == "__main__":
+
+    
     # initialise
     load_dotenv()
     user = ENV['DB_USERNAME']
@@ -149,7 +150,7 @@ if __name__ == "__main__":
         "tag": ["action"],
         "genre": ["mystic"],
         "publisher": ["sigma", "activision"],
-        "release_date": datetime.now(),
+        "release_date": datetime.date(datetime.now()),
         "game_image": "random",
         "is_nsfw": True,
         "age_rating": "PEGI 16",
@@ -164,7 +165,7 @@ if __name__ == "__main__":
         "tag": ["action", "racing"],
         "genre": ["mystic", "horror"],
         "publisher": ["sigma"],
-        "release_date": datetime.now(),
+        "release_date": datetime.date(datetime.now()),
         "game_image": "random",
         "is_nsfw": True,
         "age_rating": "PEGI 18",
@@ -176,3 +177,4 @@ if __name__ == "__main__":
 
 
     load_data(NEW_GAMES_EXAMPLE, db_connection)
+    db_connection.close()
