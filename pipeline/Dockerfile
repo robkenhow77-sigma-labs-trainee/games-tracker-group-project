@@ -23,6 +23,8 @@ COPY transform.py .
 
 COPY load.py .
 
+COPY load_functions.py .
+
 COPY steam_pipeline.py .
 
 CMD ["steam_pipeline.lambda_handler"]

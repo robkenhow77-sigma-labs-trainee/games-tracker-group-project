@@ -62,6 +62,7 @@ def lambda_handler(event=None, context=None):
 
     # Load
     load_data(cleaned_data, db_connection)
+    return
 
 
 if __name__ == "__main__":
