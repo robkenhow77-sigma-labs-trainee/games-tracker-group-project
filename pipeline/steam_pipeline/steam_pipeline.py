@@ -2,6 +2,7 @@
 
 # Native imports
 from os import environ as ENV
+from datetime import datetime, timedelta
 
 # Third-party imports
 import psycopg
@@ -34,6 +35,7 @@ def change_keys(data: list[dict]):
         "price": game['platform_price'],
         "discount": game['platform_discount']
         })
+    print(updated_keys)
     return updated_keys
 
 
@@ -43,7 +45,8 @@ def lambda_handler(event=None, context=None):
     args = parse_args()
     target_date = args.scroll_to_date
     if target_date is None:
-        target_date = "1 Jan, 2025"
+        target_date = datetime.now() - timedelta(days=10)
+        target_date = target_date.strftime('%d %b, %Y')
     load_dotenv()
     user = ENV['DB_USERNAME']
     password = ENV["DB_PASSWORD"]
