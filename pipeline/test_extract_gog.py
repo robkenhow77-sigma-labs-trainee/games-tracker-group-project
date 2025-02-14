@@ -21,8 +21,8 @@ def false_soup():
                 <a href="#">Action</a>
                 <a href="#">Adventure</a>
             </div>
-            <a href="https://example.com/publisher">Microsoft</a>
-            <a href="https://example.com/developer">Bethesda</a>
+            <a class="details__link ng-scope" href="TEST/TEST?publishers=microsoft">Microsoft</a>
+            <a class="details__link ng-scope" href="TEST/TEST?developers=bethesda">Bethesda</a>
             <div class="details__link details__link--tag">wilderness</div>
             <div class="details__link details__link--tag">mod</div>
             <div class="details__link details__link--tag">monster</div>
