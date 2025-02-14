@@ -18,6 +18,7 @@ def local_driver():
     options.add_argument("--headless")
     chrome_driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=options)
+    return chrome_driver
 
 
 def lambda_driver():

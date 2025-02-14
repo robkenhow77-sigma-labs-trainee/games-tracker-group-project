@@ -72,14 +72,15 @@ def upload_and_return_games(games: list[tuple], conn: psycopg.Connection) -> dic
     try:
         with conn.cursor() as cur:
             cur.executemany("""
-                INSERT INTO game (game_name, release_date, game_image, age_rating_id, is_nsfw)
-                VALUES (%s, %s, %s, %s, %s) RETURNING game_id, game_name""", games, returning=True)
+                INSERT INTO game (game_name, game_image, age_rating_id, is_nsfw)
+                VALUES (%s, %s, %s, %s) RETURNING game_id, game_name""", games, returning=True)
             ids = []
             while True:
                 ids.append(cur.fetchone())
                 if not cur.nextset():
                     break
             conn.commit()
+           
             return ids
     except :
         return {}
@@ -207,6 +208,7 @@ def get_publisher_game_assignments(conn: psycopg.Connection) -> list[dict]:
     with conn.cursor() as cur:
         cur.execute(sql)
         return cur.fetchall()
+    
 
 
 def get_developer_game_assignments(conn: psycopg.Connection) -> list[dict]:
@@ -247,7 +249,8 @@ def assign_game_platform(new_games_list: list[dict],
                 platform_mapping[game["platform"]],
                 game["score"],
                 game["price"],
-                game["discount"]
+                game["discount"],
+                game["release_date"]
             ))
     return values
 
@@ -256,13 +259,14 @@ def upload_and_return_game_platform_assignment(data: list[tuple],
     conn: psycopg.Connection) -> dict:
     """Uploads the game_platform_assignments
     and returns platform_assignment_id, game_id, platform_id"""
+    
     try:
         with conn.cursor() as cur:
             cur.executemany("""
             INSERT INTO game_platform_assignment 
                 (game_id, platform_id, platform_score,
-                platform_price, platform_discount) 
-            VALUES (%s, %s, %s, %s, %s)
+                platform_price, platform_discount, platform_release_date) 
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING platform_assignment_id, game_id, platform_id""",
             data, returning=True)
             ids = []
@@ -420,7 +424,6 @@ def format_games_for_upload(games: list[dict], age_rating_mapping: dict) -> list
     for game in games:
         games_for_upload.append((
             game["game_name"],
-            game["release_date"],
             game["game_image"],
             age_rating_mapping[game["age_rating"]],
             game["is_nsfw"]

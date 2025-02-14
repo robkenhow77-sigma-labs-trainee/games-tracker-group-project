@@ -9,7 +9,7 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from gog_lambda_extract import scrape_newest, lambda_driver, local_driver 
+from gog_extract import scrape_newest
 from gog_transform import clean_data
 from gog_load import load_data
 
@@ -49,12 +49,14 @@ def lambda_handler(event=None, context=None):
     CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
     db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
     
-    driver = local_driver()
+    # driver = local_driver()
     # driver = lambda_driver()
 
     # Extract
+    print('scraping...')
     url = "https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025"
-    scraped_data = scrape_newest(url, driver)
+    scraped_data = scrape_newest(url) # previously had driver in it 
+    print('scraped')
 
     # Transform
     cleaned_data = clean_data(scraped_data)
