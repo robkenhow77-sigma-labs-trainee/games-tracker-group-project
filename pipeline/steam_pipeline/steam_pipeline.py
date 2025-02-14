@@ -9,9 +9,9 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from steam_pipeline.steam_lambda_extract import scrape_newest, parse_args
-from steam_pipeline.steam_transform import clean_data
-from steam_pipeline.steam_load import load_data
+from steam_lambda_extract import scrape_newest, parse_args
+from steam_transform import clean_data
+from steam_load import load_data
 
 
 def change_keys(data: list[dict]):
