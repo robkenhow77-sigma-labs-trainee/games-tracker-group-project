@@ -247,7 +247,8 @@ def assign_game_platform(new_games_list: list[dict],
                 platform_mapping[game["platform"]],
                 game["score"],
                 game["price"],
-                game["discount"]
+                game["discount"],
+                game["release_date"]
             ))
     return values
 
@@ -420,7 +421,6 @@ def format_games_for_upload(games: list[dict], age_rating_mapping: dict) -> list
     for game in games:
         games_for_upload.append((
             game["game_name"],
-            game["release_date"],
             game["game_image"],
             age_rating_mapping[game["age_rating"]],
             game["is_nsfw"]
