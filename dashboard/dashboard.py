@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import streamlit as st
 from requests import get
 
+@st.cache_resource
 def get_connection() -> object:
     """Returns a connection to the database."""
 
@@ -29,10 +30,11 @@ def get_connection() -> object:
     return connection
 
 
-def get_data(conn: connection) -> pd.DataFrame:
+@st.cache_data
+def get_data(_conn: connection) -> pd.DataFrame:
     """Gets the data from the database"""
 
-    with conn.cursor() as cur:
+    with _conn.cursor() as cur:
         cur.execute("""
         SELECT g.game_id, g.game_name, gpa.platform_score, gpa.platform_release_date, g.game_image, gpa.platform_price
         FROM game g
@@ -59,7 +61,7 @@ def format_score(score: int) -> str:
     """Returns the score out of 100."""
 
     if score != -1:
-        return str(score) + "/100"
+        return str(score) + "%"
 
     return "No ratings on release."
 
