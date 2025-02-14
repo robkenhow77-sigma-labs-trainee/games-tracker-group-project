@@ -71,7 +71,7 @@ def format_score(score: int) -> str:
     if score != -1:
         return str(score) + "/100"
     
-    return "No ratings yet"
+    return "No ratings on release."
 
 
 def format_date(date: datetime) -> str:
@@ -91,10 +91,29 @@ if __name__ == "__main__":
 
     st.write("Game Data Table:")
 
+    cols = st.columns(5)
+    with cols[0]:
+        st.write("Title")
+    with cols[1]:
+        st.write("Image")
+    with cols[2]:
+        st.write("Release Date")
+    with cols[3]:
+        st.write("Score")
+    with cols[4]:
+        st.write("Price")
+    st.markdown("---")
 
     for idx, row in data.iterrows():
-        st.image(row["Image"], caption=row["Title"])
-        st.write(f"Release Date: {format_date(row['Release Date'])}")
-        st.write(f"Score: {format_score(row['Score'])}")
-        st.write(f"Price: {format_price(row['Price'])}")
+        cols = st.columns(5)
+        with cols[0]:
+            st.write(f"{row["Title"]}")
+        with cols[1]:
+            st.image(row["Image"], caption=row["Title"])
+        with cols[2]:
+            st.write(f"{format_date(row['Release Date'])}")
+        with cols[3]:
+            st.write(f"{format_score(row['Score'])}")
+        with cols[4]:
+            st.write(f"{format_price(row['Price'])}")
         st.markdown("---")
