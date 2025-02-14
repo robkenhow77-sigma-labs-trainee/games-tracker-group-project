@@ -19,9 +19,9 @@ def get_soup(url: str) -> BeautifulSoup:
         ChromeDriverManager().install()), options=options)
 
     driver.get(url)
-    sleep(3)
+    sleep(0.5)
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") # Some resources only load when scrolling
-    sleep(3)
+    sleep(0.5)
     page_source = driver.page_source
     driver.quit()
 

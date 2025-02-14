@@ -397,7 +397,7 @@ def format_data(game: dict) -> bool:
     formatted_data['title'] = format_string(game['title'])
     formatted_data['genres'] = format_genre_list(game['genres'])
     formatted_data['platform_price'] = format_integer(game['platform_price'])
-    formatted_data['platform'] = "Steam"
+    formatted_data['platform'] = "GOG"
 
     # Optional data formatting
     if is_valid_publisher(game['publisher']):
