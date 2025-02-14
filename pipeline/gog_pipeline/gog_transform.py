@@ -2,6 +2,7 @@
 
 import logging
 from datetime import datetime, timedelta
+import urllib.parse
 
 from requests import get
 
@@ -441,7 +442,11 @@ def format_string(string: str) -> str:
     if not string or not isinstance(string, str):
         return None
 
-    return string.strip().replace('%20', ' ')
+    string = string.strip()
+    string = urllib.parse.unquote(string)
+
+    return string
+
 
 
 def format_genre_list(values: list[str]) -> list[str]:
