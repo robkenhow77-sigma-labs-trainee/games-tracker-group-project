@@ -17,14 +17,14 @@ COPY requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-COPY gog_lambda_extract.py .
+COPY epic_lambda_extract.py .
 
-COPY gog_transform.py .
+COPY epic_transform.py .
 
-COPY gog_load.py .
+COPY epic_load.py .
 
-COPY gog_load_functions.py .
+COPY epic_load_functions.py .
 
-COPY gog_pipeline.py .
+COPY epic_pipeline.py .
 
-CMD ["gog_pipeline.lambda_handler"]
+CMD ["epic_pipeline.lambda_handler"]

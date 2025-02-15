@@ -132,8 +132,6 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
 
 
 if __name__ == "__main__":
-
-    
     # initialise
     load_dotenv()
     user = ENV['DB_USERNAME']

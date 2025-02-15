@@ -1,5 +1,5 @@
 """The extraction script for GOG"""
-from tempfile import mkdtemp
+from os import mkdir
 
 import re
 from time import sleep
@@ -12,17 +12,10 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-def local_driver():
-    """Creates a driver for using when running locally"""
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    chrome_driver = webdriver.Chrome(service=Service(
-        ChromeDriverManager().install()), options=options)
-
-
-def lambda_driver():
-    """sets up the selenium driver for running in cloud"""
-    # Set up Chrome driver to scroll a webpage so that we can load more urls.
+def init_driver():
+    """Sets up the selenium driver with proper service and options."""
+    tmp_dir = '/tmp/gc' 
+    mkdir(tmp_dir)
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
@@ -31,9 +24,9 @@ def lambda_driver():
     chrome_options.add_argument("--disable-dev-tools")
     chrome_options.add_argument("--no-zygote")
     chrome_options.add_argument("--single-process")
-    chrome_options.add_argument(f"--user-data-dir={mkdtemp()}")
-    chrome_options.add_argument(f"--data-path={mkdtemp()}")
-    chrome_options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    chrome_options.add_argument(f"--user-data-dir={tmp_dir}")
+    chrome_options.add_argument(f"--data-path={tmp_dir}")
+    chrome_options.add_argument(f"--disk-cache-dir={tmp_dir}")
     chrome_options.add_argument("--remote-debugging-pipe")
     chrome_options.add_argument("--verbose")
     chrome_options.add_argument("--log-path=/tmp")
@@ -44,42 +37,20 @@ def lambda_driver():
         service_log_path="/tmp/chromedriver.log"
     )
 
-    driver = webdriver.Chrome(
-        service=service,
-        options=chrome_options
-    )
+    driver = webdriver.Chrome(options=chrome_options, service=service)
 
     return driver
 
 
-def get_soup(url: str, driver: webdriver) -> BeautifulSoup:
+def get_soup(url: str, driver: webdriver.Chrome) -> BeautifulSoup:
     """Fetches the page content using Selenium and returns a BeautifulSoup object"""
     driver.get(url)
-    sleep(3)
+    sleep(1)
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") # Some resources only load when scrolling
-    sleep(3)
+    sleep(1)
     page_source = driver.page_source
-    driver.quit()
 
     return BeautifulSoup(page_source, "html.parser")
-
-
-def scrape_newest(url: str, driver: webdriver) -> list[dict]:
-    """
-    Scrapes all the newest games from GOG games
-    """
-    response = requests.get(url)
-
-    soup = BeautifulSoup(response.text, features='html.parser')
-    game_links = [link['href'] for link in soup.find_all('a', href=True)
-                  if re.match(r'https://www\.gog\.com/en/game/', link["href"])]
-
-
-    page_data_list = []
-    for link in game_links:
-        game_data = get_data(link, driver)
-        page_data_list.append(game_data)
-    return page_data_list
 
 
 def fetch_title(soup: BeautifulSoup) -> str:
@@ -183,11 +154,37 @@ def get_data(link: str, driver: webdriver) -> dict:
     return data
 
 
+def scrape_newest(url: str, local:bool) -> list[dict]:
+    """
+    Scrapes all the newest games from GOG games
+    """
+    if local:
+        options = webdriver.ChromeOptions()
+        options.add_argument("--headless")
+        driver = webdriver.Chrome(service=Service(
+            ChromeDriverManager().install()), options=options)
+    else:
+        driver = init_driver()
+
+    response = requests.get(url)
+
+    soup = BeautifulSoup(response.text, features='html.parser')
+    game_links = [link['href'] for link in soup.find_all('a', href=True)
+                  if re.match(r'https://www\.gog\.com/en/game/', link["href"])]
+
+
+    page_data_list = []
+    for link in game_links:
+        game_data = get_data(link, driver)
+ 
+        page_data_list.append(game_data)
+    driver.quit()
+    return page_data_list
+
+
 if __name__ == "__main__":
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    chrome_driver = webdriver.Chrome(service=Service(
-        ChromeDriverManager().install()), options=options)
     data = scrape_newest(
-        'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025', chrome_driver)
+        'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025',
+        True
+        )
     print(data)

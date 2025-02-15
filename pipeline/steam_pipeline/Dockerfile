@@ -2,10 +2,6 @@ FROM public.ecr.aws/lambda/python:latest
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-COPY requirements.txt .
-
-RUN pip3 install -r requirements.txt
-
 # Installing chrome
 RUN dnf install -y atk cups-libs gtk3 libXcomposite alsa-lib \
     libXcursor libXdamage libXext libXi libXrandr libXScrnSaver \
@@ -16,6 +12,10 @@ COPY ./chrome-installer.sh ./chrome-installer.sh
 RUN chmod +x ./chrome-installer.sh
 RUN ./chrome-installer.sh
 RUN rm ./chrome-installer.sh
+
+COPY requirements.txt .
+
+RUN pip3 install -r requirements.txt
 
 COPY steam_lambda_extract.py .
 
