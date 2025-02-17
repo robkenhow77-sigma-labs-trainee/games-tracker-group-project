@@ -414,7 +414,7 @@ def format_data(game: dict, days_before_today_allowed=0) -> bool:
 
     # Optional data formatting
     if is_valid_publisher(game['publisher']):
-        formatted_data['publisher'] = format_publisher_list(game['publisher'])
+        formatted_data['publisher'] = format_publisher_list(game['publisher'])[1:]
     else:
         formatted_data['publisher'] = []
     if is_valid_developer(game['developer']):
@@ -447,7 +447,24 @@ def format_data(game: dict, days_before_today_allowed=0) -> bool:
         formatted_data['age_rating'] = "PEGI " + format_string(game['age_rating'])
     else:
         formatted_data['age_rating'] = "Not Assigned"
+
+    formatted_data = format_nsfw(formatted_data)
+
     return formatted_data
+
+
+def format_nsfw(data: dict) -> dict:
+    """Adds a NSFW tag to a game"""
+
+    nsfw_tags = ['Hentai', 'Mature', 'Gore', 'Nudity', 'NSFW', 'Sexual Content']
+
+    if any(tag in data.get('tag', []) for tag in nsfw_tags) or any(genre in data.get('genres', []) for genre in nsfw_tags):
+        data['NSFW'] = True
+    
+    else:
+        data['NSFW'] = False
+    
+    return data
 
 
 def format_string(string: str) -> str:
@@ -472,7 +489,7 @@ def format_genre_list(values: list[str]) -> list[str]:
 
     for value in values:
         if isinstance(value, str) and is_valid_genres([value]):
-            formatted_list.append(format_string(value))
+            formatted_list.append(format_string(value).replace(',',''))
 
     return formatted_list
 
@@ -517,7 +534,7 @@ def format_tag_list(values: list[str]) -> list[str]:
 
     for value in values:
         if isinstance(value, str) and is_valid_tag([value]):
-            formatted_list.append(format_string(value))
+            formatted_list.append(format_string(value).replace(',',''))
 
     return formatted_list
 
@@ -583,7 +600,7 @@ def format_release(release: str) -> datetime:
 
 if __name__ == "__main__":
 
-    test_input = [{'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, ', 'Exploration, ', 'Great Soundtrack, ', 'Choices Matter, ', 'Open World, ', 'Third Person, ', 'Sexual Content, ', 'Violent, ', 'Nudity, ', 'Gore, ', 'Multiple Endings, ', 'Mature, ', 'Magic, ', 'Medieval, ', 'Vampire, ', 'Werewolves', 'Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, '], 'platform_score': '4.8', 'platform_price': '34.99', 'platform_discount': '80', 'release_date': '2016-08-30T00:00:00+03:00', 'game_image': '\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png 1x,\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_960x570.png 2x\n            ', 'age_rating': '18'}]
+    test_input = [{'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy', 'NSFW'], 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, ', 'Exploration, ', 'Great Soundtrack, ', 'Choices Matter, ', 'Open World, ', 'Third Person, ', 'Sexual Content, ', 'Violent, ', 'Nudity, ', 'Gore, ', 'Multiple Endings, ', 'Mature, ', 'Magic, ', 'Medieval, ', 'Vampire, ', 'Werewolves', 'Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, '], 'platform_score': '4.8', 'platform_price': '34.99', 'platform_discount': '80', 'release_date': '2016-08-30T00:00:00+03:00', 'game_image': '\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png 1x,\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_960x570.png 2x\n            ', 'age_rating': '18'}]
 
     clean = clean_data(test_input, '01 Jan, 2015')
     print(test_input)

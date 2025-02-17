@@ -413,7 +413,23 @@ def format_data(game: dict, days_to_accept=0) -> bool:
     else:
         formatted_data['age_rating'] = "Not Assigned"
 
+    formatted_data = format_nsfw(formatted_data)
+
     return formatted_data
+
+
+def format_nsfw(data: dict) -> dict:
+    """Adds a NSFW tag to a game"""
+
+    nsfw_tags = ['Hentai', 'Mature', 'Gore', 'Nudity', 'NSFW', 'Sexual Content']
+
+    if any(tag in data.get('tag', []) for tag in nsfw_tags) or any(genre in data.get('genres', []) for genre in nsfw_tags):
+        data['NSFW'] = True
+    
+    else:
+        data['NSFW'] = False
+    
+    return data
 
 
 def format_string(string: str) -> str:
@@ -438,7 +454,7 @@ def format_genre_list(values: list[str]) -> list[str]:
 
     for value in values:
         if isinstance(value, str) and is_valid_genres([value]):
-            formatted_list.append(format_string(value))
+            formatted_list.append(format_string(value).replace(',',''))
 
     return formatted_list
 
@@ -468,7 +484,7 @@ def format_publisher_list(values: list[str]) -> list[str]:
 
     for value in values:
         if isinstance(value, str) and is_valid_publisher([value]):
-            formatted_list.append(format_string(value))
+            formatted_list.append(format_string(value).replace(',',''))
 
     return formatted_list
 
@@ -483,7 +499,7 @@ def format_tag_list(values: list[str]) -> list[str]:
 
     for value in values:
         if isinstance(value, str) and is_valid_tag([value]):
-            formatted_list.append(format_string(value))
+            formatted_list.append(format_string(value).replace(',',''))
 
     return formatted_list
 
@@ -528,22 +544,13 @@ if __name__ == "__main__":
                             'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer',
                             'RTS', 'Diplomacy', 'Sandbox',
                             'Co-op', 'Strategy%20RPG', 'Competitive',
-                            'Open%20World', 'Action'],
+                            'Open%20World', 'Action','Nudity,'],
                     'platform_score': '90',
                     'platform_price': '4199',
                     'platform_discount': None,
-                    'release_date': '12 Feb, 2025', 
+                    'release_date': '17 Feb, 2025', 
                     'game_image':
                     'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786',
                     'age_rating': '7'}]
 
-
-    tag_list = ['LGBTQ%2B',
-            'Design %26 Illustration',
-            'Point %26 Click',
-            'Shoot %27Em Up',
-            'Br%C3%B8derbund',
-            'HistorySoft%2C LLC']
-
-    for word in tag_list:
-        print(format_string(word))
+    print(clean_data(test_input))

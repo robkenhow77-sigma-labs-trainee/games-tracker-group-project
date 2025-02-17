@@ -386,7 +386,7 @@ def test_is_valid_data_with_missing_keys(missing_key):
 today = datetime.now().date()
 today_string = today.strftime("%Y-%m-%d")
 input_game = {'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, ', 'Exploration, ', 'Great Soundtrack, ', 'Choices Matter, ', 'Open World, ', 'Third Person, ', 'Sexual Content, ', 'Violent, ', 'Nudity, ', 'Gore, ', 'Multiple Endings, ', 'Mature, ', 'Magic, ', 'Medieval, ', 'Vampire, ', 'Werewolves', 'Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, '], 'platform_score': '4.8', 'platform_price': '34.99', 'platform_discount': '80', 'release_date': today_string, 'game_image': '\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png 1x,\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_960x570.png 2x\n            ', 'age_rating': '18'}
-expected_output = {'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'platform_price': 3499, 'platform': 'GOG', 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure,', 'Fantasy,', 'Story Rich,', 'Role-playing,', 'Atmospheric,', 'Exploration,', 'Great Soundtrack,', 'Choices Matter,', 'Open World,', 'Third Person,', 'Sexual Content,', 'Violent,', 'Nudity,', 'Gore,', 'Multiple Endings,', 'Mature,', 'Magic,', 'Medieval,', 'Vampire,', 'Werewolves', 'Adventure,', 'Fantasy,', 'Story Rich,', 'Role-playing,', 'Atmospheric,'], 'platform_score': 96, 'platform_discount': 80, 'release_date': today, 'game_image': 'https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png', 'age_rating': 'PEGI 18'}
+expected_output = {'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'platform_price': 3499, 'platform': 'GOG', 'publisher': ['CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure', 'Fantasy', 'Story Rich', 'Role-playing', 'Atmospheric', 'Exploration', 'Great Soundtrack', 'Choices Matter', 'Open World', 'Third Person', 'Sexual Content', 'Violent', 'Nudity', 'Gore', 'Multiple Endings', 'Mature', 'Magic', 'Medieval', 'Vampire', 'Werewolves', 'Adventure', 'Fantasy', 'Story Rich', 'Role-playing', 'Atmospheric'], 'platform_score': 96, 'platform_discount': 80, 'release_date': today, 'game_image': 'https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png', 'age_rating': 'PEGI 18', 'NSFW': True}
 
 #TODO: parameterise this
 def test_format_data():
@@ -473,6 +473,7 @@ def test_format_data_invalid_tag():
     test_input = input_game
     test_input['tag'] = ""
     test_output = expected_output
+    test_output['NSFW'] = False
     test_output['tag'] = []
     assert format_data(test_input) == test_output
 
