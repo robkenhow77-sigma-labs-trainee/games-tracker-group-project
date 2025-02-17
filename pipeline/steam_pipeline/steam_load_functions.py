@@ -74,7 +74,6 @@ def upload_and_return_devs(devs: list[tuple], conn: psycopg.Connection) -> dict:
     except:
         logging.error(f"Uploading developers failed. Data to be uploaded: {devs}")
         return {}
-    
 
 
 def upload_and_return_games(games: list[tuple], conn: psycopg.Connection) -> dict:
@@ -254,7 +253,6 @@ def get_publisher_game_assignments(conn: psycopg.Connection) -> list[dict]:
     with conn.cursor() as cur:
         cur.execute(sql)
         return cur.fetchall()
-    
 
 
 def get_developer_game_assignments(conn: psycopg.Connection) -> list[dict]:
