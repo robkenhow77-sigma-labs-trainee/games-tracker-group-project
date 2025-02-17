@@ -279,7 +279,7 @@ def scrape_newest(url: str, target_date: str, local: bool, conn: psycopg.Connect
     # Configure to run local or run in cloud
     if local:
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         driver = webdriver.Chrome(service=Service(
             ChromeDriverManager().install()), options=options)
     else:
@@ -303,7 +303,8 @@ def scrape_newest(url: str, target_date: str, local: bool, conn: psycopg.Connect
         driver.quit()
         for link in game_links:
             game_data = get_data(link)
-            print(game_data.get('title'))
+            if game_data.get('title') in current_games:
+                break
             logging.info('Processed %s', game_data.get('title'))
             page_data_list.append(game_data)
             progress.update(task, advance=1)

@@ -80,7 +80,7 @@ def lambda_handler(event=None, context=None) -> None:
 
     # Extract
     url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998&supportedlang=english&ndl=1"
-    scraped_data = scrape_newest(url, target_date, local)
+    scraped_data = scrape_newest(url, target_date, local, db_connection)
 
     # Transform
     cleaned_data = clean_data(scraped_data)
