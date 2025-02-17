@@ -109,7 +109,7 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
     # LOAD STEP 3: Update the genre_game_platform_assignment and tag_game_platform_assignment
     genre_game_platform_assignment = lf.get_genre_game_platform_assignment(connection)
     tag_game_platform_assignment = lf.get_tag_game_platform_assignment(connection)
-    
+
     # Make tuples of the existing genre/tag_ids and platform_assignment_ids
     current_genre_game_platform_tuples = [(game["genre_id"],
         game['platform_assignment_id']) for game in genre_game_platform_assignment]
