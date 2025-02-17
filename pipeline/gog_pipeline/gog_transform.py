@@ -289,7 +289,7 @@ def is_valid_price(price: float) -> bool:
         print("%s is not a valid price, not numeric.", price)
         return False
 
-    return int(price) >= 0
+    return 0 <= int(price) <= 32767 # smallint limit
 
 
 def is_valid_discount(discount: int) -> bool:
@@ -408,7 +408,7 @@ def format_data(game: dict, days_before_today_allowed=0) -> bool:
     formatted_data['title'] = format_string(game['title'])
     formatted_data['genres'] = format_genre_list(game['genres'])
     formatted_data['platform_price'] = format_integer(game['platform_price'])
-    formatted_data['platform'] = "Steam"
+    formatted_data['platform'] = "GOG"
 
     # Optional data formatting
     if is_valid_publisher(game['publisher']):
@@ -437,6 +437,8 @@ def format_data(game: dict, days_before_today_allowed=0) -> bool:
         formatted_data['release_date'] = None
     if is_valid_image(game['game_image']):
         formatted_data['game_image'] = format_string(game['game_image'])
+        if formatted_data['game_image'][-2:] == "1x":
+            formatted_data['game_image'] = formatted_data['game_image'][:-2]
     else:
         formatted_data['game_image'] = 'N/A'
     if is_valid_age(game['age_rating']):
