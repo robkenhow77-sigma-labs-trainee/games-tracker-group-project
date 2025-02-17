@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 def init_driver():
     """Sets up the selenium driver with proper service and options."""
-    tmp_dir = '/tmp/gc' 
+    tmp_dir = '/tmp/gc_gog' 
     mkdir(tmp_dir)
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless=new")
