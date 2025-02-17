@@ -1,6 +1,5 @@
 """Script containing all functions pertaining to cleaning the data before insertion."""
 
-import logging
 from datetime import datetime, timedelta
 import urllib.parse
 
@@ -33,7 +32,7 @@ def turn_date_to_num_days(target_date: str) -> int:
     return today-input_date
 
 
-def is_valid_data(game: dict, days_to_accept) -> bool:
+def is_valid_data(game: dict, days_to_accept=0) -> bool:
     """Returns true if all the data is valid."""
 
     expected_keys = ['title', 'genres', 'publisher',
@@ -48,7 +47,8 @@ def is_valid_data(game: dict, days_to_accept) -> bool:
         return False
 
     return (is_valid_title(game['title']) and is_valid_genres(game['genres']) and
-            is_valid_price(game['platform_price']) and is_valid_release(game['release_date'], days_to_accept))
+            is_valid_price(game['platform_price']) and
+            is_valid_release(game['release_date'], days_to_accept))
 
 
 def is_valid_title(title: str) -> bool:
@@ -317,7 +317,7 @@ def is_valid_discount(discount: int) -> bool:
 
 
 def is_valid_release(release: str,
-                     days_before_today_allowed=None) -> bool:
+                     days_before_today_allowed=0) -> bool:
     """Returns true if release is valid."""
 
     if not isinstance(release, str):
@@ -399,7 +399,7 @@ def is_valid_age(age: str) -> bool:
     return True
 
 
-def format_data(game: dict, days_before_today_allowed=None) -> bool:
+def format_data(game: dict, days_before_today_allowed=0) -> bool:
     """Formats all the data."""
 
     formatted_data = {}
@@ -529,7 +529,7 @@ def format_integer(integer: str) -> int:
 
     return None
 
-#TODO: write tests for this
+
 def format_score(score: str) -> int:
     """Formats the score as a percentage."""
 
