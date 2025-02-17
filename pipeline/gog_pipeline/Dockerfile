@@ -17,7 +17,7 @@ COPY requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-COPY gog_lambda_extract.py .
+COPY gog_extract.py .
 
 COPY gog_transform.py .
 
