@@ -11,7 +11,6 @@ from psycopg2 import connect
 from dotenv import load_dotenv
 from psycopg2.extensions import connection as psycopg_connection, cursor as psycopg_cursor
 
-load_dotenv()
 
 @st.cache_resource
 def get_connection() -> psycopg_connection:
@@ -235,4 +234,5 @@ def main():
 
 
 if __name__ == "__main__":
+    load_dotenv()
     main()
