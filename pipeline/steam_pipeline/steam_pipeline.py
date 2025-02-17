@@ -31,7 +31,7 @@ def init_args() -> tuple:
             type=str,
             required=False,
             help="Set a target date, in the form' 11 Feb, 2025'. Defaults to yesterday.")
-    
+
     args = parser.parse_args()
     return (args.local, args.target_date)
 
@@ -75,12 +75,12 @@ def lambda_handler(event=None, context=None) -> None:
     host = ENV["DB_HOST"]
     port = ENV["DB_PORT"]
     name = ENV["DB_NAME"]
-    CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
-    db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
+    conn_string = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
+    db_connection = psycopg.connect(conn_string, row_factory=dict_row)
 
     # Extract
     url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998&supportedlang=english&ndl=1"
-    scraped_data = scrape_newest(url, target_date, local)
+    scraped_data = scrape_newest(url, target_date, local, db_connection)
 
     # Transform
     cleaned_data = clean_data(scraped_data)
