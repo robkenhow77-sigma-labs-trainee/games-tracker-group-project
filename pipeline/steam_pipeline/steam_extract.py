@@ -16,7 +16,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 def init_driver():
     """Sets up the selenium driver with proper service and options."""
-    tmp_dir = '/tmp/gc'
+    tmp_dir = '/tmp/gc_steam'
     mkdir(tmp_dir)
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless=new")
