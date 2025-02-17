@@ -92,7 +92,6 @@ def lambda_handler(event=None, context=None) -> None:
 
     # Load
     load_data(cleaned_data, db_connection)
-    print(cleaned_data, "data loaded")
     return
 
 
