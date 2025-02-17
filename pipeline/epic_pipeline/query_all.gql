@@ -1,0 +1,100 @@
+
+{
+  Catalog {
+    searchStore(
+      locale: "en-US"
+      category: "games/edition/base"
+      sortBy: "releaseDate"
+      sortDir: "DESC"
+      count: 50
+      allowCountries: "GB"
+      country: "GB"
+      start: 1
+      comingSoon: false
+    ) {
+      elements {
+        id
+        title
+        description
+        releaseDate
+        effectiveDate
+        developerDisplayName
+        publisherDisplayName
+        currentPrice
+        productSlug
+        urlSlug
+        url
+
+        seller {
+          id
+          name
+        }
+
+        keyImages {
+          type
+          url
+          alt
+        }
+
+        items {
+          id
+          namespace
+        }
+
+        tags {
+          id
+          name
+          groupName
+        }
+
+        price(country: "GB") {
+          totalPrice {
+            discountPrice
+            originalPrice
+            voucherDiscount
+            discount
+            currencyCode
+            currencyInfo {
+              decimals
+            }
+            fmtPrice {
+              originalPrice
+              discountPrice
+              intermediatePrice
+            }
+          }
+        }
+
+        customAttributes {
+          key
+          value
+        }
+
+        categories {
+          path
+        }
+
+        catalogNs {
+          ageGatings {
+						ageControl
+						descriptor
+						gameRating
+						ratingSystem
+						title
+						element
+					}
+          mappings(pageType: "productHome") {
+            pageSlug
+            pageType
+            sandboxId
+          }
+        }
+
+        offerMappings {
+          pageSlug
+          pageType
+        }
+      }
+    }
+  }
+}
