@@ -11,7 +11,7 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from steam_lambda_extract import scrape_newest
+from steam_extract import scrape_newest
 from steam_transform import clean_data
 from steam_load import load_data
 
