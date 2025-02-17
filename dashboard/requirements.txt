@@ -5,3 +5,5 @@ python-dotenv
 streamlit
 pandas
 boto3
+seaborn
+matplotlib
