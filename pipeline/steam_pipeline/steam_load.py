@@ -3,8 +3,6 @@
 # Native imports
 from os import environ as ENV
 from datetime import datetime
-from json import load
-import math
 
 # Third-party imports
 import psycopg
@@ -16,6 +14,7 @@ import steam_load_functions as lf
 
 
 def load_data(new_games_transformed: list[dict], connection: psycopg.Connection):
+    """Loads the cleaned data to the database"""
     # LOAD STEP 1: Update the game, tag, developer, publisher and genre tables
     # Get the current tables and make a mapping of {name: id}
     game_titles_and_ids = lf.make_id_mapping(lf.get_game_ids(connection), 'game')
@@ -110,7 +109,7 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
     # LOAD STEP 3: Update the genre_game_platform_assignment and tag_game_platform_assignment
     genre_game_platform_assignment = lf.get_genre_game_platform_assignment(connection)
     tag_game_platform_assignment = lf.get_tag_game_platform_assignment(connection)
-    
+
     # Make tuples of the existing genre/tag_ids and platform_assignment_ids
     current_genre_game_platform_tuples = [(game["genre_id"],
         game['platform_assignment_id']) for game in genre_game_platform_assignment]
@@ -128,8 +127,6 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
     # Upload the tag/genre_game_platform_assignments
     lf.upload_genre_game_platform_assignment(new_genre_game_platform_tuples, connection)
     lf.upload_tag_game_platform_assignment(new_tag_game_platform_tuples, connection)
-
-    # Close the connection to the database
 
 
 if __name__ == "__main__":
@@ -173,23 +170,5 @@ if __name__ == "__main__":
         "price": 20,
         "discount": 0
         }]
-
-    with open('data.json', 'r', encoding='UTF-8') as f:
-        data = load(f)
-
-    for game in data:
-        if game["price"] > 32000:
-            print(game["price"])
-
-    print(len(data))
-    batch_size = 500
-    n = math.ceil(len(data)/batch_size)
-
-    for i in range(n):
-        start = i * batch_size
-        end = (i + 1) * batch_size
-        batch = data[start:end]
-        load_data(data[start:end], db_connection)
-        print(end)
 
     db_connection.close()
