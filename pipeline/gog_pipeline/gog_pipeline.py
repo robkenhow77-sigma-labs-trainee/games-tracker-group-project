@@ -2,8 +2,8 @@
 
 # Native imports
 from os import environ as ENV
-from datetime import datetime, timedelta
 from argparse import ArgumentParser
+from datetime import datetime, timedelta
 
 # Third-party imports
 import psycopg
@@ -26,8 +26,15 @@ def init_args() -> bool:
             required=False,
             help="Call argument to run local.")
 
+    parser.add_argument(
+            "-t", "--target_date",
+            type=str,
+            required=False,
+            help="Set a target date, in the form' 11 Feb, 2025'. Defaults to yesterday.")
+    
     args = parser.parse_args()
-    return args.local
+    return (args.local, args.target_date)
+
 
 
 def change_keys(data: list[dict]):
@@ -56,7 +63,11 @@ def lambda_handler(event=None, context=None) -> None:
     """Function to run entire Steam ETL pipeline"""
     # Initialise
     # CLI arguments
-    local = init_args()
+    local, targeted_date = init_args()
+
+    if not targeted_date:
+        targeted_date = datetime.now() - timedelta(days=2)
+        targeted_date = targeted_date.strftime('%d %b, %Y')
 
     # ENV variables
     load_dotenv()
@@ -68,13 +79,16 @@ def lambda_handler(event=None, context=None) -> None:
     CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
     db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
 
+    
+
     # Extract
     url = 'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025'
     scraped_data = scrape_newest(url, local)
 
     # Transform
-    cleaned_data = clean_data(scraped_data)
+    cleaned_data = clean_data(scraped_data, targeted_date)
     cleaned_data = change_keys(cleaned_data)
+    
 
     # Load
     load_data(cleaned_data, db_connection)
