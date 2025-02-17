@@ -130,29 +130,41 @@ def generate_html(genre, genre_name, game_data, subscribers):
                     }}
                     h1 {{
                         color: #4CAF50;
+                        font-size: 30px;
+                    }}
+                    h2 {{
+                        color: #333;
+                        font-size: 24px;
                     }}
                     .game {{
-                        margin-bottom: 20px;
+                        margin-bottom: 30px;
                     }}
                     .game img {{
-                        max-width: 100px;
-                        margin-right: 15px;
+                        max-width: 200px;
+                        margin-right: 20px;
                     }}
                     .game-title {{
-                        font-size: 18px;
+                        font-size: 24px;
                         font-weight: bold;
                     }}
                     .game-info {{
-                        font-size: 14px;
+                        font-size: 18px;
+                    }}
+                    .header {{
+                        font-size: 18px;
+                        margin-bottom: 20px;
                     }}
                 </style>
             </head>
             <body>
                 <h1>🎮 New Game Releases in {genre_name}</h1>
+                <div class="header">
+                    <p><strong>Release Date:</strong> {game_data[0]['release_date']}</p>
+                </div>
                 <h2>Games:</h2>
                 <div>
     """
-
+    # list set of games with details
     for game in game_data:
         game_name = game["game_name"]
         # Use the game_image from your query result
