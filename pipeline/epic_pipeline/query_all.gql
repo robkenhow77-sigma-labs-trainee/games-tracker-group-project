@@ -51,6 +51,7 @@
           totalPrice {
             discountPrice
             originalPrice
+            discountPercentage
             voucherDiscount
             discount
             currencyCode
