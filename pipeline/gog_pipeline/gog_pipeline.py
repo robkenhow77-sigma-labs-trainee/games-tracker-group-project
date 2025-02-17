@@ -2,6 +2,7 @@
 
 # Native imports
 from os import environ as ENV
+import logging
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 
@@ -36,7 +37,6 @@ def init_args() -> bool:
     return (args.local, args.target_date)
 
 
-
 def change_keys(data: list[dict]):
     """Converts the key names from the transform script to match the load script"""
     updated_keys = []
@@ -62,6 +62,15 @@ def change_keys(data: list[dict]):
 def lambda_handler(event=None, context=None) -> None:
     """Function to run entire Steam ETL pipeline"""
     # Initialise
+    # Initialise logging
+    log_format = "{asctime} - {levelname} - {message}"
+    log_datefmt = "%Y-%m-%d %H:%M"
+    logging.basicConfig(
+            level=logging.INFO,
+            format=log_format,
+            style="{",
+            datefmt=log_datefmt
+        )
     # CLI arguments
     local, targeted_date = init_args()
 
@@ -96,4 +105,14 @@ def lambda_handler(event=None, context=None) -> None:
 
 
 if __name__ == "__main__":
+    # Initialise logging
+    log_format = "{asctime} - {levelname} - {message}"
+    log_datefmt = "%Y-%m-%d %H:%M"
+    logging.basicConfig(
+            level=logging.INFO,
+            format=log_format,
+            style="{",
+            datefmt=log_datefmt
+        )
+    load_dotenv()
     lambda_handler()

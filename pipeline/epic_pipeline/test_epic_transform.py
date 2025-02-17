@@ -386,7 +386,7 @@ def test_is_valid_data_with_missing_keys(missing_key):
 today = datetime.now().date()
 today_string = today.strftime("%Y-%m-%d")
 input_game = {'title': 'BetterTogether', 'genres': ['Shooter', 'Rogue-Lite', 'Platformer'], 'publisher': ['Ömer Genç'], 'developer': ['Ömer Genç'], 'tag': ['Co-op', 'Online Multiplayer', 'First Run', 'Single Player', 'Windows'], 'platform_score': None, 'platform_price': 399, 'platform_discount': 100, 'release_date': today_string, 'game_image': 'https://cdn1.epicgames.com/spt-assets/7e66b122318448f6b52e6b9828616c8f/bettertogether-1wkfo.png', 'age_rating': 12}
-expected_output = {'title': 'BetterTogether', 'genres': ['Shooter', 'Rogue-Lite', 'Platformer'], 'platform_price': 399, 'platform': 'Epic', 'publisher': ['Ömer Genç'], 'developer': ['Ömer Genç'], 'tag': ['Co-op', 'Online Multiplayer', 'First Run', 'Single Player', 'Windows'], 'platform_score': -1, 'platform_discount': 0, 'release_date': today, 'game_image': 'https://cdn1.epicgames.com/spt-assets/7e66b122318448f6b52e6b9828616c8f/bettertogether-1wkfo.png', 'age_rating': 'PEGI 12', 'NSFW': False}
+expected_output = {'title': 'BetterTogether', 'genres': ['Shooter', 'Rogue-Lite', 'Platformer'], 'platform_price': 399, 'platform': 'Epic Games Store', 'publisher': ['Ömer Genç'], 'developer': ['Ömer Genç'], 'tag': ['Co-op', 'Online Multiplayer', 'First Run', 'Single Player', 'Windows'], 'platform_score': -1, 'platform_discount': 0, 'release_date': today, 'game_image': 'https://cdn1.epicgames.com/spt-assets/7e66b122318448f6b52e6b9828616c8f/bettertogether-1wkfo.png', 'age_rating': 'PEGI 12', 'NSFW': False}
 
 #TODO: parameterise this
 def test_format_data():
