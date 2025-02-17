@@ -429,10 +429,9 @@ def format_data(game: dict) -> bool:
     else:
         formatted_data['game_image'] = 'N/A'
     if is_valid_age(game['age_rating']):
-        formatted_data['age_rating'] = format_string(game['age_rating'])
+        formatted_data['age_rating'] = "PEGI " + format_string(game['age_rating'])
     else:
-        formatted_data['age_rating'] = 'Not Assigned'
-
+        formatted_data['age_rating'] = "Not Assigned"
     return formatted_data
 
 
