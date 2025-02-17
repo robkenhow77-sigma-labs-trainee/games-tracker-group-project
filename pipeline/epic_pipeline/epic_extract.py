@@ -61,7 +61,7 @@ def get_genre_tags(tags: list[str]) -> tuple[list[str], list[str]]:
     return genres, other_tags
 
 
-def get_pegi_age_control(game):
+def get_pegi_age_control(game: dict):
     """Extracts the ageControl value where ratingSystem is 'PEGI'."""
     age_gatings = game.get("catalogNs", {}).get("ageGatings", [])
 
