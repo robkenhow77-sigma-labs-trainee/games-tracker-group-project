@@ -104,15 +104,15 @@ def lambda_handler(event=None, context=None) -> None:
 
 
 if __name__ == "__main__":
-    log_format = "{asctime} - {levelname} - {message}"
-    log_datefmt = "%Y-%m-%d %H:%M"
+    LOGGING_FORMAT = "{asctime} - {levelname} - {message}"
+    LOGGING_DATE_FORMAT = "%Y-%m-%d %H:%M"
     logging.basicConfig(
             level=logging.INFO,
-            format=log_format,
+            format=LOGGING_FORMAT,
             style="{",
-            datefmt=log_datefmt
+            datefmt=LOGGING_DATE_FORMAT
         )
-    
+
     load_dotenv()
 
     lambda_handler()
