@@ -1,0 +1,7 @@
+{
+	RatingsPolls {
+		getProductResult (sandboxId: "QUERY" locale: "UK") {
+			averageRating
+		}
+	}
+}

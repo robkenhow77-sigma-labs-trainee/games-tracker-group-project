@@ -1,133 +1,112 @@
 """Extracts script that pulls game data from undocumented GraphQL API"""
 
 import requests
+import logging
 
 
-def extract_games(url: str):
-    """Queries a graphQL API """
-    q = """{
-  Catalog {
-    searchStore(
-      allowCountries: "GB"
-      category: "games/edition/base"
-      comingSoon: false
-      count: 50
-      country: "GB"
-      locale: "en-US"
-      sortBy: "releaseDate"
-      sortDir: "DESC"
-    ) {
-      elements {
-        id
-        title
-        description
-        currentPrice
-        releaseDate
-        developerDisplayName
-        publisherDisplayName
+def load_query(filename: str) -> str:
+    """Loads GraphQL query from a file."""
+    with open(filename, "r", encoding="utf-8") as file:
+        return file.read()
 
-        seller {
-          id
-          name
-        }
 
-        keyImages {
-          type
-          url
-          alt
-        }
+def extract_games(url: str) -> list[dict]:
+    """Queries a GraphQL API using a query from a file and returns raw game data."""
+    query = load_query("query_all.gql")
 
-        items {
-          id
-          namespace
-        }
+    response = requests.post(url=url, json={"query": query})
+    if response.status_code != 200:
+        logging.error(f"Failed to fetch data: {response.status_code}")
+        return []
 
-        tags {
-          id
-          name
-          groupName
-        }
-        
-        price(country: "GB") {
-          totalPrice {
-            discountPrice
-            originalPrice
-            voucherDiscount
-            discount
-            currencyCode
-            currencyInfo {
-              decimals
-            }
-            fmtPrice {
-              originalPrice
-              discountPrice
-              intermediatePrice
-            }
-          }
-        }
-      }
-    }
-  }
-}"""
+    data = response.json()
+    games = data.get("data", {}).get("Catalog", {}).get(
+        "searchStore", {}).get("elements", [])
 
-    response = requests.post(url=url, json={"query": q})
-    print("Response status code:", response.status_code)
+    return games
 
-    if response.status_code == 200:
-        return response.json()
+
+def get_platform_score(sandbox_id: str) -> str:
+    """Queries the graphQL API with a games sandbox id to get rating"""
+    query = load_query('get_rating.gql')
+
+    query = query.replace("QUERY", sandbox_id)
+
+    response = requests.post(
+        url='https://graphql.epicgames.com/graphql', json={"query": query})
+    if response.status_code != 200:
+        logging.error(f"Failed to fetch data: {response.status_code}")
+        return []
+
+    data = response.json()
+    try:
+        platform_score = data.get("data", {}).get("RatingsPolls", {}).get(
+            "getProductResult", {}).get("averageRating")
+        return platform_score
+    except:
+        return None
+
+
+def get_genre_tags(tags: list[str]) -> tuple[list[str], list[str]]:
+    """Organizes the genres from the tags and returns them"""
+    genres = []
+    other_tags = []
+
+    for tag in tags:
+        if tag.get("groupName") == "genre":
+            genres.append(tag.get("name"))
+        else:
+            other_tags.append(tag.get("name"))
+
+    return genres, other_tags
+
+
+def get_pegi_age_control(game: dict) -> str:
+    """Extracts the ageControl value where ratingSystem is 'PEGI'."""
+    age_gatings = game.get("catalogNs", {}).get("ageGatings", [])
+
+    if not isinstance(age_gatings, list):
+        return None
+
+    for age_data in age_gatings:
+        if age_data.get("ratingSystem") == "PEGI":
+            return age_data.get("ageControl")
 
     return None
 
+
+def format_data(games: list[dict]) -> list[dict]:
+    """Formats raw game data into a standardized list of dictionaries."""
+    game_list = []
+    for game in games:
+        mappings = game.get("catalogNs", {}).get("mappings")
+        sandbox_id = mappings[0]["sandboxId"] if mappings else None
+        genres, tags = get_genre_tags(game.get("tags", []))
+        game_data = {
+            "title": game.get("title"),
+            "genres": genres if genres else None,
+            "publisher": [game.get("publisherDisplayName")] if game.get("publisherDisplayName") else None,
+            "developer": [game.get("developerDisplayName")] if game.get("developerDisplayName") else None,
+            "tag": tags if tags else None,
+            "platform_score": get_platform_score(sandbox_id) if sandbox_id else None,
+            "platform_price": game.get("price", {}).get("totalPrice", {}).get("originalPrice"),
+            "platform_discount": game.get("price", {}).get("totalPrice", {}).get("discount"),
+            "release_date": game.get("releaseDate"),
+            "game_image": game.get("keyImages", [{}])[0].get("url"),
+            "age_rating": get_pegi_age_control(game)
+        }
+        print(game_data.get('age_rating'))
+        game_list.append(game_data)
+
+    return game_list
+
+
 if __name__ == "__main__":
+    raw_games = extract_games(
+        "https://graphql.epicgames.com/graphql")
+    games = format_data(raw_games)
 
-    data = extract_games("https://graphql.epicgames.com/graphql")
+    for game in games:
+        print(game)
 
-    ## How to extract elements from data!
-    if data:
-        games = data["data"]["Catalog"]["searchStore"]["elements"]
-        for game in games:
-            print(f"Title: {game['title']}")
-            print(f"Release Date: {game['releaseDate']}")
-            print(f"Developer: {game['developerDisplayName']}")
-            print(f"Publisher: {game['publisherDisplayName']}")
-            print(f"Seller: {game['seller']['name']}")
-            print(f"Current Price: {game['currentPrice']}")
-
-            print("\nPrice Details:")
-            price_info = game.get("price", {}).get("totalPrice", {})
-            print(
-                f"  - Original Price: {price_info.get('originalPrice', 'N/A')}")
-            print(
-                f"  - Discount Price: {price_info.get('discountPrice', 'N/A')}")
-            print(
-                f"  - Voucher Discount: {price_info.get('voucherDiscount', 'N/A')}")
-            print(f"  - Discount: {price_info.get('discount', 'N/A')}")
-            print(
-                f"  - Currency Code: {price_info.get('currencyCode', 'N/A')}")
-
-            currency_info = price_info.get("currencyInfo", {})
-            print(
-                f"  - Currency Decimals: {currency_info.get('decimals', 'N/A')}")
-
-            fmt_price = price_info.get("fmtPrice")
-            if fmt_price:
-                print(
-                    f"  - Formatted Original Price: {fmt_price.get('originalPrice', 'N/A')}")
-                print(
-                    f"  - Formatted Discount Price: {fmt_price.get('discountPrice', 'N/A')}")
-                print(
-                    f"  - Formatted Intermediate Price: {fmt_price.get('intermediatePrice', 'N/A')}")
-            else:
-                print("  - Formatted price details not available")
-
-            print("\nImages:")
-            for image in game["keyImages"]:
-                print(
-                    f"  - {image['type']}: {image['url']} ({image['alt']})\n")
-
-            print("\nTags:")
-            for tag in game["tags"]:
-                print(
-                    f"  - {tag['name']} ({tag.get('groupName', 'No group')})")
-
-            print("\n" + "-" * 40 + "\n")
+    print(len(games))
