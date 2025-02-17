@@ -174,7 +174,7 @@ def scrape_newest(url: str, local:bool) -> list[dict]:
 
 
     page_data_list = []
-    for link in game_links[:2]:
+    for link in game_links:
         game_data = get_data(link, driver)
         page_data_list.append(game_data)
     driver.quit()
