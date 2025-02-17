@@ -11,7 +11,7 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from gog_lambda_extract import scrape_newest
+from gog_extract import scrape_newest
 from gog_transform import clean_data
 from gog_load import load_data
 
