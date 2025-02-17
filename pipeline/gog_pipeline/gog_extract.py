@@ -1,10 +1,10 @@
 """The extraction script for GOG"""
 from os import mkdir
-
-import re
 from time import sleep
 import json
+import re
 import logging
+
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
