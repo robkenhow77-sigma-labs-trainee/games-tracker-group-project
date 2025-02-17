@@ -1,7 +1,9 @@
-"""A script to run the entire GOG pipeline"""
+"""A script to run the entire gog pipeline"""
 
 # Native imports
 from os import environ as ENV
+from datetime import datetime, timedelta
+from argparse import ArgumentParser
 
 # Third-party imports
 import psycopg
@@ -9,9 +11,23 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from gog_lambda_extract import scrape_newest, lambda_driver, local_driver 
+from gog_lambda_extract import scrape_newest
 from gog_transform import clean_data
 from gog_load import load_data
+
+
+def init_args() -> bool:
+    """Gets the command line arguments for target date or running local vs cloud."""
+    parser = ArgumentParser()
+
+    parser.add_argument(
+            "-l", "--local",
+            action="store_true",
+            required=False,
+            help="Call argument to run local.")
+
+    args = parser.parse_args()
+    return args.local
 
 
 def change_keys(data: list[dict]):
@@ -36,10 +52,13 @@ def change_keys(data: list[dict]):
     return updated_keys
 
 
-def lambda_handler(event=None, context=None):
+def lambda_handler(event=None, context=None) -> None:
     """Function to run entire Steam ETL pipeline"""
     # Initialise
-    target_date = "11 Feb, 2025"
+    # CLI arguments
+    local = init_args()
+
+    # ENV variables
     load_dotenv()
     user = ENV['DB_USERNAME']
     password = ENV["DB_PASSWORD"]
@@ -48,13 +67,10 @@ def lambda_handler(event=None, context=None):
     name = ENV["DB_NAME"]
     CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
     db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
-    
-    driver = local_driver()
-    # driver = lambda_driver()
 
     # Extract
-    url = "https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025"
-    scraped_data = scrape_newest(url, driver)
+    url = 'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025'
+    scraped_data = scrape_newest(url, local)
 
     # Transform
     cleaned_data = clean_data(scraped_data)
@@ -62,6 +78,7 @@ def lambda_handler(event=None, context=None):
 
     # Load
     load_data(cleaned_data, db_connection)
+    print(cleaned_data, "data loaded")
     return
 
 
