@@ -90,7 +90,7 @@ def format_data(games: list[dict]) -> list[dict]:
             "tag": tags if tags else None,
             "platform_score": get_platform_score(sandbox_id) if sandbox_id else None,
             "platform_price": game.get("price", {}).get("totalPrice", {}).get("originalPrice"),
-            "platform_discount": game.get("price", {}).get("totalPrice", {}).get("discount"),
+            "platform_discount": game.get("price", {}).get("totalPrice", {}).get("discountPercentage"),
             "release_date": game.get("releaseDate"),
             "game_image": game.get("keyImages", [{}])[0].get("url"),
             "age_rating": get_pegi_age_control(game)
