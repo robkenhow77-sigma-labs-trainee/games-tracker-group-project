@@ -14,7 +14,8 @@ import epic_load_functions as lf
 
 
 def load_data(new_games_transformed: list[dict], connection: psycopg.Connection):
-# LOAD STEP 1: Update the game, tag, developer, publisher and genre tables
+    """Upload the games to the database"""
+    # LOAD STEP 1: Update the game, tag, developer, publisher and genre tables
     # Get the current tables and make a mapping of {name: id}
     game_titles_and_ids = lf.make_id_mapping(lf.get_game_ids(connection), 'game')
     tags_and_ids = lf.make_id_mapping(lf.get_tag_ids(connection), 'tag')
