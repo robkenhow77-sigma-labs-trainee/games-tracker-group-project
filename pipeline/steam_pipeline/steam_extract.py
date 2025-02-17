@@ -16,7 +16,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 def init_driver():
     """Sets up the selenium driver with proper service and options."""
-    tmp_dir = '/tmp/gc' 
+    tmp_dir = '/tmp/gc'
     mkdir(tmp_dir)
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless=new")
@@ -293,14 +293,14 @@ def scrape_newest(url: str, target_date: str, local: bool) -> list[dict]:
             page_data_list.append(game_data)
             progress.update(task, advance=1)
 
-    
+
     return page_data_list
 
 
 if __name__ == "__main__":
     url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998&supportedlang=english&ndl=1"
-    target_date = datetime.now() - timedelta(days=2)
-    target_date = target_date.strftime('%d %b, %Y')
+    targeted_date = datetime.now() - timedelta(days=2)
+    targeted_date = targeted_date.strftime('%d %b, %Y')
     local = True
-    scraped_data = scrape_newest(url, target_date, local)
+    scraped_data = scrape_newest(url, targeted_date, local)
     print(scraped_data)
