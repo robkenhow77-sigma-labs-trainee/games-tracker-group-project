@@ -1,13 +1,12 @@
 """Extract script by webscraping steam store page"""
-import argparse
 import re
+from os import mkdir
 from datetime import datetime, timedelta
 
 import logging
 import requests
 from bs4 import BeautifulSoup
-from rich.live import Live
-from rich.progress import Progress, BarColumn, TimeRemainingColumn
+from rich.progress import Progress
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -15,35 +14,33 @@ from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description="Scrape Steam search page for games released on a specific date."
-    )
-    parser.add_argument(
-        '--scroll_to_date',
-        type=str,
-        required=False,
-        help="""The release date to stop scrolling at,
-          in the format 'DD MMM, YYYY' (e.g., '10 Feb, 2025')"""
-    )
-    parser.add_argument(
-        '--log_output',
-        type=str,
-        choices=['console', 'file'],
-        default='console',
-        help="Specify whether to log to 'console' or 'file' (default: console)."
-    )
-    return parser.parse_args()
-
-
 def init_driver():
-    """sets up the selenium driver"""
-    # Set up Chrome driver to scroll a webpage so that we can load more urls.
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    driver = webdriver.Chrome(service=Service(
-        ChromeDriverManager().install()), options=options)
+    """Sets up the selenium driver with proper service and options."""
+    tmp_dir = '/tmp/gc'
+    mkdir(tmp_dir)
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-dev-tools")
+    chrome_options.add_argument("--no-zygote")
+    chrome_options.add_argument("--single-process")
+    chrome_options.add_argument(f"--user-data-dir={tmp_dir}")
+    chrome_options.add_argument(f"--data-path={tmp_dir}")
+    chrome_options.add_argument(f"--disk-cache-dir={tmp_dir}")
+    chrome_options.add_argument("--remote-debugging-pipe")
+    chrome_options.add_argument("--verbose")
+    chrome_options.add_argument("--log-path=/tmp")
+    chrome_options.binary_location = "/opt/chrome/chrome-linux64/chrome"
+
+    service = Service(
+        executable_path="/opt/chrome-driver/chromedriver-linux64/chromedriver",
+        service_log_path="/tmp/chromedriver.log"
+    )
+
+    driver = webdriver.Chrome(options=chrome_options, service=service)
+
     return driver
 
 
@@ -95,37 +92,6 @@ def find_target_date(driver: ChromeDriverManager, target_date: str) -> None:
         if scroll_attempts == 100: # Change 100 to change how many max scrolls you want.
             logging.error('Date not found after %s scrolls.', scroll_attempts)
             raise ValueError(f'Date not found after {scroll_attempts} scrolls.')
-
-
-def scrape_newest(url: str, target_date: str) -> list[dict]:
-    """
-    Scrolls until it finds a game with the target release date, 
-    then scrapes all loaded game links.
-    """
-    driver = init_driver()
-    driver.get(url)
-    page_data_list = []
-
-    with Progress() as progress:
-        task = progress.add_task("[cyan]Processing Steam games...", total=None)
-
-        find_target_date(driver, target_date)
-
-        game_links = []
-        soup = BeautifulSoup(driver.page_source, "html.parser")
-        game_links = [link['href'] for link in soup.find_all('a', href=True)
-                      if re.match(r'https://store\.steampowered\.com/app/\d+', link["href"])]
-
-        progress.update(task, total=len(game_links))
-
-        for link in game_links:
-            game_data = get_data(link)
-            logging.info('Processed %s', game_data.get('title'))
-            page_data_list.append(game_data)
-            progress.update(task, advance=1)
-
-    driver.quit()
-    return page_data_list
 
 
 def fetch_genres(soup: BeautifulSoup) -> list[str]:
@@ -291,27 +257,50 @@ def get_data(link: str) -> dict:
     return data
 
 
-def steam_extract():
-    """Handler function for lambda running steam pipeline"""
-    args = parse_args()
-    setup_logging(args.log_output)
-    url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998&supportedlang=english&ndl=1"
-
-    if args.scroll_to_date:
-        try:
-            scroll_to_date = datetime.strptime(
-                args.scroll_to_date, "%d %b, %Y"
-            ).strftime("%d %b, %Y")
-        except ValueError:
-            logging.error("Error: The date format should be '10 Feb, 2025'.")
-            return
+def scrape_newest(url: str, target_date: str, local: bool) -> list[dict]:
+    """
+    Scrolls until it finds a game with the target release date, 
+    then scrapes all loaded game links.
+    """
+    # Configure to run local or run in cloud
+    if local:
+        options = webdriver.ChromeOptions()
+        options.add_argument("--headless")
+        driver = webdriver.Chrome(service=Service(
+            ChromeDriverManager().install()), options=options)
     else:
-        scroll_to_date = (datetime.now() - timedelta(1)).strftime("%d %b, %Y")
+        driver = init_driver()
 
-    data = scrape_newest(url, scroll_to_date)
-    print(data)
-    return f"Completed {len(data)} entries"
+    driver.get(url)
+    page_data_list = []
+
+    with Progress() as progress:
+        task = progress.add_task("[cyan]Processing Steam games...", total=None)
+
+        find_target_date(driver, target_date)
+
+        game_links = []
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        game_links = [link['href'] for link in soup.find_all('a', href=True)
+                      if re.match(r'https://store\.steampowered\.com/app/\d+', link["href"])]
+
+        progress.update(task, total=len(game_links))
+
+        driver.quit()
+        for link in game_links:
+            game_data = get_data(link)
+            logging.info('Processed %s', game_data.get('title'))
+            page_data_list.append(game_data)
+            progress.update(task, advance=1)
+
+
+    return page_data_list
 
 
 if __name__ == "__main__":
-    steam_extract()
+    url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998&supportedlang=english&ndl=1"
+    targeted_date = datetime.now() - timedelta(days=2)
+    targeted_date = targeted_date.strftime('%d %b, %Y')
+    local = True
+    scraped_data = scrape_newest(url, targeted_date, local)
+    print(scraped_data)
