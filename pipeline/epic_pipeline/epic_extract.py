@@ -10,7 +10,7 @@ def load_query(filename: str) -> str:
         return file.read()
 
 
-def extract_games(url: str):
+def extract_games(url: str) -> list[dict]:
     """Queries a GraphQL API using a query from a file and returns raw game data."""
     query = load_query("query_all.gql")
 
@@ -61,7 +61,7 @@ def get_genre_tags(tags: list[str]) -> tuple[list[str], list[str]]:
     return genres, other_tags
 
 
-def get_pegi_age_control(game: dict):
+def get_pegi_age_control(game: dict) -> str:
     """Extracts the ageControl value where ratingSystem is 'PEGI'."""
     age_gatings = game.get("catalogNs", {}).get("ageGatings", [])
 
