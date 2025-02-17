@@ -17,7 +17,7 @@ COPY requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-COPY steam_lambda_extract.py .
+COPY steam_extract.py .
 
 COPY steam_transform.py .
 
