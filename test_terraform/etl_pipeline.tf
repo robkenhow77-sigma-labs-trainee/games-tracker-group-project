@@ -9,12 +9,25 @@ data "aws_vpc" "c15-vpc" {
   id = var.VPC_ID
 }
 
+# Steam ECR Information
+
 data "aws_ecr_repository" "c15-play-stream-steam-etl-pipeline-ecr" {
     name        = "c15-play-stream-steam-etl-pipeline-ecr"
 }
 
 data "aws_ecr_image" "steam-latest-image" {
   repository_name         = data.aws_ecr_repository.c15-play-stream-steam-etl-pipeline-ecr.name
+  most_recent             = true
+}
+
+# GOG ECR Information
+
+data "aws_ecr_repository" "c15-play-stream-gog-etl-pipeline-ecr" {
+    name                  = "c15-play-stream-gog-etl-pipeline-ecr"
+}
+
+data "aws_ecr_image" "gog-latest-image" {
+  repository_name         = data.aws_ecr_repository.c15-play-stream-gog-etl-pipeline-ecr.name
   most_recent             = true
 }
 
@@ -44,7 +57,8 @@ resource "aws_iam_policy" "etl-pipeline-lambda-iam-policy" {
         Effect   = "Allow",
         Action   = "lambda:InvokeFunction",
         Resource = [
-            aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn
+            aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn,
+            aws_lambda_function.c15-play-stream-gog-etl-pipeline-lambda-function.arn
         ]
       }
     ]
@@ -63,16 +77,37 @@ resource "aws_lambda_function" "c15-play-stream-steam-etl-pipeline-lambda-functi
     function_name         = "c15-play-stream-steam-etl-pipeline-lambda-function"
     package_type          = "Image"
     image_uri             = data.aws_ecr_image.steam-latest-image.image_uri
-    memory_size           = 128
-    timeout               = 100
+    memory_size           = 512
+    timeout               = 512
 
     environment {
         variables = {
-        DB_HOST      = var.DB_HOST
-        DB_NAME      = var.DB_NAME
-        DB_PASSWORD  = var.DB_PASSWORD
-        DB_PORT      = var.DB_PORT
-        DB_USERNAME  = var.DB_USERNAME
+        DB_HOST           = var.DB_HOST
+        DB_NAME           = var.DB_NAME
+        DB_PASSWORD       = var.DB_PASSWORD
+        DB_PORT           = var.DB_PORT
+        DB_USERNAME       = var.DB_USERNAME
+        }
+    }
+    role                  = aws_iam_role.lambda_task_role.arn
+}
+
+# Lambda Function for the GOG ETL pipeline
+
+resource "aws_lambda_function" "c15-play-stream-gog-etl-pipeline-lambda-function" {
+    function_name         = "c15-play-stream-gog-etl-pipeline-lambda-function"
+    package_type          = "Image"
+    image_uri             = data.aws_ecr_image.gog-latest-image.image_uri
+    memory_size           = 512
+    timeout               = 512
+
+    environment {
+        variables = {
+        DB_HOST           = var.DB_HOST
+        DB_NAME           = var.DB_NAME
+        DB_PASSWORD       = var.DB_PASSWORD
+        DB_PORT           = var.DB_PORT
+        DB_USERNAME       = var.DB_USERNAME
         }
     }
     role                  = aws_iam_role.lambda_task_role.arn
@@ -103,7 +138,8 @@ resource "aws_iam_policy" "etl-pipeline-state_machine_lambda_policy" {
         Effect   = "Allow",
         Action   = "lambda:InvokeFunction",
         Resource = [
-            aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn
+            aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn,
+            aws_lambda_function.c15-play-stream-gog-etl-pipeline-lambda-function.arn
         ]
       }
     ]
@@ -127,26 +163,52 @@ resource "aws_iam_role_policy_attachment" "state_machine_cw_logs" {
 # Step Function to call the lambda
 
 resource "aws_sfn_state_machine" "etl-pipeline-state-machine" {
-  name     = "c15-play-stream-steam-etl-pipeline-state-machine"
+  name     = "c15-play-stream-etl-pipeline-state-machine"
   role_arn = aws_iam_role.etl-pipeline-step-function-role.arn
   publish  = true
   type     = "EXPRESS"
 
   definition = jsonencode({
-    "Comment": "Step Function to trigger the three ETL pipeline Lambda functions sequentially",
-    "StartAt": "Invoke Steam ETL Pipeline Lambda Function",
-    "States": {
-      "Invoke Steam ETL Pipeline Lambda Function": {
-        "Type": "Task",
-        "Resource": "arn:aws:states:::lambda:invoke",
-        "Parameters": {
-          "FunctionName": aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn,
-          "Payload.$": "$"
+  "Comment": "Step Function to trigger the three ETL pipeline Lambda functions in parallel",
+  "StartAt": "Invoke ETL Pipelines",
+  "States": {
+    "Invoke ETL Pipelines": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "Invoke Steam ETL Pipeline Lambda Function",
+          "States": {
+            "Invoke Steam ETL Pipeline Lambda Function": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn,
+                "Payload.$": "$"
+              },
+              "End": true
+            }
+          }
         },
-        "End": true
-      }
+        {
+          "StartAt": "Invoke GOG ETL Pipeline Lambda Function",
+          "States": {
+            "Invoke GOG ETL Pipeline Lambda Function": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": aws_lambda_function.c15-play-stream-gog-etl-pipeline-lambda-function.arn,
+                "Payload.$": "$"
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "End": true
     }
-  })
+  }
+})
+
 
   logging_configuration {
     log_destination = "${aws_cloudwatch_log_group.play-stream_state_machine_logs.arn}:*"
@@ -170,11 +232,11 @@ resource "aws_iam_role" "report_scheduler_role" {
   })
 }
 
-# EventBridge Scheduler to run Step Function every day
+# EventBridge Scheduler to run Step Function every 3 hours
 
 resource "aws_scheduler_schedule" "etl_pipeline_schedule" {
     name = "c15-play-stream-etl-pipeline-daily-trigger"
-    schedule_expression = "cron(1 0 * * ? *)"  # Runs every day
+    schedule_expression = "cron(0 0/3 * * ? *)"  # Runs every 3 hours
     flexible_time_window {
         mode = "OFF"
     }
