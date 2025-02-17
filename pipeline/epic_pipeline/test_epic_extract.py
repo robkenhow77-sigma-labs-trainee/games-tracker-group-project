@@ -91,7 +91,7 @@ def mock_game_data():
             "tags": [{"groupName": "genre", "name": "Action"}, {"groupName": "tag", "name": "TEST_MMO"}],
             "publisherDisplayName": "Mock Publisher",
             "developerDisplayName": "Mock Developer",
-            "price": {"totalPrice": {"originalPrice": 59.99, "discount": 10}},
+            "price": {"totalPrice": {"originalPrice": 59.99, "discountPercentage": 80}},
             "releaseDate": "2023-12-01",
             "keyImages": [{"url": "https://example.com/image.jpg"}]
         }
@@ -124,7 +124,7 @@ def test_format_data_has_length(mock_get_platform_score, mock_game_data):
         ('genres', ['Action']),
         ('platform_score', '5.0'),
         ('platform_price', 59.99),
-        ('platform_discount', 10),
+        ('platform_discount', 80),
         ('release_date', "2023-12-01"),
         ('game_image', "https://example.com/image.jpg"),
         ('age_rating', '12+')
