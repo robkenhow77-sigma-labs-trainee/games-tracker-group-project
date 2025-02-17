@@ -1,6 +1,6 @@
 """Extract script by webscraping steam store page"""
 import re
-from os import mkdir
+from os import mkdir, environ as ENV
 from datetime import datetime, timedelta
 
 import logging
@@ -12,6 +12,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
+import psycopg
+from psycopg.rows import dict_row
+from dotenv import load_dotenv
 
 
 def init_driver():
@@ -42,6 +45,14 @@ def init_driver():
     driver = webdriver.Chrome(options=chrome_options, service=service)
 
     return driver
+
+
+def get_current_games(conn: psycopg.Connection):
+    """Gets the current games in the database."""
+    sql = "SELECT game_name FROM game;"
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        return cur.fetchall()
 
 
 def setup_logging(output: str, filename="game_track.log", level=20):
@@ -257,11 +268,14 @@ def get_data(link: str) -> dict:
     return data
 
 
-def scrape_newest(url: str, target_date: str, local: bool) -> list[dict]:
+def scrape_newest(url: str, target_date: str, local: bool, conn: psycopg.Connection) -> list[dict]:
     """
     Scrolls until it finds a game with the target release date, 
     then scrapes all loaded game links.
     """
+    current_games = get_current_games(conn)
+    current_games = [game["game_name"] for game in current_games]
+
     # Configure to run local or run in cloud
     if local:
         options = webdriver.ChromeOptions()
@@ -289,6 +303,7 @@ def scrape_newest(url: str, target_date: str, local: bool) -> list[dict]:
         driver.quit()
         for link in game_links:
             game_data = get_data(link)
+            print(game_data.get('title'))
             logging.info('Processed %s', game_data.get('title'))
             page_data_list.append(game_data)
             progress.update(task, advance=1)
@@ -298,9 +313,18 @@ def scrape_newest(url: str, target_date: str, local: bool) -> list[dict]:
 
 
 if __name__ == "__main__":
+    load_dotenv()
+    user = ENV['DB_USERNAME']
+    password = ENV["DB_PASSWORD"]
+    host = ENV["DB_HOST"]
+    port = ENV["DB_PORT"]
+    name = ENV["DB_NAME"]
+    CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
+    db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
+
     url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998&supportedlang=english&ndl=1"
     targeted_date = datetime.now() - timedelta(days=2)
     targeted_date = targeted_date.strftime('%d %b, %Y')
     local = True
-    scraped_data = scrape_newest(url, targeted_date, local)
+    scraped_data = scrape_newest(url, targeted_date, local, db_connection)
     print(scraped_data)
