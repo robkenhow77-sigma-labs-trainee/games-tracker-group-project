@@ -6,23 +6,34 @@ import urllib.parse
 
 from requests import get
 
-DAYS_BEFORE_TODAY_THAT_WILL_BE_ACCEPTED = 0
-
 #TODO: ensure logger is imported and config-ed
 
-def clean_data(data: list[dict]) -> list[dict]:
-    """Cleans the data extracted from the Steam scraper."""
+def clean_data(data: list[dict], target_date=None) -> list[dict]:
+    """Cleans the data extracted from the GoG scraper."""
+
+    if target_date is not None:
+        days_to_accept = turn_date_to_num_days(target_date)
+    else:
+        days_to_accept = 0
 
     cleaned_data = []
 
     for row in data:
-        if is_valid_data(row):
-            cleaned_data.append(format_data(row))
+        if is_valid_data(row, days_to_accept):
+            cleaned_data.append(format_data(row, days_to_accept))
 
     return cleaned_data
 
 
-def is_valid_data(game: dict) -> bool:
+def turn_date_to_num_days(target_date: str) -> int:
+    """Returns the number of days ago """
+
+    input_date = datetime.strptime(target_date, "%d %b, %Y").date()
+    today = datetime.now().date()
+    return today-input_date
+
+
+def is_valid_data(game: dict, days_to_accept) -> bool:
     """Returns true if all the data is valid."""
 
     expected_keys = ['title', 'genres', 'publisher',
@@ -37,7 +48,7 @@ def is_valid_data(game: dict) -> bool:
         return False
 
     return (is_valid_title(game['title']) and is_valid_genres(game['genres']) and
-            is_valid_price(game['platform_price']) and is_valid_release(game['release_date']))
+            is_valid_price(game['platform_price']) and is_valid_release(game['release_date'], days_to_accept))
 
 
 def is_valid_title(title: str) -> bool:
@@ -306,7 +317,7 @@ def is_valid_discount(discount: int) -> bool:
 
 
 def is_valid_release(release: str,
-                     days_before_today_allowed=DAYS_BEFORE_TODAY_THAT_WILL_BE_ACCEPTED) -> bool:
+                     days_before_today_allowed=None) -> bool:
     """Returns true if release is valid."""
 
     if not isinstance(release, str):
@@ -388,7 +399,7 @@ def is_valid_age(age: str) -> bool:
     return True
 
 
-def format_data(game: dict) -> bool:
+def format_data(game: dict, days_before_today_allowed=None) -> bool:
     """Formats all the data."""
 
     formatted_data = {}
@@ -420,7 +431,7 @@ def format_data(game: dict) -> bool:
         formatted_data['platform_discount'] = format_integer(game['platform_discount'])
     else:
         formatted_data['platform_discount'] = 0
-    if is_valid_release(game['release_date']):
+    if is_valid_release(game['release_date'], days_before_today_allowed):
         formatted_data['release_date'] = format_release(game['release_date'])
     else:
         formatted_data['release_date'] = None
@@ -445,7 +456,6 @@ def format_string(string: str) -> str:
     string = urllib.parse.unquote(string)
 
     return string
-
 
 
 def format_genre_list(values: list[str]) -> list[str]:
