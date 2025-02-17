@@ -83,7 +83,7 @@ def lambda_handler(event=None, context=None) -> None:
 
     # Extract
     url = 'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025'
-    scraped_data = scrape_newest(url, local)
+    scraped_data = scrape_newest(url, local, db_connection)
 
     # Transform
     cleaned_data = clean_data(scraped_data, targeted_date)
