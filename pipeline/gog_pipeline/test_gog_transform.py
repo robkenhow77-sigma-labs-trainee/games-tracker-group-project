@@ -386,7 +386,7 @@ def test_is_valid_data_with_missing_keys(missing_key):
 today = datetime.now().date()
 today_string = today.strftime("%Y-%m-%d")
 input_game = {'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, ', 'Exploration, ', 'Great Soundtrack, ', 'Choices Matter, ', 'Open World, ', 'Third Person, ', 'Sexual Content, ', 'Violent, ', 'Nudity, ', 'Gore, ', 'Multiple Endings, ', 'Mature, ', 'Magic, ', 'Medieval, ', 'Vampire, ', 'Werewolves', 'Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, '], 'platform_score': '4.8', 'platform_price': '34.99', 'platform_discount': '80', 'release_date': today_string, 'game_image': '\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png 1x,\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_960x570.png 2x\n            ', 'age_rating': '18'}
-expected_output = {'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'platform_price': None, 'platform': 'GOG', 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure,', 'Fantasy,', 'Story Rich,', 'Role-playing,', 'Atmospheric,', 'Exploration,', 'Great Soundtrack,', 'Choices Matter,', 'Open World,', 'Third Person,', 'Sexual Content,', 'Violent,', 'Nudity,', 'Gore,', 'Multiple Endings,', 'Mature,', 'Magic,', 'Medieval,', 'Vampire,', 'Werewolves', 'Adventure,', 'Fantasy,', 'Story Rich,', 'Role-playing,', 'Atmospheric,'], 'platform_score': 96, 'platform_discount': 80, 'release_date': today, 'game_image': 'N/A', 'age_rating': 'PEGI 18'}
+expected_output = {'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'platform_price': 3499, 'platform': 'GOG', 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure,', 'Fantasy,', 'Story Rich,', 'Role-playing,', 'Atmospheric,', 'Exploration,', 'Great Soundtrack,', 'Choices Matter,', 'Open World,', 'Third Person,', 'Sexual Content,', 'Violent,', 'Nudity,', 'Gore,', 'Multiple Endings,', 'Mature,', 'Magic,', 'Medieval,', 'Vampire,', 'Werewolves', 'Adventure,', 'Fantasy,', 'Story Rich,', 'Role-playing,', 'Atmospheric,'], 'platform_score': 96, 'platform_discount': 80, 'release_date': today, 'game_image': 'https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png', 'age_rating': 'PEGI 18'}
 
 #TODO: parameterise this
 def test_format_data():
@@ -400,7 +400,7 @@ def test_format_string(string, expected):
     """Tests format_string function."""
     assert format_string(string) == expected
 
-data = [("1", 1), ("2   ", 2), ("   100 ", 100), (None, None)]
+data = [("1", 1), ("2   ", 2), ("   100 ", 100)]
 @pytest.mark.parametrize("string,expected", data)
 def test_format_integer(string, expected):
     """Tests format_integer function."""

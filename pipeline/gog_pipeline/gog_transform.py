@@ -357,6 +357,8 @@ def is_valid_image(image: str) -> bool:
     image = image.replace("\n",'')
     image = image.split(',')[0]
     image = image.strip()
+    if image[-2:] == "1x":
+        image = image[:-2]
 
     if len(image) > 256:
         print("%s is not a valid image, url too long", image)
@@ -407,7 +409,7 @@ def format_data(game: dict, days_before_today_allowed=0) -> bool:
     # Minimum required data
     formatted_data['title'] = format_string(game['title'])
     formatted_data['genres'] = format_genre_list(game['genres'])
-    formatted_data['platform_price'] = format_integer(game['platform_price'])
+    formatted_data['platform_price'] = format_price(game['platform_price'])
     formatted_data['platform'] = "GOG"
 
     # Optional data formatting
@@ -436,7 +438,7 @@ def format_data(game: dict, days_before_today_allowed=0) -> bool:
     else:
         formatted_data['release_date'] = None
     if is_valid_image(game['game_image']):
-        formatted_data['game_image'] = format_string(game['game_image'])
+        formatted_data['game_image'] = format_image(game['game_image'])
         if formatted_data['game_image'][-2:] == "1x":
             formatted_data['game_image'] = formatted_data['game_image'][:-2]
     else:
@@ -523,13 +525,16 @@ def format_tag_list(values: list[str]) -> list[str]:
 def format_integer(integer: str) -> int:
     """Formats number."""
 
-    if isinstance(integer, str):
-        integer = integer.strip()
+    integer = integer.strip()
+    return int(integer)
 
-    if integer and integer.isdigit():  # Ensure it's numeric
-        return int(integer)
 
-    return None
+def format_price(price: str) -> int:
+    """Returns the price in pence."""
+
+    price = price.strip().replace('.','')
+
+    return int(price)
 
 
 def format_score(score: str) -> int:
@@ -545,6 +550,19 @@ def format_score(score: str) -> int:
         score = int(score) * 20
 
     return int(score)
+
+
+def format_image(image: str) -> str:
+    """returns the URL for the first image."""
+
+    image = image.replace(" ",'')
+    image = image.replace("\n",'')
+    image = image.split(',')[0]
+    image = image.strip()
+    if image[-2:] == "1x":
+        image = image[:-2]
+    
+    return image
 
 
 def format_release(release: str) -> datetime:
@@ -567,7 +585,7 @@ if __name__ == "__main__":
 
     test_input = [{'title': 'The Witcher 3: Wild Hunt - Complete Edition', 'genres': ['Role-playing', 'Adventure', 'Fantasy'], 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'CD PROJEKT RED'], 'developer': ['CD PROJEKT RED'], 'tag': ['Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, ', 'Exploration, ', 'Great Soundtrack, ', 'Choices Matter, ', 'Open World, ', 'Third Person, ', 'Sexual Content, ', 'Violent, ', 'Nudity, ', 'Gore, ', 'Multiple Endings, ', 'Mature, ', 'Magic, ', 'Medieval, ', 'Vampire, ', 'Werewolves', 'Adventure, ', 'Fantasy, ', 'Story Rich, ', 'Role-playing, ', 'Atmospheric, '], 'platform_score': '4.8', 'platform_price': '34.99', 'platform_discount': '80', 'release_date': '2016-08-30T00:00:00+03:00', 'game_image': '\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_480x285.png 1x,\n                https://images.gog-statics.com/90dc4e2c86b036c2b2c392adea197ad7dc6b750ce01af0416ed8b37f3d0101c9_product_card_v2_logo_960x570.png 2x\n            ', 'age_rating': '18'}]
 
-    clean = clean_data(test_input)
+    clean = clean_data(test_input, '01 Jan, 2015')
     print(test_input)
     print(clean)
     print(len(test_input))
