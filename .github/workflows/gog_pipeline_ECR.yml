@@ -1,4 +1,4 @@
-name: Steam pipeline image to ECR
+name: GOG pipeline image to ECR
 
 on:
   pull_request:
@@ -29,10 +29,10 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ secrets.STEAM_PIPELINE }} ### CHANGE REPO NAME
+          REPOSITORY: ${{ secrets.GOG_PIPELINE }} ### CHANGE REPO NAME
           IMAGE_TAG: latest
           ### CHANGE FOLDER LOCATION
         run: |
-          cd pipeline/steam_pipeline
+          cd pipeline/gog_pipeline
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG

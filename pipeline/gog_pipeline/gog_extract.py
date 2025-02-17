@@ -1,5 +1,5 @@
 """The extraction script for GOG"""
-from os import mkdir
+from os import mkdir, environ as ENV
 from time import sleep
 import json
 import re
@@ -10,11 +10,14 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+import psycopg
+from psycopg.rows import dict_row
+from dotenv import load_dotenv
 
 
 def init_driver():
     """Sets up the selenium driver with proper service and options."""
-    tmp_dir = '/tmp/gc' 
+    tmp_dir = '/tmp/gc_gog' 
     mkdir(tmp_dir)
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless=new")
@@ -40,6 +43,14 @@ def init_driver():
     driver = webdriver.Chrome(options=chrome_options, service=service)
 
     return driver
+
+
+def get_current_games(conn: psycopg.Connection):
+    """Gets the current games in the database."""
+    sql = "SELECT game_name FROM game;"
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        return cur.fetchall()
 
 
 def get_soup(url: str, driver: webdriver.Chrome) -> BeautifulSoup:
@@ -154,10 +165,13 @@ def get_data(link: str, driver: webdriver) -> dict:
     return data
 
 
-def scrape_newest(url: str, local:bool) -> list[dict]:
+def scrape_newest(url: str, local:bool, conn: psycopg) -> list[dict]:
     """
     Scrapes all the newest games from GOG games
     """
+    current_games = get_current_games(conn)
+    current_games = [game["game_name"] for game in current_games]
+
     if local:
         options = webdriver.ChromeOptions()
         # options.add_argument("--headless")
@@ -172,18 +186,28 @@ def scrape_newest(url: str, local:bool) -> list[dict]:
     game_links = [link['href'] for link in soup.find_all('a', href=True)
                   if re.match(r'https://www\.gog\.com/en/game/', link["href"])]
 
-
     page_data_list = []
     for link in game_links:
         game_data = get_data(link, driver)
+        if game_data["title"] in current_games:
+            break
         page_data_list.append(game_data)
     driver.quit()
     return page_data_list
 
 
 if __name__ == "__main__":
+    load_dotenv()
+    user = ENV['DB_USERNAME']
+    password = ENV["DB_PASSWORD"]
+    host = ENV["DB_HOST"]
+    port = ENV["DB_PORT"]
+    name = ENV["DB_NAME"]
+    CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
+    db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
+
     data = scrape_newest(
         'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025',
-        True
+        True, db_connection
         )
     print(data)
