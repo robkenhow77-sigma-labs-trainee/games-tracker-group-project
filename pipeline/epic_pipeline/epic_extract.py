@@ -75,7 +75,7 @@ def get_pegi_age_control(game):
     return None
 
 
-def format_data(games: "json") -> list[dict]:
+def format_data(games: list[dict]) -> list[dict]:
     """Formats raw game data into a standardized list of dictionaries."""
     game_list = []
     for game in games:
