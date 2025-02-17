@@ -113,7 +113,7 @@ def get_subscribers_for_genres(client):
     return subscribers_by_genre
 
 
-def generate_html(genre_name, game_data, subscribers):
+def generate_html(genre, genre_name, game_data, subscribers):
     """Generates HTML email body with all games for the genre (with images)"""
     print(
         f"Generating HTML for {genre_name} genre with {len(game_data)} games and {len(subscribers)} subscribers...")
@@ -243,18 +243,20 @@ def lambda_handler(event, context):
     # get subscribers grouped by genre
     subscribers_by_genre = get_subscribers_for_genres(sns_client)
     print(f"Found {len(subscribers_by_genre)} genres with subscribers.")
-    print("Subscribers by Genre:", subscribers_by_genre)
 
     # organize games by game_name and associated genres
-    games_dict = defaultdict(lambda: {"genres": set(), "release_date": None})
+    games_dict = defaultdict(
+        lambda: {"genres": set(), "release_date": None, "game_image": None})
 
     for row in new_games:
         game_name = row["game_name"]
         genre = row["genre_name"]
         release_date = row["platform_release_date"]
+        game_image = row["game_image"]  # Get the image link from the query
 
         games_dict[game_name]["genres"].add(genre)
         games_dict[game_name]["release_date"] = release_date
+        games_dict[game_name]["game_image"] = game_image  # Store the image URL
 
     print(f"Games dict populated with {len(games_dict)} games.")
 
@@ -264,13 +266,18 @@ def lambda_handler(event, context):
     for game_name, details in games_dict.items():
         game_genres = sorted(details["genres"])
         release_date = details["release_date"]
+        game_image = details["game_image"]
 
         for genre in game_genres:
             formatted_genre = genre.replace('play_stream_', '')
             formatted_genre = formatted_genre.replace('_', ' ').title()
 
             if formatted_genre in subscribers_by_genre:
-                email_data[formatted_genre]["games"].append(game_name)
+                email_data[formatted_genre]["games"].append({
+                    "game_name": game_name,
+                    "game_image": game_image,
+                    "release_date": release_date
+                })
                 email_data[formatted_genre]["subscribers"] = list(
                     subscribers_by_genre[formatted_genre])
 
@@ -280,6 +287,7 @@ def lambda_handler(event, context):
     for genre, data in email_data.items():
         if data["subscribers"]:  # only send emails if there are subscribers
             email_body = generate_html(
+                genre,
                 genre,
                 data["games"],
                 data["subscribers"]
