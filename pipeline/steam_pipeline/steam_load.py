@@ -131,7 +131,6 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
 
 
 if __name__ == "__main__":
-    # initialise
     # Initialise logging
     log_format = "{asctime} - {levelname} - {message}"
     log_datefmt = "%Y-%m-%d %H:%M"

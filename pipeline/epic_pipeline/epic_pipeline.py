@@ -4,6 +4,7 @@
 from os import environ as ENV
 from datetime import datetime, timedelta
 from argparse import ArgumentParser
+import logging
 
 # Third-party imports
 import psycopg
@@ -61,6 +62,15 @@ def change_keys(data: list[dict]):
 def lambda_handler(event=None, context=None) -> None:
     """Function to run entire Steam ETL pipeline"""
     # Initialise
+    # Logging
+    log_format = "{asctime} - {levelname} - {message}"
+    log_datefmt = "%Y-%m-%d %H:%M"
+    logging.basicConfig(
+            level=logging.INFO,
+            format=log_format,
+            style="{",
+            datefmt=log_datefmt
+        )
     # CLI arguments
     local, target_date = init_args()
 
@@ -92,4 +102,14 @@ def lambda_handler(event=None, context=None) -> None:
 
 
 if __name__ == "__main__":
+    # Logging
+    log_format = "{asctime} - {levelname} - {message}"
+    log_datefmt = "%Y-%m-%d %H:%M"
+    logging.basicConfig(
+            level=logging.INFO,
+            format=log_format,
+            style="{",
+            datefmt=log_datefmt
+        )
+    load_dotenv()
     lambda_handler()
