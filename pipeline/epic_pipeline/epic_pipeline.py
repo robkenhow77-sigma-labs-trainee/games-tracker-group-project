@@ -26,7 +26,7 @@ def init_args() -> str:
             type=str,
             required=False,
             help="Set a target date, in the form' 11 Feb, 2025'. Defaults to yesterday.")
-    
+
     args = parser.parse_args()
     return args.target_date
 
@@ -79,8 +79,8 @@ def lambda_handler(event=None, context=None) -> None:
     host = ENV["DB_HOST"]
     port = ENV["DB_PORT"]
     name = ENV["DB_NAME"]
-    CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
-    db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
+    conn_string = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
+    db_connection = psycopg.connect(conn_string, row_factory=dict_row)
 
     # Extract
     url = "https://graphql.epicgames.com/graphql"
@@ -97,13 +97,13 @@ def lambda_handler(event=None, context=None) -> None:
 
 if __name__ == "__main__":
     # Logging
-    log_format = "{asctime} - {levelname} - {message}"
-    log_datefmt = "%Y-%m-%d %H:%M"
+    LOGGING_FORMAT = "{asctime} - {levelname} - {message}"
+    LOGGING_DATE_FORMAT = "%Y-%m-%d %H:%M"
     logging.basicConfig(
             level=logging.INFO,
-            format=log_format,
+            format=LOGGING_FORMAT,
             style="{",
-            datefmt=log_datefmt
+            datefmt=LOGGING_DATE_FORMAT
         )
     load_dotenv()
     lambda_handler()
