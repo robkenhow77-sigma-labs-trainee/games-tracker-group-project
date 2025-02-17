@@ -95,7 +95,6 @@ def format_data(games: list[dict]) -> list[dict]:
             "game_image": game.get("keyImages", [{}])[0].get("url"),
             "age_rating": get_pegi_age_control(game)
         }
-        print(game_data.get('age_rating'))
         game_list.append(game_data)
 
     return game_list
@@ -106,7 +105,6 @@ if __name__ == "__main__":
         "https://graphql.epicgames.com/graphql")
     games = format_data(raw_games)
 
-    for game in games:
-        print(game)
+    print(games)
 
     print(len(games))
