@@ -40,22 +40,42 @@ def get_connection():
 
 def get_new_games(conn):
     """Queries database for games released in past 24h"""
-    previous_day = (datetime.now() - timedelta(days=2)).date()
+    previous_day = (datetime.now() - timedelta(days=1)).date()
     print(f"Fetching games released since {previous_day}...")
-    query = """select g.game_name, ge.genre_name, p.platform_release_date, g.game_image
-    from game as g
-    join game_platform_assignment as p using (game_id)
-    join genre_game_platform_assignment as gp using (platform_assignment_id)
-    join genre as ge using (genre_id)
-    where platform_release_date >= %s"""
+
+    query = """SELECT 
+    g.game_id, 
+    g.game_name, 
+    g.game_image, 
+    STRING_AGG(ge.genre_name, ', ') AS genre_names,  -- ✅ Collects all genres
+    p.platform_release_date, 
+    pl.platform_name,
+    -- calc discount
+    CASE 
+        WHEN p.platform_discount > 0 
+        THEN CONCAT('£', ROUND((p.platform_price * (1 - p.platform_discount / 100.0)) / 100.0, 2)) 
+        WHEN p.platform_price = 0 
+        THEN 'Free'
+        ELSE CONCAT('£', ROUND(p.platform_price / 100.0, 2))
+    END AS final_price,
+    CASE 
+        WHEN p.platform_discount > 0 THEN CONCAT(p.platform_discount, '%% off')
+        ELSE 'No discount'
+    END AS discount_info
+FROM game AS g
+JOIN game_platform_assignment AS p USING (game_id)
+JOIN genre_game_platform_assignment AS gp USING (platform_assignment_id)
+JOIN genre AS ge USING (genre_id)
+JOIN platform AS pl USING (platform_id)
+WHERE p.platform_release_date >= %s
+GROUP BY g.game_id, g.game_name, g.game_image, p.platform_release_date, pl.platform_name, p.platform_price, p.platform_discount;
+"""
 
     with conn.cursor() as cur:
         cur.execute(query, (previous_day,))
         res = cur.fetchall()
 
     print(f"Found {len(res)} new games.")
-    for game in res:
-        print(f"Game: {game['game_name']}, Genre: {game['genre_name']}, Release Date: {game['platform_release_date']}, Image URL: {game['game_image']}")
     return res
 
 
@@ -113,7 +133,7 @@ def get_subscribers_for_genres(client):
     return subscribers_by_genre
 
 
-def generate_html(genre, genre_name, game_data, subscribers):
+def generate_html(genre_name, game_data, subscribers):
     """Generates HTML email body with all games for the genre (with images)"""
     print(
         f"Generating HTML for {genre_name} genre with {len(game_data)} games and {len(subscribers)} subscribers...")
@@ -124,69 +144,92 @@ def generate_html(genre, genre_name, game_data, subscribers):
                 <style>
                     body {{
                         font-family: Arial, sans-serif;
-                        color: #333333;
-                        background-color: #f9f9f9;
+                        color: #f0f0f0;
                         padding: 20px;
+                        margin: 0;
+                        width: 100%;
+                        text-align: center;
+                        background-color: #152736;
                     }}
-                    h1 {{
-                        color: #4CAF50;
-                        font-size: 30px;
+                    .email-container {{
+                        width: 90%;
+                        max-width: 600px;  
+                        margin: 40px auto;
+                        padding: 20px;
+                        background-color: #1b3a4b;
+                        border-radius: 10px;
+                        text-align: center;
                     }}
-                    h2 {{
-                        color: #333;
-                        font-size: 24px;
+                    h1, h2, p {{
+                        color: #f0f0f0;
+                        text-align: center;
+                    }}
+                    .game-table {{
+                        width: 100%;
+                        border-spacing: 0;
                     }}
                     .game {{
-                        margin-bottom: 30px;
+                        width: 100%;
+                        background-color: #204050;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        text-align: center;
                     }}
                     .game img {{
-                        max-width: 200px;
-                        margin-right: 20px;
+                        max-width: 100%;
+                        height: auto;
+                        display: block;
+                        margin: 0 auto;
+                        border-radius: 5px;
                     }}
                     .game-title {{
-                        font-size: 24px;
+                        font-size: 20px;
                         font-weight: bold;
+                        color: #f0f0f0;
+                        margin-top: 10px;
                     }}
                     .game-info {{
-                        font-size: 18px;
-                    }}
-                    .header {{
-                        font-size: 18px;
-                        margin-bottom: 20px;
+                        font-size: 16px;
+                        color: #f0f0f0;
+                        margin-top: 5px;
                     }}
                 </style>
             </head>
             <body>
-                <h1>🎮 New Game Releases in {genre_name}</h1>
-                <div class="header">
-                    <p><strong>Release Date:</strong> {game_data[0]['release_date']}</p>
-                </div>
-                <h2>Games:</h2>
-                <div>
+                <div class="email-container">
+                    <h1>New Game Releases in {genre_name}</h1>
+                    <table class="game-table">
     """
-    # list set of games with details
+
+    # List games one by one using table rows
+    print('GAME DATA ', game_data)
     for game in game_data:
         game_name = game["game_name"]
-        # Use the game_image from your query result
         game_image = game["game_image"]
-        release_date = game['release_date']
+        release_date = game["release_date"]
+        price = game["final_price"]
+        platform = game["platform"]
 
         body_html += f"""
-            <div class="game">
-                <img src="{game_image}" alt="{game_name}">
-                <div class="game-title">{game_name}</div>
-                <div class="game-info">Release Date: {release_date}</div>
-            </div>
+            <tr>
+                <td class="game">
+                    <img src="{game_image}" alt="{game_name}">
+                    <div class="game-title">{game_name} - {price}</div>
+                    <div class="game-info">Release Date: {release_date}</div>
+                    <div class="game-info">Available for the best price on <b>{platform}</b></div>
+                </td>
+            </tr>
         """
 
     body_html += f"""
+                    </table>
+                    <p>Check out these new games now! Available on Steam, GoG, and Epic.</p>
                 </div>
-                <p>Check out the games now and enjoy the new experience!</p>
             </body>
         </html>
     """
 
-    # print the start of the HTML for preview
     print(f"HTML generated for {genre_name} genre:\n{body_html[:500]}...")
     return body_html
 
@@ -256,21 +299,28 @@ def lambda_handler(event, context):
     subscribers_by_genre = get_subscribers_for_genres(sns_client)
     print(f"Found {len(subscribers_by_genre)} genres with subscribers.")
 
-    # organize games by game_name and associated genres
+    # organise games by game_name and associated genres
     games_dict = defaultdict(
-        lambda: {"genres": set(), "release_date": None, "game_image": None})
+        lambda: {"genres": set(), "release_date": None, "game_image": None, "final_price": None, "platform": None})
 
+    # get data from query and store in dict for each game
     for row in new_games:
         game_name = row["game_name"]
-        genre = row["genre_name"]
+        genres = row["genre_names"].split(", ")
         release_date = row["platform_release_date"]
-        game_image = row["game_image"]  # Get the image link from the query
+        game_image = row["game_image"]
+        final_price = row['final_price']
+        platform = row['platform_name']
 
-        games_dict[game_name]["genres"].add(genre)
+        games_dict[game_name]["genres"].update(genres)
         games_dict[game_name]["release_date"] = release_date
-        games_dict[game_name]["game_image"] = game_image  # Store the image URL
+        games_dict[game_name]["game_image"] = game_image
+        games_dict[game_name]["final_price"] = final_price
+        games_dict[game_name]["platform"] = platform
 
     print(f"Games dict populated with {len(games_dict)} games.")
+
+    print("Games dict: ", games_dict)
 
     email_data = defaultdict(lambda: {"games": [], "subscribers": []})
 
@@ -279,6 +329,8 @@ def lambda_handler(event, context):
         game_genres = sorted(details["genres"])
         release_date = details["release_date"]
         game_image = details["game_image"]
+        final_price = details["final_price"]
+        platform = details["platform"]
 
         for genre in game_genres:
             formatted_genre = genre.replace('play_stream_', '')
@@ -288,7 +340,9 @@ def lambda_handler(event, context):
                 email_data[formatted_genre]["games"].append({
                     "game_name": game_name,
                     "game_image": game_image,
-                    "release_date": release_date
+                    "release_date": release_date,
+                    "final_price": final_price,
+                    "platform": platform
                 })
                 email_data[formatted_genre]["subscribers"] = list(
                     subscribers_by_genre[formatted_genre])
@@ -296,10 +350,11 @@ def lambda_handler(event, context):
     # Generate html for each genre
     final_email_data = {}
 
+    print('EMAIL DATA', email_data)
+
     for genre, data in email_data.items():
         if data["subscribers"]:  # only send emails if there are subscribers
             email_body = generate_html(
-                genre,
                 genre,
                 data["games"],
                 data["subscribers"]
