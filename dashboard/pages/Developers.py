@@ -1,4 +1,4 @@
-#pylint: disable=invalid-name, ungrouped-imports, too-many-positional-arguments, too-many-arguments, too-many-locals
+#pylint: disable=invalid-name, ungrouped-imports, too-many-positional-arguments, too-many-arguments, too-many-locals, line-too-long
 """Dashboard for Developers to see statistics about games."""
 import logging
 from os import environ as ENV
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from psycopg2 import connect
 from dotenv import load_dotenv
-from psycopg2.extensions import connection as psycopg_connection, cursor as psycopg_cursor
+from psycopg2.extensions import connection as psycopg_connection
 
 @st.cache_resource
 def get_connection() -> psycopg_connection:
@@ -33,13 +33,13 @@ def get_number_of_games_by_platform(conn: psycopg_connection) -> pd.DataFrame:
     GROUP BY p.platform_name
     ORDER BY game_count DESC
     """
-    
+
     with conn.cursor() as cursor:
         cursor.execute(query)
         result = cursor.fetchall()
 
     df = pd.DataFrame(result, columns=["platform_name", "game_count"])
-    
+
     return df
 
 def get_number_of_games_by_genre(conn: psycopg_connection) -> pd.DataFrame:
@@ -80,8 +80,8 @@ def get_genre_tag_platform_options(conn: psycopg_connection) -> tuple[list[str],
     return available_genres, available_tags, available_platforms
 
 
-def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = None,
-                       price: float = None, platform: str = None, top_n: int = None, exclude_nsfw: bool = True) -> pd.DataFrame:
+def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = None, price: float = None,
+        platform: str = None, top_n: int = None, exclude_nsfw: bool = True) -> pd.DataFrame:
     """Fetches games based on the user's filter selection."""
     query = """
     SELECT DISTINCT g.game_name, g.game_image, gp.platform_score, gp.platform_price, p.platform_name, g.is_nsfw
@@ -128,9 +128,15 @@ def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = N
         cursor.execute(query, tuple(params))
         result = cursor.fetchall()
 
-    df = pd.DataFrame(result, columns=["game_name", "game_image", "platform_score", "platform_price", "platform_name", "is_nsfw"])
+    df = pd.DataFrame(result, columns=["game_name",
+                                       "game_image",
+                                       "platform_score",
+                                       "platform_price",
+                                       "platform_name",
+                                       "is_nsfw"])
     df['platform_price'] = df['platform_price'] / 100
-    df['platform_score'] = df['platform_score'].apply(lambda x: "No rating at release" if x == -1 else x)
+    df['platform_score'] = df['platform_score'].apply(
+        lambda x: "No rating at release" if x == -1 else x)
 
     return df
 
@@ -240,24 +246,37 @@ def main():
 
     selected_price = price_mapping.get(price_range, None)
 
-    genre_counts = get_filtered_games(conn, genre=selected_genre, tag=selected_tag, price=selected_price, platform=selected_platform, exclude_nsfw=include_nsfw)
+    genre_counts = get_filtered_games(conn,
+                                      genre=selected_genre,
+                                      tag=selected_tag,
+                                      price=selected_price,
+                                      platform=selected_platform,
+                                      exclude_nsfw=include_nsfw)
     genre_counts = genre_counts.groupby('platform_name').size().reset_index(name='counts')
 
-    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Released by Platform</h4>', unsafe_allow_html=True)
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Released by Platform</h4>',
+                unsafe_allow_html=True)
     platform_data = get_number_of_games_by_platform(conn)
     fig = px.bar(platform_data, x='platform_name', y='game_count', color='platform_name',
                  labels={'platform_name': 'Platform', 'game_count': 'Number of Games'})
     st.plotly_chart(fig)
 
-    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Released by Genre</h4>', unsafe_allow_html=True)
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Released by Genre</h4>',
+                unsafe_allow_html=True)
     genre_data = get_number_of_games_by_genre(conn)
     fig = px.bar(genre_data, x='genre_name', y='game_count', color='genre_name',
                  labels={'genre_name': 'Genre', 'game_count': 'Number of Games'})
     st.plotly_chart(fig)
 
-    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Top 10 Best Reviewed Games</h4>', unsafe_allow_html=True)
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Top 10 Best Reviewed Games</h4>',
+                unsafe_allow_html=True)
 
-    top_games = get_filtered_games(conn, selected_genre, selected_tag, selected_price, selected_platform, top_n=10)
+    top_games = get_filtered_games(conn, 
+                                   selected_genre, 
+                                   selected_tag, 
+                                   selected_price, 
+                                   selected_platform, 
+                                   top_n=10)
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.barplot(x='platform_score', y='game_name', data=top_games, palette="rocket", ax=ax)
 
@@ -274,7 +293,8 @@ def main():
 
     st.pyplot(fig)
 
-    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Price vs Rating Scatter Plot</h4>', unsafe_allow_html=True)
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Price vs Rating Scatter Plot</h4>', 
+                unsafe_allow_html=True)
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
