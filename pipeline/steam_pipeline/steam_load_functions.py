@@ -71,8 +71,8 @@ def upload_and_return_devs(devs: list[tuple], conn: psycopg.Connection) -> dict:
             conn.commit()
             logging.info("Successfully loaded developers")
             return ids
-    except:
-        logging.error(f"Uploading developers failed. Data to be uploaded: {devs}")
+    except psycopg.Error as e:
+        logging.error(f"Uploading developers failed: {e}. Data to be uploaded: {devs}")
         return {}
 
 
@@ -94,8 +94,8 @@ def upload_and_return_games(games: list[tuple], conn: psycopg.Connection) -> dic
             conn.commit()
             logging.info("Successfully loaded games")
             return ids
-    except:
-        logging.error(f"Uploading developers failed. Data to be uploaded: {games}")
+    except psycopg.Error as e:
+        logging.error(f"Uploading games failed: {e}. Data to be uploaded: {games}")
         return {}
 
 
@@ -116,8 +116,8 @@ def upload_and_return_pubs(pubs: list[tuple], conn: psycopg.Connection) -> dict:
             conn.commit()
             logging.info("Successfully loaded publishers")
             return ids
-    except:
-        logging.error(f"Uploading publishers failed. Data to be uploaded: {pubs}")
+    except psycopg.Error as e:
+        logging.error(f"Uploading publishers failed: {e}. Data to be uploaded: {pubs}")
         return {}
 
 
@@ -138,8 +138,8 @@ def upload_and_return_genres(genres: list[tuple], conn: psycopg.Connection) -> d
             conn.commit()
             logging.info("Successfully loaded genres")
             return ids
-    except:
-        logging.error(f"Uploading genres failed. Data to be uploaded: {genres}")
+    except psycopg.Error as e:
+        logging.error(f"Uploading genres failed: {e}. Data to be uploaded: {genres}")
         return {}
 
 
@@ -161,8 +161,8 @@ def upload_and_return_tags(tags: list[tuple], conn: psycopg.Connection) -> dict:
             conn.commit()
             logging.info("Successfully loaded tags")
             return ids
-    except :
-        logging.error(f"Uploading tags failed. Data to be uploaded: {tags}")
+    except psycopg.Error as e:
+        logging.error(f"Uploading tags failed: {e}. Data to be uploaded: {tags}")
         return {}
 
 
@@ -323,8 +323,8 @@ def upload_and_return_game_platform_assignment(data: list[tuple],
             conn.commit()
             logging.info("Successfully loaded game_platform_assignments")
             return ids
-    except:
-        logging.error(f"Uploading game_platform_assignments failed. Data to be uploaded: {data}")
+    except psycopg.Error as e:
+        logging.error(f"Uploading game_platform_assignments failed: {e}. Data to be uploaded: {data}")
         return {}
 
 
@@ -411,8 +411,8 @@ def upload_genre_game_platform_assignment(data: list[tuple], conn: psycopg.Conne
             conn.commit()
             logging.info("Successfully loaded genre_game_platform_assignments")
             return None
-    except:
-        logging.error(f"Uploading genre_game_platform_assignments failed. Data to be uploaded: {data}")
+    except psycopg.Error as e:
+        logging.error(f"Uploading genre_game_platform_assignments failed: {e}. Data to be uploaded: {data}")
         return None
 
 
@@ -429,8 +429,8 @@ def upload_tag_game_platform_assignment(data: list[tuple], conn: psycopg.Connect
             conn.commit()
             logging.info("Successfully loaded tag_game_platform_assignments")
             return None
-    except:
-        logging.error(f"Uploading tag_game_platform_assignments failed. Data to be uploaded: {data}")
+    except psycopg.Error as e:
+        logging.error(f"Uploading tag_game_platform_assignments failed: {e} Data to be uploaded: {data}")
         return None
 
 
