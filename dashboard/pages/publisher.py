@@ -1,0 +1,1 @@
+"""Gets all the information on a publisher."""

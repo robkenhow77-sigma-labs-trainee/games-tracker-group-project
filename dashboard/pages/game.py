@@ -1,0 +1,1 @@
+"""Make a page which gets all information about a game."""

@@ -144,22 +144,83 @@ def main():
     """Main function to manage the Streamlit app interface."""
     conn = get_connection()
 
-    st.markdown(
-        """
-        <style>
+    st.sidebar.image("../images/logo.png", width=100)
+
+
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap');
+        
         body {
-            background-color:
-            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 22px;
+            color: yellow;
         }
-        .sidebar .sidebar-content {
-            background-color:
+        
+        .sidebar-image {
+            border-radius: 15px;
+            border: 3px solid lightblue;
+            width: 200px;  /* Adjust the width as per your requirement */
         }
-        .st-bb {
-            color: white;
+
+        /* Sidebar filter elements */
+        .stSidebar .stSelectbox > div, 
+        .stSidebar .stCheckbox > div,
+        .stSidebar .stMultiSelect > div {
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
         }
-        </style>
-        """, unsafe_allow_html=True
-    )
+
+        .stSidebar .stSelectbox label, 
+        .stSidebar .stCheckbox label, 
+        .stSidebar .stMultiSelect label {
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* For the selectbox dropdown itself */
+        .stSidebar .stSelectbox div[data-baseweb="select"] {
+            background-color: black;
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* For the selectbox dropdown options */
+        .stSidebar .stSelectbox div[data-baseweb="select"] div {
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* For the streamlit expander titles */
+        .stSidebar .css-1v3fvcr {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        /* Chart Titles (Plotly) */
+        .stChart .plotly-title {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        /* Subheader titles */
+        .stSubheader, .stTitle {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        /* Sidebar Header */
+        .stSidebar .css-1v3fvcr {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        .markdown-text-container {
+            color: yellow;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
 
     genres, tags, platforms = get_genre_tag_platform_options(conn)
 
@@ -182,21 +243,20 @@ def main():
     genre_counts = get_filtered_games(conn, genre=selected_genre, tag=selected_tag, price=selected_price, platform=selected_platform, exclude_nsfw=include_nsfw)
     genre_counts = genre_counts.groupby('platform_name').size().reset_index(name='counts')
 
-    st.subheader("Number of Games by Platform")
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Released by Platform</h4>', unsafe_allow_html=True)
     platform_data = get_number_of_games_by_platform(conn)
     fig = px.bar(platform_data, x='platform_name', y='game_count', color='platform_name',
-                 labels={'platform_name': 'Platform', 'game_count': 'Number of Games'},
-                 title="Games Released by Platform")
+                 labels={'platform_name': 'Platform', 'game_count': 'Number of Games'})
     st.plotly_chart(fig)
 
-    st.subheader("Number of Games by Genre")
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Released by Genre</h4>', unsafe_allow_html=True)
     genre_data = get_number_of_games_by_genre(conn)
     fig = px.bar(genre_data, x='genre_name', y='game_count', color='genre_name',
-                 labels={'genre_name': 'Genre', 'game_count': 'Number of Games'},
-                 title="Games Released by Genre")
+                 labels={'genre_name': 'Genre', 'game_count': 'Number of Games'})
     st.plotly_chart(fig)
 
-    st.subheader("Top 10 Best Reviewed Games")
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Top 10 Best Reviewed Games</h4>', unsafe_allow_html=True)
+
     top_games = get_filtered_games(conn, selected_genre, selected_tag, selected_price, selected_platform, top_n=10)
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.barplot(x='platform_score', y='game_name', data=top_games, palette="rocket", ax=ax)
@@ -214,7 +274,8 @@ def main():
 
     st.pyplot(fig)
 
-    st.subheader("Price vs Rating Scatter Plot")
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Price vs Rating Scatter Plot</h4>', unsafe_allow_html=True)
+
     fig, ax = plt.subplots(figsize=(10, 6))
 
     all_games = get_filtered_games(conn, selected_genre, selected_tag, selected_price, selected_platform)

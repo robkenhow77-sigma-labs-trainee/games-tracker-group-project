@@ -125,6 +125,81 @@ def main():
     """Main function to execute the Streamlit app."""
     load_dotenv()
 
+    st.sidebar.image("../images/logo.png", width=100)
+
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap');
+        
+        body {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 22px;
+            color: yellow;
+        }
+                
+        .sidebar-image {
+            border-radius: 15px;
+            border: 3px solid lightblue;
+            width: 200px;
+        }
+        
+        /* Sidebar filter elements */
+        .stSidebar .stSelectbox > div, 
+        .stSidebar .stCheckbox > div,
+        .stSidebar .stMultiSelect > div {
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .stSidebar .stSelectbox label, 
+        .stSidebar .stCheckbox label, 
+        .stSidebar .stMultiSelect label {
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* For the selectbox dropdown itself */
+        .stSidebar .stSelectbox div[data-baseweb="select"] {
+            background-color: black;
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* For the selectbox dropdown options */
+        .stSidebar .stSelectbox div[data-baseweb="select"] div {
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* For the streamlit expander titles */
+        .stSidebar .css-1v3fvcr {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        /* Chart Titles (Plotly) */
+        .stChart .plotly-title {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        /* Subheader titles */
+        .stSubheader, .stTitle {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        /* Sidebar Header */
+        .stSidebar .css-1v3fvcr {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        .markdown-text-container {
+            color: yellow;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
     if 'offset' not in st.session_state:
         st.session_state.offset = 0
@@ -163,21 +238,11 @@ def main():
                                     limit,
                                     offset)
 
-    st.write("Game Data Table:")
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Library</h4>', unsafe_allow_html=True)
 
-    cols = st.columns(6)
-    with cols[0]:
-        st.write("Title")
-    with cols[1]:
-        st.write("Image")
-    with cols[2]:
-        st.write("Release Date")
-    with cols[3]:
-        st.write("Score")
-    with cols[4]:
-        st.write("Price")
-    with cols[5]:
-        st.write("Platform")
+    col_headers = ['Title', 'Image', 'Release Date', 'Score', 'Price', 'Platform']
+    st.markdown(f'<div style="font-family: \'Press Start 2P\', cursive; color: yellow; font-size: 12px;">{"  |  ".join(col_headers)}</div>', unsafe_allow_html=True)
+
     st.markdown("---")
 
     for idx, row in value_data.iterrows():
