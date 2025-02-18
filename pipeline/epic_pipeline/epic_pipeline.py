@@ -43,7 +43,7 @@ def change_keys(data: list[dict]):
         "publisher":  game['publisher'],
         "release_date": game['release_date'],
         "game_image": game['game_image'],
-        "is_nsfw": False, # NEED TO CHANGE!!
+        "is_nsfw": game["NSFW"],
         "age_rating": game['age_rating'],
         "platform": game['platform'],
         "score": game['platform_score'],
