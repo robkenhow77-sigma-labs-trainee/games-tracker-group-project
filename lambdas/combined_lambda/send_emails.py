@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from collections import defaultdict
 import psycopg2
+import logging
 from psycopg2.extras import RealDictCursor
 
 # Load environment variables from .env file
@@ -288,7 +289,16 @@ def send_email(ses_client, email_data):
 
 
 def lambda_handler(event, context):
-    print("Lambda function started.")
+
+    log_format = "{asctime} - {levelname} - {message}"
+    log_datefmt = "%Y-%m-%d %H:%M"
+    logging.basicConfig(
+        level=logging.INFO,
+        format=log_format,
+        style="{",
+        datefmt=log_datefmt
+    )
+    logging.info("Lambda function started")
 
     sns_client = sns_connect()
     db_conn = get_connection()
@@ -298,6 +308,7 @@ def lambda_handler(event, context):
     # get subscribers grouped by genre
     subscribers_by_genre = get_subscribers_for_genres(sns_client)
     print(f"Found {len(subscribers_by_genre)} genres with subscribers.")
+    logging.info(f"Found {len(subscribers_by_genre)} genres with subscribers.")
 
     # organise games by game_name and associated genres
     games_dict = defaultdict(
@@ -318,9 +329,9 @@ def lambda_handler(event, context):
         games_dict[game_name]["final_price"] = final_price
         games_dict[game_name]["platform"] = platform
 
-    print(f"Games dict populated with {len(games_dict)} games.")
+    logging.info(f"Games dict populated with {len(games_dict)} games.")
 
-    print("Games dict: ", games_dict)
+    logging.info("Games dict: ", games_dict)
 
     email_data = defaultdict(lambda: {"games": [], "subscribers": []})
 
@@ -350,7 +361,7 @@ def lambda_handler(event, context):
     # Generate html for each genre
     final_email_data = {}
 
-    print('EMAIL DATA', email_data)
+    logging.info('Email Data', email_data)
 
     for genre, data in email_data.items():
         if data["subscribers"]:  # only send emails if there are subscribers
@@ -364,7 +375,8 @@ def lambda_handler(event, context):
                 "html_body": email_body
             }
 
-    print(f"Final email data prepared for {len(final_email_data)} genres.")
+    logging.info(
+        f"Final email data prepared for {len(final_email_data)} genres.")
 
     # Send emails through SES
     ses_client = get_ses_connection()
