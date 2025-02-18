@@ -541,6 +541,8 @@ def format_integer(integer: str) -> int:
 def format_score(score: str) -> int:
     """Formats the score as a percentage."""
 
+    score = str(score)
+
     score = score.strip()
 
     if '.' in score:
@@ -588,7 +590,7 @@ def format_release(release: str) -> datetime:
 
 if __name__ == "__main__":
 
-    data = [{'title': 'BetterTogether', 'genres': ['Shooter', 'Rogue-Lite', 'Platformer'], 'publisher': ['Ömer Genç'], 'developer': ['Ömer Genç'], 'tag': ['Co-op', 'Online Multiplayer', 'First Run', 'Single Player', 'Windows'], 'platform_score': None, 'platform_price': 399, 'platform_discount': 100, 'release_date': '2025-02-17T00:00:00.000Z', 'game_image': 'https://cdn1.epicgames.com/spt-assets/7e66b122318448f6b52e6b9828616c8f/bettertogether-1wkfo.png', 'age_rating': 12}]
+    data = [{'title': 'BetterTogether', 'genres': ['Shooter', 'Rogue-Lite', 'Platformer'], 'publisher': ['Ömer Genç'], 'developer': ['Ömer Genç'], 'tag': ['Co-op', 'Online Multiplayer', 'First Run', 'Single Player', 'Windows'], 'platform_score': 3.89, 'platform_price': 399, 'platform_discount': 100, 'release_date': '2025-02-17T00:00:00.000Z', 'game_image': 'https://cdn1.epicgames.com/spt-assets/7e66b122318448f6b52e6b9828616c8f/bettertogether-1wkfo.png', 'age_rating': 12}]
     clean = clean_data(data, '01 Jan, 2015')
     print(data)
     print(clean)
