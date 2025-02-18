@@ -86,7 +86,7 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
 
     # Get the current game_platform tuples
     current_game_platform_tuples = lf.make_current_game_platform_assignment_tuples(
-        current_game_platform_assignments, 'platform_id')
+        current_game_platform_assignments)
 
     # Gets the new game_platform assignments that aren't in the database, to be uploaded
     game_platform_tuples = lf.assign_game_platform(new_games_transformed,
