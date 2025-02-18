@@ -102,7 +102,7 @@ if __name__ == "__main__":
     conn = get_connection()
     dashboard_title()
     st.title("Subscribe to the Newsletter")
-    st.html("<marquee>Welcome to MySpace!</marquee>")
+    st.html("<marquee>Subscribe to receive updates on new game releases!</marquee>")
     f_name = st.text_input("First Name")
     l_name = st.text_input("Last Name")
     user_email = st.text_input("Email")
