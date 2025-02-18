@@ -1,13 +1,47 @@
 # pylint: skip-file
 from unittest.mock import MagicMock, patch
+from datetime import datetime
+
 import psycopg
 import steam_load_functions as lf
 import pytest
 
+NEW_GAMES_EXAMPLE = [{
+        "game_name": "BO3",
+        "developer": ["treyarch", 'epic', 'some other dev', "someone"],
+        "tag": ["action"],
+        "genre": ["mystic"],
+        "publisher": ["sigma", "activision"],
+        "release_date": datetime.date(datetime.now()),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating": "PEGI 16",
+        "platform": "Steam",
+        "score": 90,
+        "price": 20000,
+        "discount": 99
+        },
+        {
+        "game_name": "rocket league",
+        "developer": "EA",
+        "tag": ["action", "racing"],
+        "genre": ["mystic", "horror"],
+        "publisher": ["sigma"],
+        "release_date": datetime.date(datetime.now()),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating": "PEGI 18",
+        "platform": "GOG",
+        "score": 10,
+        "price": 20,
+        "discount": 0
+        }]
+# DELETE RANDO.PY
+
 # Get IDs
 
 # Make ID mapping
-data = [
+DATA= [
     ("genre", [{"genre_name": "solo", "genre_id": 1}], {"solo": 1}),
     ("tag", [{"tag_id": 1, "tag_name": "rpg"}], {"rpg": 1}),
     ("genre", [], {}),
@@ -16,13 +50,85 @@ data = [
                {"genre_name": "adventure", "genre_id": 3}],
                {"solo": 1, "wilderness": 2, "adventure": 3})
     ]
-
-@pytest.mark.parametrize("item, input, expected", data)
+@pytest.mark.parametrize("item, input, expected", DATA)
 def test_make_id_mapping(item, input, expected):
     assert lf.make_id_mapping(input, item) == expected
 
 
+# Get games for upload
 
+DATA= [
+    (NEW_GAMES_EXAMPLE,
+     {"cod": 1},
+     NEW_GAMES_EXAMPLE),
+    (NEW_GAMES_EXAMPLE,
+     {"BO3": 2},
+     [NEW_GAMES_EXAMPLE[1]]),
+    ([], {}, []),
+    (NEW_GAMES_EXAMPLE,
+     {},
+     NEW_GAMES_EXAMPLE),
+    (NEW_GAMES_EXAMPLE,
+     {"BO3":1, "rocket league": 2}, [])
+    ]
+@pytest.mark.parametrize("new, current, expected", DATA)
+def test_get_games_for_upload(new, current, expected):
+    assert lf.get_games_for_upload(new, current) == expected
+
+
+# Get items for upload
+DATA= [
+    ('tag', NEW_GAMES_EXAMPLE, {"solo":1}, [('racing',), ('action',)]),
+    ('genre', NEW_GAMES_EXAMPLE, {"mystic":1, "horror": 2}, []),
+    ('publisher', NEW_GAMES_EXAMPLE, {"activision":1,}, [('sigma',)]),
+    ('developer', [], {}, [])
+    ]
+@pytest.mark.parametrize("table, new, current, expected", DATA)
+def test_get_items_for_upload(table, new, current, expected):
+    items = lf.get_items_for_upload(table, new, current)
+    for item in items:
+        assert item in expected
+
+
+AGE_RATING_MAPPING =  {"PEGI 3": 1,
+             "PEGI 7": 2,
+             "PEGI 12": 3,
+             "PEGI 16": 4,
+             "PEGI 18": 5,
+             "Not Assigned": 6
+             }
+# Format games for upload
+def test_format_games_for_upload():
+    A = NEW_GAMES_EXAMPLE[0].copy()
+    A["age_rating"] = 4
+    B = NEW_GAMES_EXAMPLE[1].copy()
+    B["age_rating"] = 5
+    expected = [A, B]
+    expected = [(
+        game["game_name"],
+        game["game_image"],
+        game["age_rating"],
+        game["is_nsfw"]) 
+        for game in expected]
+    assert lf.format_games_for_upload(NEW_GAMES_EXAMPLE, AGE_RATING_MAPPING) == expected
+
+
+
+
+
+def format_games_for_upload(games: list[dict], age_rating_mapping: dict) -> list[tuple]:
+    """Returns a list of tuples to upload to the game table.
+    Maps the age_rating to age_rating_id"""
+    games_for_upload = []
+    for game in games:
+        games_for_upload.append((
+            game["game_name"],
+            game["game_image"],
+            age_rating_mapping[game["age_rating"]],
+            game["is_nsfw"]
+        ))
+
+    return games_for_upload
 
 # Upload and return devs
 
