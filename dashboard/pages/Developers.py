@@ -22,34 +22,69 @@ def get_connection() -> psycopg_connection:
     password = ENV['DB_PASSWORD']
     return connect(dbname=dbname, user=user, password=password, host=host, port=port)
 
+def get_number_of_games_by_platform(conn: psycopg_connection) -> pd.DataFrame:
+    """Fetches the number of games released for each platform, excluding NSFW games."""
+    query = """
+    SELECT p.platform_name, COUNT(g.game_id) AS game_count
+    FROM platform p
+    JOIN game_platform_assignment gp ON p.platform_id = gp.platform_id
+    JOIN game g ON g.game_id = gp.game_id
+    WHERE g.is_nsfw = FALSE  -- Filter out NSFW games
+    GROUP BY p.platform_name
+    ORDER BY game_count DESC
+    """
+    
+    with conn.cursor() as cursor:
+        cursor.execute(query)
+        result = cursor.fetchall()
 
-def get_genre_tag_platform_options(cursor: psycopg_cursor) -> tuple[list[str],
+    df = pd.DataFrame(result, columns=["platform_name", "game_count"])
+    
+    return df
+
+def get_number_of_games_by_genre(conn: psycopg_connection) -> pd.DataFrame:
+    """Fetches the number of games released per genre."""
+    query = """
+    SELECT ge.genre_name, COUNT(DISTINCT g.game_id) AS game_count
+    FROM genre ge
+    JOIN genre_game_platform_assignment gpa ON ge.genre_id = gpa.genre_id
+    JOIN game_platform_assignment gp ON gpa.platform_assignment_id = gp.platform_assignment_id
+    JOIN game g ON g.game_id = gp.game_id
+    GROUP BY ge.genre_name
+    ORDER BY game_count DESC
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(query)
+        result = cursor.fetchall()
+
+    return pd.DataFrame(result, columns=["genre_name", "game_count"])
+
+
+def get_genre_tag_platform_options(conn: psycopg_connection) -> tuple[list[str],
                                                            list[str], list[str]]:
     """Gets all the genres, tags, and platforms to filter by."""
     genre_query = "SELECT genre_name FROM genre"
     tag_query = "SELECT tag_name FROM tag"
     platform_query = "SELECT platform_name FROM platform"
 
+    with conn.cursor() as cursor:
+        cursor.execute(genre_query)
+        available_genres = [row[0] for row in cursor.fetchall()]
 
-    cursor.execute(genre_query)
-    available_genres = [row[0] for row in cursor.fetchall()]
+        cursor.execute(tag_query)
+        available_tags = [row[0] for row in cursor.fetchall()]
 
-
-    cursor.execute(tag_query)
-    available_tags = [row[0] for row in cursor.fetchall()]
-
-
-    cursor.execute(platform_query)
-    available_platforms = [row[0] for row in cursor.fetchall()]
+        cursor.execute(platform_query)
+        available_platforms = [row[0] for row in cursor.fetchall()]
 
     return available_genres, available_tags, available_platforms
 
 
-def get_filtered_games(cursor: psycopg_cursor, genre: str = None, tag: str = None,
-                   price: float = None, platform: str = None, top_n: int = None) -> pd.DataFrame:
+def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = None,
+                       price: float = None, platform: str = None, top_n: int = None, exclude_nsfw: bool = True) -> pd.DataFrame:
     """Fetches games based on the user's filter selection."""
     query = """
-    SELECT DISTINCT g.game_name, g.game_image, gp.platform_score, gp.platform_price, p.platform_name
+    SELECT DISTINCT g.game_name, g.game_image, gp.platform_score, gp.platform_price, p.platform_name, g.is_nsfw
     FROM game g
     JOIN game_platform_assignment gp ON g.game_id = gp.game_id
     JOIN platform p ON gp.platform_id = p.platform_id
@@ -60,7 +95,6 @@ def get_filtered_games(cursor: psycopg_cursor, genre: str = None, tag: str = Non
     """
     filters = []
 
-
     if genre and genre != "All":
         filters.append("ge.genre_name = %s")
     if tag and tag != "All":
@@ -69,14 +103,14 @@ def get_filtered_games(cursor: psycopg_cursor, genre: str = None, tag: str = Non
         filters.append("gp.platform_price <= %s")
     if platform and platform != "All":
         filters.append("p.platform_name = %s")
-
+    if exclude_nsfw:
+        filters.append("g.is_nsfw = FALSE")
 
     if filters:
         query += " WHERE " + " AND ".join(filters)
 
-
     if top_n:
-        query += " ORDER BY gp.platform_score DESC LIMIT %s"
+        query += " ORDER BY gp.platform_score DESC, gp.platform_price DESC LIMIT %s"
 
     params = []
     if genre and genre != "All":
@@ -84,53 +118,31 @@ def get_filtered_games(cursor: psycopg_cursor, genre: str = None, tag: str = Non
     if tag and tag != "All":
         params.append(tag)
     if price:
-        params.append(price * 100)
+        params.append(price)
     if platform and platform != "All":
         params.append(platform)
     if top_n:
         params.append(top_n)
 
+    with conn.cursor() as cursor:
+        cursor.execute(query, tuple(params))
+        result = cursor.fetchall()
 
-    cursor.execute(query, tuple(params))
-    result = cursor.fetchall()
-
-    df = pd.DataFrame(result, columns=["game_name", "game_image", "platform_score",
-                                        "platform_price", "platform_name"])
+    df = pd.DataFrame(result, columns=["game_name", "game_image", "platform_score", "platform_price", "platform_name", "is_nsfw"])
     df['platform_price'] = df['platform_price'] / 100
-    return df
+    df['platform_score'] = df['platform_score'].apply(lambda x: "No rating at release" if x == -1 else x)
 
-def get_top_10_best_reviewed_games(cursor: psycopg_cursor) -> pd.DataFrame:
-    """Fetch the top 10 best-reviewed games and include platform name in the title."""
-    query = """
-    SELECT g.game_name, g.game_image, gp.platform_score, gp.platform_price, p.platform_name
-    FROM game g
-    JOIN game_platform_assignment gp ON g.game_id = gp.game_id
-    JOIN platform p ON gp.platform_id = p.platform_id
-    ORDER BY gp.platform_score DESC
-    LIMIT 10
-    """
-    cursor.execute(query)
-    result = cursor.fetchall()
-
-    df = pd.DataFrame(result, columns=["game_name", "game_image", "platform_score",
-                                        "platform_price", "platform_name"])
-    df['game_name'] = df['game_name'] + " (" + df['platform_name'] + ")"
-    df['platform_price'] = df['platform_price'] / 100
     return df
 
 
 def get_price_filter_options() -> list[str]:
     """Returns a list of price ranges for user-friendly filtering."""
-    return ["Free", "Under £10", "£10 - £50", "£50 - £100", "Above £100"]
+    return ["All", "Free", "Under £10", "£10 - £50", "£50 - £100", "Above £100"]
 
 
 def main():
     """Main function to manage the Streamlit app interface."""
-
-
     conn = get_connection()
-    cursor = conn.cursor()
-
 
     st.markdown(
         """
@@ -149,19 +161,13 @@ def main():
         """, unsafe_allow_html=True
     )
 
-
-    genres, tags, platforms = get_genre_tag_platform_options(cursor)
-
-
-
+    genres, tags, platforms = get_genre_tag_platform_options(conn)
 
     selected_genre = st.sidebar.selectbox("Genre", options=["All"] + genres)
     selected_tag = st.sidebar.selectbox("Tag", options=["All"] + tags)
     selected_platform = st.sidebar.selectbox("Platform", options=["All"] + platforms)
     price_range = st.sidebar.selectbox("Price Range", options=get_price_filter_options())
-
-
-
+    include_nsfw = st.sidebar.checkbox("Include NSFW Games", value=False)
 
     price_mapping = {
         "Free": 0,
@@ -171,79 +177,63 @@ def main():
         "Above £100": 300
     }
 
+    selected_price = price_mapping.get(price_range, None)
 
-    selected_price = price_mapping[price_range]
+    genre_counts = get_filtered_games(conn, genre=selected_genre, tag=selected_tag, price=selected_price, platform=selected_platform, exclude_nsfw=include_nsfw)
+    genre_counts = genre_counts.groupby('platform_name').size().reset_index(name='counts')
 
+    st.subheader("Number of Games by Platform")
+    platform_data = get_number_of_games_by_platform(conn)
+    fig = px.bar(platform_data, x='platform_name', y='game_count', color='platform_name',
+                 labels={'platform_name': 'Platform', 'game_count': 'Number of Games'},
+                 title="Games Released by Platform")
+    st.plotly_chart(fig)
+
+    st.subheader("Number of Games by Genre")
+    genre_data = get_number_of_games_by_genre(conn)
+    fig = px.bar(genre_data, x='genre_name', y='game_count', color='genre_name',
+                 labels={'genre_name': 'Genre', 'game_count': 'Number of Games'},
+                 title="Games Released by Genre")
+    st.plotly_chart(fig)
 
     st.subheader("Top 10 Best Reviewed Games")
-    top_games = get_top_10_best_reviewed_games(cursor)
+    top_games = get_filtered_games(conn, selected_genre, selected_tag, selected_price, selected_platform, top_n=10)
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.barplot(x='platform_score', y='game_name', data=top_games, palette="rocket", ax=ax)
 
-
     ax.set_xlabel("Score", fontsize=12, color='white')
     ax.set_ylabel("Game Name", fontsize=12, color='white')
     ax.tick_params(axis='both', labelsize=10, labelcolor='white')
     ax.xaxis.set_tick_params(labelcolor='white')
     ax.yaxis.set_tick_params(labelcolor='white')
 
-
     fig.patch.set_visible(False)
     ax.patch.set_visible(False)
     sns.despine(left=True, bottom=True)
     plt.tight_layout()
 
-
     st.pyplot(fig)
-
-
-    st.subheader("Best Reviewed Games by Filter")
-    filtered_games = get_filtered_games(cursor, selected_genre,
-                selected_tag, selected_price, selected_platform, top_n=10)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.barplot(x='platform_score', y='game_name', data=filtered_games,
-                palette="magma", ax=ax)
-
-
-    ax.set_xlabel("Score", fontsize=12, color='white')
-    ax.set_ylabel("Game Name", fontsize=12, color='white')
-    ax.tick_params(axis='both', labelsize=10, labelcolor='white')
-    ax.xaxis.set_tick_params(labelcolor='white')
-    ax.yaxis.set_tick_params(labelcolor='white')
-
-
-    fig.patch.set_visible(False)
-    ax.patch.set_visible(False)
-    sns.despine(left=True, bottom=True)
-    plt.tight_layout()
-
-
-    st.pyplot(fig)
-
 
     st.subheader("Price vs Rating Scatter Plot")
     fig, ax = plt.subplots(figsize=(10, 6))
 
-
-    all_games = get_filtered_games(cursor, selected_genre,
-                selected_tag, selected_price, selected_platform)
+    all_games = get_filtered_games(conn, selected_genre, selected_tag, selected_price, selected_platform)
     fig = px.scatter(all_games,
-                        x='platform_price',
-                        y='platform_score',
-                        hover_name='game_name',
-                        hover_data={'platform_name': True,
-                                    'platform_price': True,
-                                    'platform_score': True},
-                        labels={'platform_price': 'Price (in Pounds)',
-                                'platform_score': 'Rating'})
-
+                     x='platform_price',
+                     y='platform_score',
+                     hover_name='game_name',
+                     hover_data={'platform_name': True,
+                                 'platform_price': True,
+                                 'platform_score': True},
+                     labels={'platform_price': 'Price (in Pounds)',
+                             'platform_score': 'Rating'})
 
     fig.update_traces(marker={'size': 12,
-                                'opacity': 0.7,
-                                'line': {
-                                    'width': 2,
-                                    'color': 'DarkSlateGrey'
-                            }})
+                              'opacity': 0.7,
+                              'line': {
+                                  'width': 2,
+                                  'color': 'DarkSlateGrey'
+                              }})
     fig.update_layout(
         plot_bgcolor='rgba(0, 0, 0, 0)',
         paper_bgcolor='rgba(0, 0, 0, 0)',
@@ -251,7 +241,6 @@ def main():
         xaxis={'tickformat': '.2f'},
         yaxis={'tickformat': '.2f'}
     )
-
 
     st.plotly_chart(fig)
 
