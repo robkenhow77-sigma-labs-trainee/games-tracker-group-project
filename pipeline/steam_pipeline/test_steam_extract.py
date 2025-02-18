@@ -1,5 +1,6 @@
-"""Test extract for steam"""
 # pylint: skip-file
+"""Test extract for steam"""
+
 
 import unittest
 import pytest

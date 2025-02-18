@@ -1,5 +1,6 @@
-"""Test extract file for GOG"""
 # pylint: skip-file
+"""Test extract file for GOG"""
+
 
 import pytest
 from bs4 import BeautifulSoup
