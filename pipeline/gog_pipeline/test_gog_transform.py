@@ -1,5 +1,5 @@
-"""Script containing all tests for the functions in transform.py."""
 # pylint: skip-file
+"""Script containing all tests for the functions in transform.py."""
 
 from datetime import datetime, timedelta
 

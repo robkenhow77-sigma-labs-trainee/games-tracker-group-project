@@ -100,6 +100,12 @@ def format_data(games: list[dict]) -> list[dict]:
     return game_list
 
 
+def main(url: str) -> list[dict]:
+    """Extracts the data in the correct format"""
+    games = extract_games(url)
+    return format_data(games)
+
+
 if __name__ == "__main__":
     raw_games = extract_games(
         "https://graphql.epicgames.com/graphql")

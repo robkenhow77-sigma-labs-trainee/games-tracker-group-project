@@ -4,6 +4,7 @@
 from os import environ as ENV
 from datetime import datetime, timedelta
 from argparse import ArgumentParser
+import logging
 
 # Third-party imports
 import psycopg
@@ -11,29 +12,23 @@ from psycopg.rows import dict_row
 from dotenv import load_dotenv
 
 # Local imports
-from epic_extract import scrape_newest
+from epic_extract import main
 from epic_transform import clean_data
 from epic_load import load_data
 
 
-def init_args() -> tuple:
+def init_args() -> str:
     """Gets the command line arguments for target date or running local vs cloud."""
     parser = ArgumentParser()
-
-    parser.add_argument(
-            "-l", "--local",
-            action="store_true",
-            required=False,
-            help="Call argument to run local.")
 
     parser.add_argument(
             "-t", "--target_date",
             type=str,
             required=False,
             help="Set a target date, in the form' 11 Feb, 2025'. Defaults to yesterday.")
-    
+
     args = parser.parse_args()
-    return (args.local, args.target_date)
+    return args.target_date
 
 
 def change_keys(data: list[dict]):
@@ -61,8 +56,17 @@ def change_keys(data: list[dict]):
 def lambda_handler(event=None, context=None) -> None:
     """Function to run entire Steam ETL pipeline"""
     # Initialise
+    # Logging
+    log_format = "{asctime} - {levelname} - {message}"
+    log_datefmt = "%Y-%m-%d %H:%M"
+    logging.basicConfig(
+            level=logging.INFO,
+            format=log_format,
+            style="{",
+            datefmt=log_datefmt
+        )
     # CLI arguments
-    local, target_date = init_args()
+    target_date = init_args()
 
     if not target_date:
         target_date = datetime.now() - timedelta(days=2)
@@ -75,15 +79,15 @@ def lambda_handler(event=None, context=None) -> None:
     host = ENV["DB_HOST"]
     port = ENV["DB_PORT"]
     name = ENV["DB_NAME"]
-    CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
-    db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
+    conn_string = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
+    db_connection = psycopg.connect(conn_string, row_factory=dict_row)
 
     # Extract
-    url = "https://store.steampowered.com/search/?sort_by=Released_DESC&category1=998&supportedlang=english&ndl=1"
-    scraped_data = scrape_newest(url, target_date, local)
+    url = "https://graphql.epicgames.com/graphql"
+    game_data = main(url)
 
     # Transform
-    cleaned_data = clean_data(scraped_data)
+    cleaned_data = clean_data(game_data, target_date)
     cleaned_data = change_keys(cleaned_data)
 
     # Load
@@ -92,4 +96,14 @@ def lambda_handler(event=None, context=None) -> None:
 
 
 if __name__ == "__main__":
+    # Logging
+    LOGGING_FORMAT = "{asctime} - {levelname} - {message}"
+    LOGGING_DATE_FORMAT = "%Y-%m-%d %H:%M"
+    logging.basicConfig(
+            level=logging.INFO,
+            format=LOGGING_FORMAT,
+            style="{",
+            datefmt=LOGGING_DATE_FORMAT
+        )
+    load_dotenv()
     lambda_handler()
