@@ -238,8 +238,10 @@ def is_valid_single_tag(tag: str) -> bool:
     return True
 
 
-def is_valid_score(score: str) -> bool:
+def is_valid_score(score: float) -> bool:
     """Returns true if score is valid."""
+
+    score = str(score)
 
     if not isinstance(score, str):
         print("%s is not a valid score, not a string", score)
@@ -256,12 +258,11 @@ def is_valid_score(score: str) -> bool:
         if not decimal.isnumeric():
             print("%s is not a valid score, not an integer.", score)
             return False
+        
+        if len(decimal) > 1:
+            decimal = decimal[0]
 
         score = int(unit) * 20 + int(decimal) * 2
-
-        if not 0 <= int(score) <= 100:
-            print("%s is not a valid score, not between 0 and 100.", score)
-            return False
 
     else:
         if not score.isnumeric():
@@ -270,9 +271,9 @@ def is_valid_score(score: str) -> bool:
 
         score = int(score) * 20
 
-        if not 0 <= int(score) <= 100:
-            print("%s is not a valid score, not between 0 and 100.", score)
-            return False
+    if not 0 <= int(score) <= 100:
+        print("%s is not a valid score, not between 0 and 100.", score)
+        return False
 
     return True
 
@@ -544,6 +545,10 @@ def format_score(score: str) -> int:
 
     if '.' in score:
         unit, decimal = score.split('.')
+
+        if len(decimal) > 1:
+            decimal = decimal[0]
+
         score = int(unit) * 20 + int(decimal) * 2
 
     else:
