@@ -90,6 +90,7 @@ def test_get_items_for_upload(table, new, current, expected):
         assert item in expected
 
 
+# Format games for upload
 AGE_RATING_MAPPING =  {"PEGI 3": 1,
              "PEGI 7": 2,
              "PEGI 12": 3,
@@ -97,7 +98,6 @@ AGE_RATING_MAPPING =  {"PEGI 3": 1,
              "PEGI 18": 5,
              "Not Assigned": 6
              }
-# Format games for upload
 def test_format_games_for_upload():
     A = NEW_GAMES_EXAMPLE[0].copy()
     A["age_rating"] = 4
@@ -112,23 +112,6 @@ def test_format_games_for_upload():
         for game in expected]
     assert lf.format_games_for_upload(NEW_GAMES_EXAMPLE, AGE_RATING_MAPPING) == expected
 
-
-
-
-
-def format_games_for_upload(games: list[dict], age_rating_mapping: dict) -> list[tuple]:
-    """Returns a list of tuples to upload to the game table.
-    Maps the age_rating to age_rating_id"""
-    games_for_upload = []
-    for game in games:
-        games_for_upload.append((
-            game["game_name"],
-            game["game_image"],
-            age_rating_mapping[game["age_rating"]],
-            game["is_nsfw"]
-        ))
-
-    return games_for_upload
 
 # Upload and return devs
 
@@ -329,3 +312,81 @@ def test_upload_and_return_tags_upload_error():
         assert lf.upload_and_return_tags(input, mock_conn) == expected_output
         mock_error.assert_any_call("Uploading tags failed: DB Error. Data to be uploaded: [('Pub1',), ('Pub2',)]")
 
+
+# make_current_dev_or_pub_game_assignment_tuples
+
+def test_make_current_dev_or_pub_game_assignment_tuples():
+    current_dev_assignments = [{"assignment_id": 1, "game_id": 1, "developer_id":2}]
+    expected_dev_tuples = [(1,2)]
+    current_pub_assignments = [{"assignment_id": 1, "game_id": 1, "publisher_id":2}]
+    expected_pub_tuples = [(1,2)]
+    assert lf.make_current_dev_or_pub_game_assignment_tuples(current_dev_assignments, 'developer_id') == expected_dev_tuples
+    assert lf.make_current_dev_or_pub_game_assignment_tuples(current_pub_assignments, 'publisher_id') == expected_pub_tuples
+
+    # DB query returns empty list if there is nothing in the table
+    no_assignments = []
+    expected = []
+    assert lf.make_current_dev_or_pub_game_assignment_tuples(no_assignments, 'publisher_id') == expected
+
+
+# Assign developers
+NEW_GAMES_EXAMPLE = [{
+        "game_name": "BO3",
+        "developer": ["treyarch", 'epic', 'some other dev', "someone"],
+        "tag": ["action"],
+        "genre": ["mystic"],
+        "publisher": ["sigma", "activision"],
+        "release_date": datetime.date(datetime.now()),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating": "PEGI 16",
+        "platform": "Steam",
+        "score": 90,
+        "price": 20000,
+        "discount": 99
+        },
+        {
+        "game_name": "rocket league",
+        "developer": ["EA"],
+        "tag": ["action", "racing"],
+        "genre": ["mystic", "horror"],
+        "publisher": ["sigma"],
+        "release_date": datetime.date(datetime.now()),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating": "PEGI 18",
+        "platform": "GOG",
+        "score": 10,
+        "price": 20,
+        "discount": 0
+        }]
+GAME_ID_MAPPING = {"BO3": 1, "rocket league": 2}
+DEVELOPER_MAPPING = {"treyarch": 1, "epic": 2, "some other dev": 3, "someone": 4, "EA": 5}
+DATA = [
+    ([(1,1), (1,2)], [(1,3), (1,4), (2,5)]),
+    ([], [(1,1), (1,2), (1,3), (1,4), (2,5)]),
+    ([(1,1), (1,2), (1,3), (1,4), (2,5)], [])
+    ]
+@pytest.mark.parametrize("current, expected", DATA)
+def test_assign_developers(current, expected):
+    assert lf.assign_developers(NEW_GAMES_EXAMPLE, GAME_ID_MAPPING, DEVELOPER_MAPPING, current) == expected
+
+   
+
+
+
+# def assign_developers(new_games_list: list[dict],
+#     game_id_mapping: dict, developer_mapping, current: list[tuple]) -> list[str]:
+#     """Maps the developer names to their ids, maps the game names to their ids.
+#     Returns a list of tuples in the form (game_id, developer_id).
+#     Only the tuples not in the current developer assignment table are returned."""
+#     values = []
+#     for game in new_games_list:
+#         developers = game["developer"]
+#         for developer in developers:
+#             values.append((
+#                 game_id_mapping[game["game_name"]],
+#                 developer_mapping[developer]
+#             ))
+
+#     return [value for value in values if value not in current]

@@ -11,6 +11,14 @@ host = ENV["DB_HOST"]
 port = ENV["DB_PORT"]
 name = ENV["DB_NAME"]
 conn_string = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
-db_connection = psycopg.connect(conn_string, row_factory=dict_row)
+conn = psycopg.connect(conn_string, row_factory=dict_row)
 
-lf.upload_and_return_devs([("x", "y")], db_connection)
+with conn.cursor() as cur:
+    sql = """
+    SELECT *
+    FROM developer_game_assignment
+    WHERE game_id = 1000000;
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        print(cur.fetchall())

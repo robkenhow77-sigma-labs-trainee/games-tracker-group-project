@@ -195,7 +195,7 @@ def assign_publishers(new_games_list: list[dict],
 
 
 def assign_developers(new_games_list: list[dict],
-    game_id_mapping: dict, developer_mapping, current: list[tuple]) -> list[str]:
+    game_id_mapping: dict, developer_mapping: dict, current: list[tuple]) -> list[str]:
     """Maps the developer names to their ids, maps the game names to their ids.
     Returns a list of tuples in the form (game_id, developer_id).
     Only the tuples not in the current developer assignment table are returned."""
