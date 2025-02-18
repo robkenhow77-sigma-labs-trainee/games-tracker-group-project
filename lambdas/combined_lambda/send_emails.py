@@ -12,7 +12,7 @@ from psycopg2.extras import RealDictCursor
 load_dotenv()
 
 
-def sns_connect():
+def sns_connect() -> boto3.client:
     """Connect to sns client"""
     print("Connecting to SNS...")
     client = boto3.client(
@@ -25,7 +25,7 @@ def sns_connect():
     return client
 
 
-def get_connection():
+def get_connection() -> psycopg2.connect:
     """Connects to the games database"""
     print("Connecting to database...")
     connection = psycopg2.connect(
@@ -39,7 +39,7 @@ def get_connection():
     return connection
 
 
-def get_new_games(conn):
+def get_new_games(conn: psycopg2.connect) -> list:
     """Queries database for games released in past 24h"""
     previous_day = (datetime.now() - timedelta(days=1)).date()
     print(f"Fetching games released since {previous_day}...")
@@ -48,7 +48,7 @@ def get_new_games(conn):
     g.game_id, 
     g.game_name, 
     g.game_image, 
-    STRING_AGG(ge.genre_name, ', ') AS genre_names,  -- ✅ Collects all genres
+    STRING_AGG(ge.genre_name, ', ') AS genre_names,
     p.platform_release_date, 
     pl.platform_name,
     -- calc discount
@@ -80,7 +80,7 @@ GROUP BY g.game_id, g.game_name, g.game_image, p.platform_release_date, pl.platf
     return res
 
 
-def get_subscribers_for_genres(client):
+def get_subscribers_for_genres(client: boto3.client) -> defaultdict:
     """Retrieve all subscribers for each genre (SNS topic) in one call per genre."""
     print("Fetching subscribers for each genre...")
     subscribers_by_genre = defaultdict(set)
@@ -123,6 +123,9 @@ def get_subscribers_for_genres(client):
                     if sub["Protocol"] == "email" and sub["SubscriptionArn"] != "PendingConfirmation":
                         subscribers_by_genre[formatted_genre].add(
                             sub["Endpoint"])
+                    else:
+                        print(
+                            f"Skipping {sub['Endpoint']} - Pending or deleted.")
 
                 next_token = response.get("NextToken")
                 if not next_token:
@@ -134,7 +137,7 @@ def get_subscribers_for_genres(client):
     return subscribers_by_genre
 
 
-def generate_html(genre_name, game_data, subscribers):
+def generate_html(genre_name: str, game_data: list, subscribers: list) -> str:
     """Generates HTML email body with all games for the genre (with images)"""
     print(
         f"Generating HTML for {genre_name} genre with {len(game_data)} games and {len(subscribers)} subscribers...")
@@ -235,7 +238,7 @@ def generate_html(genre_name, game_data, subscribers):
     return body_html
 
 
-def get_ses_connection():
+def get_ses_connection() -> boto3.client:
     """Get SES client connection"""
     print("Connecting to SES...")
     ses_client = boto3.client(
@@ -248,7 +251,7 @@ def get_ses_connection():
     return ses_client
 
 
-def send_email(ses_client, email_data):
+def send_email(ses_client: boto3.client, email_data: dict) -> dict:
     """Send emails for each genre to subscribers using SES"""
     print("Sending emails...")
     for genre, details in email_data.items():
@@ -289,7 +292,7 @@ def send_email(ses_client, email_data):
 
 
 def lambda_handler(event, context):
-
+    """lambda handler function for aws lambda execution"""
     log_format = "{asctime} - {levelname} - {message}"
     log_datefmt = "%Y-%m-%d %H:%M"
     logging.basicConfig(

@@ -111,5 +111,3 @@ pipeline/data
 
 *.coverage
 *pytest_cache
-
-
