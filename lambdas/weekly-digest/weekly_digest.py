@@ -92,45 +92,62 @@ def sum_of_games_released_per_platform(conn: connection) -> pd.DataFrame:
 
 def generate_email_content(top_games: pd.DataFrame, sum_of_games: pd.DataFrame) -> str:
     """Generates an HTML email with the platform game count table at the top and the top games table below"""
-    dark_cyan = "#006F6A"
-    blue = "#003F87"
-
-    html = f"""<html><body style="font-family: Arial, sans-serif; color: #333;">
-    <h2 style="color: {blue};">Weekly Game Platform Trends</h2>
-    <p>Here are the number of games released per platform this week:</p>
-    
-    <table border='1' cellpadding='5' cellspacing='0' style="border-collapse: collapse; width: 100%; background-color: #f9f9f9;">
-    <tr style="background-color: {dark_cyan}; color: white;">
-        <th>Platform</th><th>Games Released</th>
+    html = """<html><head><link href='https://fonts.googleapis.com/css?family=Press Start 2P' rel='stylesheet'><link href='https://fonts.googleapis.com/css?family=Lexend' rel='stylesheet'><style>
+    h2 {
+        font-family: 'Press Start 2P';font-size: 32px;
+        color: #ffff00;
+        text-align: center;
+    }
+    h3 {
+        font-family: 'Lexend';font-size: 26px;
+        color: #00e5c2;
+        text-align: center;
+    }
+    table { 
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+    }
+    </style></head>
+    <body style="background-color:#05122b;">
+    <img src="https://i.imgur.com/uP32jFH.png" alt="Playstream logo" style="width:150px;height:150px;">
+    <h2>Weekly Game Platform Trends</h2>
+    <p><h3>Here are the number of games released per platform this week:</h3></p>
+    <table border='1' cellpadding='5' cellspacing='0' style="border-collapse: collapse; width: 50%;">
+    <tr style="background-color: #000000;">
+        <th><h2>Platform</h2></th><th><h2>Games Released</h2></th>
     </tr>"""
 
     for i, (_, row) in enumerate(sum_of_games.iterrows()):
-        row_style = f"background-color: {dark_cyan}; color: white;" if i % 2 == 0 else "background-color: #ffffff; color: #333;"
-        html += f"<tr style='{row_style}'><td>{row['platform_name']}</td><td>{row['game_count']}</td></tr>"
+        row_style = "background-color: #05122b;" if i % 2 == 0 else "background-color: #000000"
+        html += f"<tr style='{row_style}'><td><h3>{row['platform_name']}</h3></td><td><h3>{row['game_count']}</h3></td></tr>"
 
     html += "</table>"
 
-    html += "<p>Here are the top games released this week:</p>"
-    html += """<table border='1' cellpadding='5' cellspacing='0' style="border-collapse: collapse; width: 100%; background-color: #f9f9f9;">
-    <tr style="background-color: {dark_cyan}; color: white;">
-        <th>Title</th><th>Platform</th><th>Release Date</th><th>Score</th><th>Cover</th>
+    html += "<p><h3>Here are the top games released this week:</h3></p>"
+    html += """<table border='1' cellpadding='5' cellspacing='0' style="border-collapse: collapse;">
+    <tr style="background-color: #000000;">
+        <th><h2>Title</h2></th><th><h2>Platform</h2></th><th><h2>Release Date</h2></th><th><h2>Score</h2></th><th><h2>Cover</h2></th>
     </tr>"""
 
     for i, (_, row) in enumerate(top_games.iterrows()):
-        release_date_str = row['release_date'].strftime('%Y-%m-%d')
+        release_date = datetime.strptime(row['release_date'], '%Y-%m-%d') if isinstance(
+            row['release_date'], str) else row['release_date']
+        release_date_str = release_date.strftime('%Y-%m-%d')
 
-        row_style = f"background-color: {dark_cyan}; color: white;" if i % 2 == 0 else "background-color: #ffffff; color: #333;"
+        row_style = "background-color: #05122b;" if i % 2 == 0 else "background-color: #000000"
 
         html += f"""
         <tr style="{row_style}">
-            <td>{row['title']}</td>
-            <td>{row['platform_name']}</td>
-            <td>{release_date_str}</td>
-            <td>{row['platform_score']}</td>
-            <td><img src='{row['cover_image_url']}' width='100'/></td>
+            <td><h3>{row['title']}</h3></td>
+            <td><h3>{row['platform_name']}</h3></td>
+            <td><h3>{release_date_str}</h3></td>
+            <td><h3>{row['platform_score']}</h3></td>
+            <td><img src='{row['cover_image_url']}' style="width: 100%; height: 100%;"/></td>
         </tr>"""
 
     html += "</table></body></html>"
+
     return html
 
 
