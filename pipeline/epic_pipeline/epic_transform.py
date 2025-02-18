@@ -238,8 +238,10 @@ def is_valid_single_tag(tag: str) -> bool:
     return True
 
 
-def is_valid_score(score: str) -> bool:
+def is_valid_score(score: float) -> bool:
     """Returns true if score is valid."""
+
+    score = str(score)
 
     if not isinstance(score, str):
         print("%s is not a valid score, not a string", score)
@@ -256,12 +258,11 @@ def is_valid_score(score: str) -> bool:
         if not decimal.isnumeric():
             print("%s is not a valid score, not an integer.", score)
             return False
+        
+        if len(decimal) > 1:
+            decimal = decimal[0]
 
         score = int(unit) * 20 + int(decimal) * 2
-
-        if not 0 <= int(score) <= 100:
-            print("%s is not a valid score, not between 0 and 100.", score)
-            return False
 
     else:
         if not score.isnumeric():
@@ -270,9 +271,9 @@ def is_valid_score(score: str) -> bool:
 
         score = int(score) * 20
 
-        if not 0 <= int(score) <= 100:
-            print("%s is not a valid score, not between 0 and 100.", score)
-            return False
+    if not 0 <= int(score) <= 100:
+        print("%s is not a valid score, not between 0 and 100.", score)
+        return False
 
     return True
 
@@ -540,10 +541,16 @@ def format_integer(integer: str) -> int:
 def format_score(score: str) -> int:
     """Formats the score as a percentage."""
 
+    score = str(score)
+
     score = score.strip()
 
     if '.' in score:
         unit, decimal = score.split('.')
+
+        if len(decimal) > 1:
+            decimal = decimal[0]
+
         score = int(unit) * 20 + int(decimal) * 2
 
     else:
@@ -583,7 +590,7 @@ def format_release(release: str) -> datetime:
 
 if __name__ == "__main__":
 
-    data = [{'title': 'BetterTogether', 'genres': ['Shooter', 'Rogue-Lite', 'Platformer'], 'publisher': ['Ömer Genç'], 'developer': ['Ömer Genç'], 'tag': ['Co-op', 'Online Multiplayer', 'First Run', 'Single Player', 'Windows'], 'platform_score': None, 'platform_price': 399, 'platform_discount': 100, 'release_date': '2025-02-17T00:00:00.000Z', 'game_image': 'https://cdn1.epicgames.com/spt-assets/7e66b122318448f6b52e6b9828616c8f/bettertogether-1wkfo.png', 'age_rating': 12}]
+    data = [{'title': 'BetterTogether', 'genres': ['Shooter', 'Rogue-Lite', 'Platformer'], 'publisher': ['Ömer Genç'], 'developer': ['Ömer Genç'], 'tag': ['Co-op', 'Online Multiplayer', 'First Run', 'Single Player', 'Windows'], 'platform_score': 3.89, 'platform_price': 399, 'platform_discount': 100, 'release_date': '2025-02-17T00:00:00.000Z', 'game_image': 'https://cdn1.epicgames.com/spt-assets/7e66b122318448f6b52e6b9828616c8f/bettertogether-1wkfo.png', 'age_rating': 12}]
     clean = clean_data(data, '01 Jan, 2015')
     print(data)
     print(clean)
