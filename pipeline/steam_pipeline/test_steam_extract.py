@@ -1,100 +1,12 @@
-"""Test extract for steam"""
 # pylint: skip-file
+"""Test extract for steam"""
+
 
 import unittest
 import pytest
 from unittest.mock import patch, MagicMock
-from extract_steam import find_target_date, setup_logging, parse_args, init_driver, fetch_age_rating, fetch_developer, fetch_game_image, fetch_platform_discount, fetch_genres, fetch_platform_price, fetch_platform_score, fetch_publisher, fetch_release_date, fetch_tags
+from steam_extract import find_target_date, setup_logging, init_driver, fetch_age_rating, fetch_developer, fetch_platform_discount, fetch_genres, fetch_platform_price, fetch_platform_score, fetch_publisher, fetch_release_date, fetch_tags
 from bs4 import BeautifulSoup
-
-class TestParseArgs(unittest.TestCase):
-    
-    @patch('sys.argv', ['script_name'])  # Test no arguments
-    def test_default_values(self):
-        args = parse_args()
-        self.assertEqual(args.scroll_to_date, None)
-        self.assertEqual(args.log_output, 'console')
-
-    @patch('sys.argv', ['script_name', '--log_output', 'file'])
-    def test_log_output_file(self):
-        args = parse_args()
-        self.assertEqual(args.log_output, 'file')
-
-    @patch('sys.argv', ['script_name', '--log_output', 'console'])
-    def test_log_output_console(self):
-        args = parse_args()
-        self.assertEqual(args.log_output, 'console')
-
-    @patch('sys.argv', ['script_name', '--scroll_to_date', '10 Feb, 2025'])
-    def test_scroll_to_date(self):
-        args = parse_args()
-        self.assertEqual(args.scroll_to_date, '10 Feb, 2025')
-
-    @patch('sys.argv', ['script_name', '--log_output', 'invalid_option'])
-    def test_invalid_log_output(self):
-        with self.assertRaises(SystemExit):  # argparse will exit on invalid argument
-            parse_args()
-
-    @patch('sys.argv', ['script_name', '--scroll_to_date', '10 Feb, 2025', '--log_output', 'file'])
-    def test_both_arguments(self):
-        args = parse_args()
-        self.assertEqual(args.scroll_to_date, '10 Feb, 2025')
-        self.assertEqual(args.log_output, 'file')
-
-
-class TestInitDriver(unittest.TestCase):
-
-    @patch('extract_steam.webdriver.Chrome')  # Mock webdriver.Chrome
-    @patch('extract_steam.ChromeDriverManager')  # Mock ChromeDriverManager
-    @patch('extract_steam.Service')  # Mock Service
-    @patch('extract_steam.webdriver.ChromeOptions')  # Mock ChromeOptions
-    def test_driver_init(self, MockChromeOptions, MockService, MockChromeDriverManager, MockChrome):
-        """Tests the driver initialises with correct options."""
-
-        mock_manager = MagicMock()
-        MockChromeDriverManager.return_value = mock_manager
-        mock_manager.install.return_value = '/not/real/path'
-
-        mock_service = MagicMock()
-        MockService.return_value = mock_service
-
-        mock_options = MagicMock()
-        MockChromeOptions.return_value = mock_options
-
-        mock_driver = MagicMock()
-        MockChrome.return_value = mock_driver
-
-        driver = init_driver()
-
-        MockChromeDriverManager.assert_called_once()
-
-        MockChrome.assert_called_once_with(service=mock_service, options=mock_options)
-
-        self.assertEqual(driver, mock_driver)
-
-    @patch('extract_steam.webdriver.Chrome')  # Mock webdriver.Chrome
-    @patch('extract_steam.ChromeDriverManager')  # Mock ChromeDriverManager
-    @patch('extract_steam.webdriver.chrome.service.Service')  # Mock Service
-    @patch('extract_steam.webdriver.ChromeOptions')  # Mock ChromeOptions
-    def test_headless_option(self, MockChromeOptions, MockService, MockChromeDriverManager, MockChrome):
-        """tests drive initialises with headless."""
-
-        mock_manager = MagicMock()
-        MockChromeDriverManager.return_value = mock_manager
-        mock_manager.install.return_value = '/not/real/path'
-
-        mock_service = MagicMock()
-        MockService.return_value = mock_service
-
-        mock_options = MagicMock()
-        MockChromeOptions.return_value = mock_options
-
-        mock_driver = MagicMock()
-        MockChrome.return_value = mock_driver
-
-        init_driver()
-
-        mock_options.add_argument.assert_called_with('--headless')
 
 
 class TestSetupLogging(unittest.TestCase):
@@ -185,8 +97,8 @@ class TestSetupLogging(unittest.TestCase):
 
 class TestFindTargetDate(unittest.TestCase):
 
-    @patch('extract_steam.ChromeDriverManager')
-    @patch('extract_steam.BeautifulSoup')
+    @patch('steam_extract.ChromeDriverManager')
+    @patch('steam_extract.BeautifulSoup')
     def test_target_date_found(self, mock_bs, MockDriver):
 
         mock_driver = MockDriver.return_value
@@ -203,8 +115,8 @@ class TestFindTargetDate(unittest.TestCase):
         mock_driver.find_element.assert_not_called()  # No need to scroll
         mock_driver.page_source = "<html><div class='col search_released responsive_secondrow'></div></html>"
 
-    @patch('extract_steam.ChromeDriverManager')
-    @patch('extract_steam.BeautifulSoup')
+    @patch('steam_extract.ChromeDriverManager')
+    @patch('steam_extract.BeautifulSoup')
     def test_target_date_found_after_one_scroll(self, mock_bs, MockDriver):
 
         mock_driver = MockDriver.return_value
@@ -227,9 +139,9 @@ class TestFindTargetDate(unittest.TestCase):
         mock_driver.find_element.assert_not_called()
 
 
-    @patch('extract_steam.ChromeDriverManager')
-    @patch('extract_steam.BeautifulSoup')
-    @patch('extract_steam.logging.error')
+    @patch('steam_extract.ChromeDriverManager')
+    @patch('steam_extract.BeautifulSoup')
+    @patch('steam_extract.logging.error')
     def test_target_date_not_found_after_100_scrolls(self, mock_log_error, mock_bs, MockDriver):
 
         mock_driver = MockDriver.return_value

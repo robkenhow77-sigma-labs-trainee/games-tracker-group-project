@@ -1,4 +1,8 @@
 """Useful functions for load"""
+# Native imports
+import logging
+
+# Third-party imports
 import psycopg
 
 
@@ -52,6 +56,9 @@ def get_age_rating_mapping(conn: psycopg.Connection) -> list[dict]:
 
 def upload_and_return_devs(devs: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new developers and returns their names and ids"""
+    if len(devs) == 0:
+        logging.info("No new developers to upload")
+        return {}
     try:
         with conn.cursor() as cur:
             cur.executemany("""INSERT INTO developer (developer_name)
@@ -62,31 +69,41 @@ def upload_and_return_devs(devs: list[tuple], conn: psycopg.Connection) -> dict:
                 if not cur.nextset():
                     break
             conn.commit()
+            logging.info("Successfully loaded developers")
             return ids
     except:
+        logging.error(f"Uploading developers failed. Data to be uploaded: {devs}")
         return {}
 
 
 def upload_and_return_games(games: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new games and returns their names and ids"""
+    if len(games) == 0:
+        logging.info("No new games to upload")
+        return {}
     try:
         with conn.cursor() as cur:
             cur.executemany("""
-                INSERT INTO game (game_name, release_date, game_image, age_rating_id, is_nsfw)
-                VALUES (%s, %s, %s, %s, %s) RETURNING game_id, game_name""", games, returning=True)
+                INSERT INTO game (game_name, game_image, age_rating_id, is_nsfw)
+                VALUES (%s, %s, %s, %s) RETURNING game_id, game_name""", games, returning=True)
             ids = []
             while True:
                 ids.append(cur.fetchone())
                 if not cur.nextset():
                     break
             conn.commit()
+            logging.info("Successfully loaded games")
             return ids
-    except :
+    except:
+        logging.error(f"Uploading developers failed. Data to be uploaded: {games}")
         return {}
 
 
 def upload_and_return_pubs(pubs: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new publishers and returns their names and ids"""
+    if len(pubs) == 0:
+        logging.info("No new publishers to upload")
+        return {}
     try:
         with conn.cursor() as cur:
             cur.executemany("""INSERT INTO publisher (publisher_name)
@@ -97,30 +114,40 @@ def upload_and_return_pubs(pubs: list[tuple], conn: psycopg.Connection) -> dict:
                 if not cur.nextset():
                     break
             conn.commit()
+            logging.info("Successfully loaded publishers")
             return ids
-    except :
+    except:
+        logging.error(f"Uploading publishers failed. Data to be uploaded: {pubs}")
         return {}
 
 
-def upload_and_return_genres(genre: list[tuple], conn: psycopg.Connection) -> dict:
+def upload_and_return_genres(genres: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new genres and returns their names and ids"""
+    if len(genres) == 0:
+        logging.info("No new genres to upload")
+        return {}
     try:
         with conn.cursor() as cur:
             cur.executemany("""INSERT INTO genre (genre_name)
-                            VALUES (%s) RETURNING *""", genre, returning=True)
+                            VALUES (%s) RETURNING *""", genres, returning=True)
             ids = []
             while True:
                 ids.append(cur.fetchone())
                 if not cur.nextset():
                     break
             conn.commit()
+            logging.info("Successfully loaded genres")
             return ids
-    except :
+    except:
+        logging.error(f"Uploading genres failed. Data to be uploaded: {genres}")
         return {}
 
 
 def upload_and_return_tags(tags: list[tuple], conn: psycopg.Connection) -> dict:
     """Uploads the new tags and returns their names and ids"""
+    if len(tags) == 0:
+        logging.info("No new tags to upload")
+        return {}
     try:
         with conn.cursor() as cur:
             cur.executemany("""
@@ -132,8 +159,10 @@ def upload_and_return_tags(tags: list[tuple], conn: psycopg.Connection) -> dict:
                 if not cur.nextset():
                     break
             conn.commit()
+            logging.info("Successfully loaded tags")
             return ids
     except :
+        logging.error(f"Uploading tags failed. Data to be uploaded: {tags}")
         return {}
 
 
@@ -184,18 +213,35 @@ def assign_developers(new_games_list: list[dict],
 
 def upload_developer_game_assignment(data: list[tuple], conn: psycopg.Connection) -> None:
     """Uploads the new developer_game_assignments"""
-    with conn.cursor() as cur:
-        cur.executemany("""INSERT INTO developer_game_assignment (game_id, developer_id)
-            VALUES (%s, %s)""", data)
-    conn.commit()
+    if len(data) == 0:
+        logging.info("No new developer_game_assignments to upload")
+        return {}
+    try:
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO developer_game_assignment (game_id, developer_id)
+                VALUES (%s, %s)""", data)
+        conn.commit()
+        logging.info("Successfully loaded developer_game_assignments")
+    except:
+        logging.error(f"Uploading developer_game_assignments failed. Data to be uploaded: {data}")
+        return {}
 
 
 def upload_publisher_game_assignment(data: list[tuple], conn: psycopg.Connection) -> None:
     """Uploads the new publisher_game_assignments"""
-    with conn.cursor() as cur:
-        cur.executemany("""INSERT INTO publisher_game_assignment (game_id, publisher_id)
-            VALUES (%s, %s)""", data)
-        conn.commit()
+    if len(data) == 0:
+        logging.info("No new publisher_game_assignments to upload")
+        return {}
+    try:
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO publisher_game_assignment (game_id, publisher_id)
+                VALUES (%s, %s)""", data)
+            conn.commit()
+            logging.info("Successfully loaded publisher_game_assignments")
+
+    except:
+        logging.error(f"Uploading publisher_game_assignments failed. Data to be uploaded: {data}")
+        return {}
 
 
 def get_publisher_game_assignments(conn: psycopg.Connection) -> list[dict]:
@@ -247,7 +293,8 @@ def assign_game_platform(new_games_list: list[dict],
                 platform_mapping[game["platform"]],
                 game["score"],
                 game["price"],
-                game["discount"]
+                game["discount"],
+                game["release_date"]
             ))
     return values
 
@@ -256,13 +303,16 @@ def upload_and_return_game_platform_assignment(data: list[tuple],
     conn: psycopg.Connection) -> dict:
     """Uploads the game_platform_assignments
     and returns platform_assignment_id, game_id, platform_id"""
+    if len(data) == 0:
+        logging.info("No new game_platform_assignments to upload")
+        return {}
     try:
         with conn.cursor() as cur:
             cur.executemany("""
             INSERT INTO game_platform_assignment 
                 (game_id, platform_id, platform_score,
-                platform_price, platform_discount) 
-            VALUES (%s, %s, %s, %s, %s)
+                platform_price, platform_discount, platform_release_date) 
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING platform_assignment_id, game_id, platform_id""",
             data, returning=True)
             ids = []
@@ -271,8 +321,10 @@ def upload_and_return_game_platform_assignment(data: list[tuple],
                 if not cur.nextset():
                     break
             conn.commit()
+            logging.info("Successfully loaded game_platform_assignments")
             return ids
-    except :
+    except:
+        logging.error(f"Uploading game_platform_assignments failed. Data to be uploaded: {data}")
         return {}
 
 
@@ -348,27 +400,37 @@ def assign_tag_game_platform(new_games_list: list[dict], game_id_mapping: dict,
 
 def upload_genre_game_platform_assignment(data: list[tuple], conn: psycopg.Connection) -> None:
     """Uploads the genre_game_platform_assignments"""
+    if len(data) == 0:
+        logging.info("No new genre_game_platform_assignments to upload")
+        return {}
     try:
         with conn.cursor() as cur:
             cur.executemany("""
             INSERT INTO genre_game_platform_assignment (genre_id, platform_assignment_id)
             VALUES (%s, %s)""", data)
             conn.commit()
+            logging.info("Successfully loaded genre_game_platform_assignments")
             return None
     except:
+        logging.error(f"Uploading genre_game_platform_assignments failed. Data to be uploaded: {data}")
         return None
 
 
 def upload_tag_game_platform_assignment(data: list[tuple], conn: psycopg.Connection) -> None:
     """Uploads the tag_game_platform_assignments"""
+    if len(data) == 0:
+        logging.info("No new tag_game_platform_assignments to upload")
+        return {}
     try:
         with conn.cursor() as cur:
             cur.executemany("""
             INSERT INTO tag_game_platform_assignment (tag_id, platform_assignment_id)
             VALUES (%s, %s)""", data)
             conn.commit()
+            logging.info("Successfully loaded tag_game_platform_assignments")
             return None
     except:
+        logging.error(f"Uploading tag_game_platform_assignments failed. Data to be uploaded: {data}")
         return None
 
 
@@ -420,9 +482,8 @@ def format_games_for_upload(games: list[dict], age_rating_mapping: dict) -> list
     for game in games:
         games_for_upload.append((
             game["game_name"],
-            game["release_date"],
             game["game_image"],
-            age_rating_mapping[game["age_rating"]], # NEED TO MAP
+            age_rating_mapping[game["age_rating"]],
             game["is_nsfw"]
         ))
 

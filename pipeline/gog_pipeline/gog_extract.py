@@ -1,49 +1,67 @@
 """The extraction script for GOG"""
-import re
+from os import mkdir, environ as ENV
 from time import sleep
 import json
+import re
 import logging
+
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+import psycopg
+from psycopg.rows import dict_row
+from dotenv import load_dotenv
 
 
-def get_soup(url: str) -> BeautifulSoup:
+def init_driver():
+    """Sets up the selenium driver with proper service and options."""
+    tmp_dir = '/tmp/gc_gog' 
+    mkdir(tmp_dir)
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-dev-tools")
+    chrome_options.add_argument("--no-zygote")
+    chrome_options.add_argument("--single-process")
+    chrome_options.add_argument(f"--user-data-dir={tmp_dir}")
+    chrome_options.add_argument(f"--data-path={tmp_dir}")
+    chrome_options.add_argument(f"--disk-cache-dir={tmp_dir}")
+    chrome_options.add_argument("--remote-debugging-pipe")
+    chrome_options.add_argument("--verbose")
+    chrome_options.add_argument("--log-path=/tmp")
+    chrome_options.binary_location = "/opt/chrome/chrome-linux64/chrome"
+
+    service = Service(
+        executable_path="/opt/chrome-driver/chromedriver-linux64/chromedriver",
+        service_log_path="/tmp/chromedriver.log"
+    )
+
+    driver = webdriver.Chrome(options=chrome_options, service=service)
+
+    return driver
+
+
+def get_current_games(conn: psycopg.Connection):
+    """Gets the current games in the database."""
+    sql = "SELECT game_name FROM game;"
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        return cur.fetchall()
+
+
+def get_soup(url: str, driver: webdriver.Chrome) -> BeautifulSoup:
     """Fetches the page content using Selenium and returns a BeautifulSoup object"""
-
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    driver = webdriver.Chrome(service=Service(
-        ChromeDriverManager().install()), options=options)
-
     driver.get(url)
-    sleep(3)
+    sleep(1)
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") # Some resources only load when scrolling
-    sleep(3)
+    sleep(1)
     page_source = driver.page_source
-    driver.quit()
 
     return BeautifulSoup(page_source, "html.parser")
-
-
-def scrape_newest(url: str) -> list[dict]:
-    """
-    Scrapes all the newest games from GOG games
-    """
-    response = requests.get(url)
-
-    soup = BeautifulSoup(response.text, features='html.parser')
-    game_links = [link['href'] for link in soup.find_all('a', href=True)
-                  if re.match(r'https://www\.gog\.com/en/game/', link["href"])]
-
-
-    page_data_list = []
-    for link in game_links:
-        game_data = get_data(link)
-        page_data_list.append(game_data)
-    return page_data_list
 
 
 def fetch_title(soup: BeautifulSoup) -> str:
@@ -60,17 +78,18 @@ def fetch_genres(soup: BeautifulSoup) -> list[str]:
 
 def fetch_publisher(soup: BeautifulSoup) -> list[str]:
     """Extracts the publisher"""
-    links = soup.find_all("a", href=True)
-    publishers = [link.text.strip() for link in links if re.search(r'publisher',link.get("href", ""))]
+    detail_tag = soup.find_all(class_='details__link ng-scope')
+    publishers = [x.text for x in detail_tag if re.search(
+        r'publisher', x.get('href', ''))]
     return publishers
 
 
 def fetch_developer(soup: BeautifulSoup) -> list[str]:
     """Extracts the developer"""
-    links = soup.find_all("a", href=True)
-    developers = [link.text.strip() for link in links if re.search(
-        r'developer', link.get("href", ""))]
-    return developers
+    detail_tag = soup.find_all(class_='details__link ng-scope')
+    publishers = [x.text for x in detail_tag if re.search(
+        r'developer', x.get('href', ''))]
+    return publishers
 
 
 def fetch_tags(soup: BeautifulSoup) -> list[str]:
@@ -128,9 +147,9 @@ def fetch_age_rating(soup: BeautifulSoup) -> str:
         return match.group(1) if match else None
 
 
-def get_data(link: str) -> dict:
+def get_data(link: str, driver: webdriver) -> dict:
     """Gets the needed data from GOG website"""
-    soup = get_soup(link)
+    soup = get_soup(link, driver)
     data = {}
     data['title'] = fetch_title(soup)
     data['genres'] = fetch_genres(soup)
@@ -146,6 +165,49 @@ def get_data(link: str) -> dict:
     return data
 
 
+def scrape_newest(url: str, local:bool, conn: psycopg) -> list[dict]:
+    """
+    Scrapes all the newest games from GOG games
+    """
+    current_games = get_current_games(conn)
+    current_games = [game["game_name"] for game in current_games]
+
+    if local:
+        options = webdriver.ChromeOptions()
+        # options.add_argument("--headless")
+        driver = webdriver.Chrome(service=Service(
+            ChromeDriverManager().install()), options=options)
+    else:
+        driver = init_driver()
+
+    response = requests.get(url)
+
+    soup = BeautifulSoup(response.text, features='html.parser')
+    game_links = [link['href'] for link in soup.find_all('a', href=True)
+                  if re.match(r'https://www\.gog\.com/en/game/', link["href"])]
+
+    page_data_list = []
+    for link in game_links:
+        game_data = get_data(link, driver)
+        if game_data["title"] in current_games:
+            break
+        page_data_list.append(game_data)
+    driver.quit()
+    return page_data_list
+
+
 if __name__ == "__main__":
+    load_dotenv()
+    user = ENV['DB_USERNAME']
+    password = ENV["DB_PASSWORD"]
+    host = ENV["DB_HOST"]
+    port = ENV["DB_PORT"]
+    name = ENV["DB_NAME"]
+    CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
+    db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
+
     data = scrape_newest(
-        'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025')
+        'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025',
+        True, db_connection
+        )
+    print(data)

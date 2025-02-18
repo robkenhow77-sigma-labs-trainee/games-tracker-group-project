@@ -1,6 +1,9 @@
 pytest
 pylint
-streamlit
+psycopg2
 python-dotenv
+streamlit
+pandas
 boto3
-psycopg2-binary
+seaborn
+matplotlib

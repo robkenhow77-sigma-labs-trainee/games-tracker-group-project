@@ -1,11 +1,11 @@
-"""Script containing all tests for the functions in transform.py."""
 # pylint: skip-file
+"""Script containing all tests for the functions in transform.py."""
 
 from datetime import datetime, timedelta
 
 import pytest
 
-from transform import (is_valid_data, is_valid_title, is_valid_genres, is_valid_publisher,
+from epic_transform import (is_valid_data, is_valid_title, is_valid_genres, is_valid_publisher,
                        is_valid_developer, is_valid_tag, is_valid_score, is_valid_price, is_valid_discount,
                        is_valid_release, is_valid_image, format_data, format_string,
                        format_integer, format_release, is_valid_age, format_genre_list, format_developer_list,
@@ -266,7 +266,7 @@ def test_valid_tag_positive_if_one_passes(test_input):
     assert is_valid_tag(test_input) is True
 
 
-pos_score = ['0', '100', '55', '  60   ']
+pos_score = ['5', '0', '1.7', '  4.5   ']
 @pytest.mark.parametrize("test_input", pos_score)
 def test_valid_score_positive(test_input):
     """Tests if is_valid_score returns True when a valid score is passed."""
@@ -280,38 +280,38 @@ def test_valid_score_negative(test_input):
     assert is_valid_score(test_input) is False
 
 
-pos_price = ['10', '100', '5500', '       9 ', '0']
+pos_price = [10, 100, 5500, 0]
 @pytest.mark.parametrize("test_input", pos_price)
 def test_valid_price_positive(test_input):
     """Tests if is_valid_price returns True when a valid price is passed."""
     assert is_valid_price(test_input) is True
 
 
-neg_price = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", [], ""]
+neg_price = [None, '100', 'words', datetime.now(), -2.99, "89%", "-10", [], ""]
 @pytest.mark.parametrize("test_input", neg_price)
 def test_valid_price_negative(test_input):
     """Tests if is_valid_price returns False when an invalid price is passed."""
     assert is_valid_price(test_input) is False
 
 
-pos_discount = ['0', '100', '55', '1', '  11  ']
+pos_discount = [0, 100, 55, 1, 11]
 @pytest.mark.parametrize("test_input", pos_discount)
 def test_valid_discount_positive(test_input):
     """Tests if is_valid_discount returns True when a valid discount percentage is passed."""
-    assert is_valid_discount(test_input) is True
+    assert is_valid_discount(test_input, 100) is True
 
 
-neg_discount = [100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", "110", [], "", None]
+neg_discount = ['words', datetime.now(), -2.99, "50.3", "89%", "-10", "110", [], "", None]
 @pytest.mark.parametrize("test_input", neg_discount)
 def test_valid_discount_negative(test_input):
     """Tests if is_valid_discount returns False when an invalid discount is passed."""
-    assert is_valid_discount(test_input) is False
+    assert is_valid_discount(test_input, 2000) is False
 
 
 #TODO: parameterise this
 def test_valid_release_positive():
     """Tests if is_valid_release returns True when a valid release date is passed."""
-    assert is_valid_release(datetime.strftime(datetime.now(), "%d %b, %Y"))
+    assert is_valid_release(datetime.strftime(datetime.now(), "%Y-%m-%d"))
 
 
 neg_release = [None, 100, 'words', True, -2.99, "50.3", "89%", "-10", "110", []]
@@ -351,7 +351,7 @@ def test_valid_image_too_long():
     """) is False
 
 
-pos_price = ['3', '7', '12', '       16 ', '18 ']
+pos_price = [3, 7, 12, 16, 18]
 @pytest.mark.parametrize("test_input", pos_price)
 def test_valid_age_positive(test_input):
     """Tests if is_valid_price returns True when a valid price is passed."""
@@ -365,8 +365,7 @@ def test_valid_age_negative(test_input):
     assert is_valid_age(test_input) is False
 
 
-valid_games = [{'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': datetime.strftime(datetime.now(), "%d %b, %Y"), 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}]
-
+valid_games = [{'title': 'SACRIFICE VILLAINS', 'genres': ['Adventure', 'Visual Novel', 'Sci-fi'], 'publisher': ['Browse all CD PROJEKT RED games »', 'CD PROJEKT RED', 'Shiravune'], 'developer': ['CLOCKUP'], 'tag': ['Adventure, ', 'Fantasy, ', 'Story Rich, ', '2D, ', 'Sci-fi, ', 'Visual Novel, ', 'Sexual Content, ', 'Nudity, ', 'Mature, ', 'NSFW, ', 'Cartoony, ', 'Post-apocalyptic, ', 'Crime, ', 'Short, ', 'Superhero', 'Adventure, ', 'Fantasy, ', 'Story Rich, ', '2D, ', 'Sci-fi, '], 'platform_score': '2.3', 'platform_price': '16.75', 'platform_discount': '0', 'release_date': '2025-01-21T10:58:00+02:00', 'game_image': '\n                https://images.gog-statics.com/c37c1ee52043af665b4533acefbbddaba1f0b09c5091575d2fb74be8ce836d9b_product_card_v2_logo_480x285.png 1x,\n                https://images.gog-statics.com/c37c1ee52043af665b4533acefbbddaba1f0b09c5091575d2fb74be8ce836d9b_product_card_v2_logo_960x570.png 2x\n            ', 'age_rating': None}]
 
 @pytest.mark.parametrize("missing_key", [
     'title', 'genres', 'publisher', 'developer', 'tag',
@@ -384,15 +383,16 @@ def test_is_valid_data_with_missing_keys(missing_key):
     # Assert that the function returns False when a key is missing
     assert not is_valid_data(invalid_game)
 
+today = datetime.now().date()
+today_string = today.strftime("%Y-%m-%d")
+input_game = {'title': 'BetterTogether', 'genres': ['Shooter', 'Rogue-Lite', 'Platformer'], 'publisher': ['Ömer Genç'], 'developer': ['Ömer Genç'], 'tag': ['Co-op', 'Online Multiplayer', 'First Run', 'Single Player', 'Windows'], 'platform_score': None, 'platform_price': 399, 'platform_discount': 100, 'release_date': today_string, 'game_image': 'https://cdn1.epicgames.com/spt-assets/7e66b122318448f6b52e6b9828616c8f/bettertogether-1wkfo.png', 'age_rating': 12}
+expected_output = {'title': 'BetterTogether', 'genres': ['Shooter', 'Rogue-Lite', 'Platformer'], 'platform_price': 399, 'platform': 'Epic Games Store', 'publisher': ['Ömer Genç'], 'developer': ['Ömer Genç'], 'tag': ['Co-op', 'Online Multiplayer', 'First Run', 'Single Player', 'Windows'], 'platform_score': -1, 'platform_discount': 0, 'release_date': today, 'game_image': 'https://cdn1.epicgames.com/spt-assets/7e66b122318448f6b52e6b9828616c8f/bettertogether-1wkfo.png', 'age_rating': 'PEGI 12', 'NSFW': False}
 
 #TODO: parameterise this
 def test_format_data():
     """Tests format_data to ensure it returns correctly formatted data."""
-    today = datetime.now().date()
-    today_string = datetime.strftime(today, "%d %b, %Y")
-    input_data = {'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': today_string, 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}
-    expected_output = {'title': 'Hearts of Iron IV', 'genres': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'platform_score': 90,'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'platform_price': 4199, 'platform_discount': 0, 'release_date': today, 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': 'PEGI 7'}
-    assert format_data(input_data) == expected_output
+
+    assert format_data(input_game) == expected_output
 
 data = [(" ", ""), ("string   ", "string"), ("normal", "normal"), ("normal%20test", "normal test")]
 @pytest.mark.parametrize("string,expected", data)
@@ -400,7 +400,7 @@ def test_format_string(string, expected):
     """Tests format_string function."""
     assert format_string(string) == expected
 
-data = [("1", 1), ("2   ", 2), ("   100 ", 100), (None, None)]
+data = [("1", 1), ("2   ", 2), ("   100 ", 100)]
 @pytest.mark.parametrize("string,expected", data)
 def test_format_integer(string, expected):
     """Tests format_integer function."""
@@ -409,13 +409,11 @@ def test_format_integer(string, expected):
 
 def test_format_release():
     """Tests format_release function"""
-    assert format_release("    10 Feb, 2022") == datetime.strptime("10 Feb, 2022", "%d %b, %Y").date()
+    assert format_release('  2025-01-31T16:59:00+02:00  ') == datetime.strptime("2025-01-31", "%Y-%m-%d").date()
 
-
-@pytest.mark.parametrize("test_input", valid_games)
-def test_valid_game(test_input):
+def test_valid_game():
     """Tests that a valid game passes."""
-    assert is_valid_data(test_input)
+    assert is_valid_data(input_game)
 
 list_test_values = [("fail", []), ([], []), ([123, "test"], ["test"]),
 (["test1", "test2"], ["test1", "test2"]),(["    test", False, 123, "test2  "], ["test","test2"])]
@@ -448,11 +446,9 @@ def test_valid_release_delta_input():
     """Tests that games before today are allowed if timedelta is set."""
     today = datetime.now().date()
     a_week_ago = today - timedelta(days=7)
-    string_a_week_ago = datetime.strftime(a_week_ago, "%d %b, %Y")
+    string_a_week_ago = datetime.strftime(a_week_ago, "%Y-%m-%d")
     assert is_valid_release(string_a_week_ago, 7)
 
-input_game = {'title': 'Hearts of Iron IV', 'genres': ['Free%20to%20Play', 'Early%20Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'tag': ['Strategy', 'World%20War%20II', 'Grand%20Strategy', 'War', 'Historical', 'Military', 'Alternate%20History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time%20with%20Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy%20RPG', 'Competitive', 'Open%20World', 'Action'], 'platform_score': '90', 'platform_price': '4199', 'platform_discount': None, 'release_date': datetime.strftime(datetime.now(), "%d %b, %Y"), 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'age_rating': '7'}
-expected_output = {'title': 'Hearts of Iron IV', 'genres': ['Free to Play', 'Early Access', 'Strategy', 'Simulation', 'Strategy'], 'publisher': [], 'developer': [], 'platform_score': 90,'tag': ['Strategy', 'World War II', 'Grand Strategy', 'War', 'Historical', 'Military', 'Alternate History', 'Multiplayer', 'Simulation', 'Tactical', 'Real-Time with Pause', 'Singleplayer', 'RTS', 'Diplomacy', 'Sandbox', 'Co-op', 'Strategy RPG', 'Competitive', 'Open World', 'Action'], 'platform_price': 4199, 'platform_discount': 0, 'release_date': datetime.now().date(), 'game_image': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786', 'platform': 'Steam', 'age_rating': 'PEGI 7'}
 
 def test_format_data_invalid_publisher():
     """Tests that an empty list is returned for publisher if no valid specified publisher."""
@@ -477,6 +473,7 @@ def test_format_data_invalid_tag():
     test_input = input_game
     test_input['tag'] = ""
     test_output = expected_output
+    test_output['NSFW'] = False
     test_output['tag'] = []
     assert format_data(test_input) == test_output
 

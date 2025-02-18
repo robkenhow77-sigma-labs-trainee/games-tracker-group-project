@@ -1,9 +1,10 @@
-"""Test extract file for GOG"""
 # pylint: skip-file
+"""Test extract file for GOG"""
+
 
 import pytest
 from bs4 import BeautifulSoup
-from extract_gog import get_soup, fetch_title, fetch_genres, fetch_publisher, fetch_developer, fetch_tags, \
+from gog_extract import get_soup, fetch_title, fetch_genres, fetch_publisher, fetch_developer, fetch_tags, \
     fetch_platform_score, fetch_platform_price, fetch_platform_discount, fetch_release_date, fetch_game_image, \
     fetch_age_rating, get_data
 from unittest.mock import MagicMock
@@ -21,8 +22,8 @@ def false_soup():
                 <a href="#">Action</a>
                 <a href="#">Adventure</a>
             </div>
-            <a href="https://example.com/publisher">Microsoft</a>
-            <a href="https://example.com/developer">Bethesda</a>
+            <a class="details__link ng-scope" href="TEST/TEST?publishers=microsoft">Microsoft</a>
+            <a class="details__link ng-scope" href="TEST/TEST?developers=bethesda">Bethesda</a>
             <div class="details__link details__link--tag">wilderness</div>
             <div class="details__link details__link--tag">mod</div>
             <div class="details__link details__link--tag">monster</div>
