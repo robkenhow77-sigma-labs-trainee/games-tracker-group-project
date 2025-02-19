@@ -330,7 +330,7 @@ def is_valid_release(release: str,
         return False
 
     earliest_allowed_date = datetime.now().date() - timedelta(days=days_before_today_allowed)
-    print(earliest_allowed_date)
+
     if not earliest_allowed_date <= datetime_release.date() <= datetime.now().date():
         print("%s is not within the allowed release date range.", release)
         return False
