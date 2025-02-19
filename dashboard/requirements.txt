@@ -7,3 +7,4 @@ pandas
 boto3
 seaborn
 matplotlib
+plotly
