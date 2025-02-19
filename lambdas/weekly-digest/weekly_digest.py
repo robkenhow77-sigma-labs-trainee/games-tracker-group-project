@@ -178,7 +178,7 @@ def send_email(ses_client: boto3.client, subscribers: list, html_body: str):
         )
 
 
-def lambda_handler():
+def lambda_handler(event, context):
     """Main function"""
     load_dotenv()
     conn = get_database_connection()
@@ -195,4 +195,4 @@ def lambda_handler():
 
 
 if __name__ == "__main__":
-    lambda_handler()
+    lambda_handler(None, None)

@@ -1,0 +1,1 @@
+docker build -t weekly_digest . --platform="linux/amd64" --provenance=False
