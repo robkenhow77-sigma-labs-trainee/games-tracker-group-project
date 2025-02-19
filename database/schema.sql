@@ -61,7 +61,8 @@ CREATE TABLE "game_platform_assignment"(
     "platform_release_date" DATE NOT NULL,
     "platform_score" SMALLINT NOT NULL,
     "platform_price" SMALLINT NOT NULL,
-    "platform_discount" SMALLINT NOT NULL
+    "platform_discount" SMALLINT NOT NULL,
+    "platform_url" VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE "platform"(

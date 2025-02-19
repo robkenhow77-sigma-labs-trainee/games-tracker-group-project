@@ -114,7 +114,7 @@ def generate_email_content(top_games: pd.DataFrame, sum_of_games: pd.DataFrame) 
     }
     </style></head>
     <body style="background-color:#05122b;">
-    <img src="https://i.imgur.com/uP32jFH.png" alt="Playstream logo" style="width:150px;height:150px;">
+    <img src="https://i.imgur.com/hY6MSBU.png" alt="Playstream logo" style="width:150px;height:150px;">
     <h2>Weekly Game Platform Trends</h2>
     <p><h3>Here are the number of games released per platform this week:</h3></p>
     <table border='1' cellpadding='5' cellspacing='0' style="border-collapse: collapse; width: 50%;">
@@ -155,17 +155,21 @@ def generate_email_content(top_games: pd.DataFrame, sum_of_games: pd.DataFrame) 
     return html
 
 
+<<<<<<< HEAD:lambdas/weekly-digest/weekly_digest.py
 def write_html_to_file(html_body: str):
     """Writes the HTML to a file for testing purposes"""
     with open("weekly_digest.html", "w", encoding="utf-8") as file:
         file.write(html_body)
 
 
+=======
+>>>>>>> 6f1034e96400b4eedeaf3dacc3fa704f3e16eb09:email_lambdas/weekly-digest/weekly_digest.py
 def get_subscribers(sns_conn: boto3.client) -> list[str]:
     """Gets a list of subscribers for the 'play_stream_weekly_digest' topic"""
     response = sns_conn.list_subscriptions_by_topic(
         TopicArn=ENV['SNS_TOPIC_ARN'])
-    subscribers = [sub['Endpoint'] for sub in response.get('Subscriptions', []) if sub['Protocol'] == 'email']
+    subscribers = [sub['Endpoint'] for sub in response.get(
+        'Subscriptions', []) if sub['Protocol'] == 'email']
     return subscribers
 
 
