@@ -252,8 +252,8 @@ def upload_publisher_game_assignment(data: list[tuple], conn: psycopg.Connection
             conn.commit()
             logging.info("Successfully loaded publisher_game_assignments")
 
-    except:
-        logging.error(f"Uploading publisher_game_assignments failed. Data to be uploaded: {data}")
+    except psycopg.Error as e:
+        logging.error(f"Uploading publisher_game_assignments failed: {e}. Data to be uploaded: {data}")
         return {}
 
 
@@ -449,7 +449,7 @@ def upload_tag_game_platform_assignment(data: list[tuple], conn: psycopg.Connect
             return None
 
     except psycopg.Error as e:
-        logging.error(f"Uploading tag_game_platform_assignments failed: {e} Data to be uploaded: {data}")
+        logging.error(f"Uploading tag_game_platform_assignments failed: {e}. Data to be uploaded: {data}")
         return None
 
 

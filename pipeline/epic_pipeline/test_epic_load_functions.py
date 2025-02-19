@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from datetime import datetime
 
 import psycopg
-import steam_load_functions as lf
+import epic_load_functions as lf
 import pytest
 
 NEW_GAMES_EXAMPLE = [{
