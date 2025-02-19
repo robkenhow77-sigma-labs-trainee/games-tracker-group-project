@@ -307,7 +307,8 @@ def assign_game_platform(new_games_list: list[dict],
                 game["score"],
                 game["price"],
                 game["discount"],
-                game["release_date"]
+                game["release_date"],
+                game["platform_url"]
             ))
     return values
 
@@ -325,8 +326,9 @@ def upload_and_return_game_platform_assignment(data: list[tuple],
             cur.executemany("""
             INSERT INTO game_platform_assignment 
                 (game_id, platform_id, platform_score,
-                platform_price, platform_discount, platform_release_date) 
-            VALUES (%s, %s, %s, %s, %s, %s)
+                platform_price, platform_discount, platform_release_date, 
+                platform_url) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING platform_assignment_id, game_id, platform_id""",
             data, returning=True)
             ids = []
