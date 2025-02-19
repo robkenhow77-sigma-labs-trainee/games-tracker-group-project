@@ -19,9 +19,9 @@ def get_sns_connection() -> boto3.client:
     print("Connecting to SNS...")
     client = boto3.client(
         'sns',
-        aws_access_key_id=ENV['AWS_ACCESS_KEY'],
-        aws_secret_access_key=ENV['AWS_SECRET_ACCESS_KEY'],
-        region_name=ENV['AWS_REGION']
+        aws_access_key_id=ENV['PRIVATE_AWS_ACCESS_KEY'],
+        aws_secret_access_key=ENV['PRIVATE_AWS_SECRET_ACCESS_KEY'],
+        region_name=ENV['PRIVATE_AWS_REGION']
     )
     print("Connected to SNS.")
     return client
@@ -32,9 +32,9 @@ def get_ses_connection() -> boto3.client:
     print("Connecting to SES...")
     ses_client = boto3.client(
         'ses',
-        aws_access_key_id=ENV['AWS_ACCESS_KEY'],
-        aws_secret_access_key=ENV['AWS_SECRET_ACCESS_KEY'],
-        region_name=ENV['AWS_REGION']
+        aws_access_key_id=ENV['PRIVATE_AWS_ACCESS_KEY'],
+        aws_secret_access_key=ENV['PRIVATE_AWS_SECRET_ACCESS_KEY'],
+        region_name=ENV['PRIVATE_AWS_REGION']
     )
     print("Connected to SES.")
     return ses_client
@@ -67,6 +67,7 @@ def get_weekly_top_games(conn: connection) -> pd.DataFrame:
     JOIN game_platform_assignment AS gpa ON g.game_id = gpa.game_id
     JOIN platform AS p ON gpa.platform_id = p.platform_id
     WHERE gpa.platform_release_date >= CURRENT_DATE - INTERVAL '7 days'
+    AND gpa.platform_score > 0
     ORDER BY gpa.platform_score DESC
     LIMIT 10;
     """
@@ -179,10 +180,8 @@ def send_email(ses_client: boto3.client, subscribers: list, html_body: str):
 
 def convert_html_to_pdf(source_html: str, output_filename: str) -> None:
     """Converts the html to a pdf."""
-
-    result_file = open(output_filename, "w+b")
-    
     makedirs(path.dirname(output_filename), exist_ok=True)
+    result_file = open(output_filename, "w+b")
 
     pisa.CreatePDF(
             source_html,
@@ -199,12 +198,17 @@ def save_pdf_to_s3(html: str) -> None:
 
     convert_html_to_pdf(html, "tmp/" + file_name)
 
-    s3 = boto3.client('s3')
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id=ENV['AWS_ACCESS_KEY'],
+        aws_secret_access_key=ENV['AWS_SECRET_ACCESS_KEY'],
+        region_name=ENV['AWS_REGION']
+    )
     with open("tmp/" + file_name, "rb") as f:
         s3.upload_fileobj(f, bucket_name, "weekly_summaries/" + file_name)
 
 
-def lambda_handler():
+def lambda_handler(event, context):
     """Main function"""
     load_dotenv()
     conn = get_database_connection()
@@ -221,4 +225,4 @@ def lambda_handler():
 
 
 if __name__ == "__main__":
-    lambda_handler()
+    lambda_handler(None, None)

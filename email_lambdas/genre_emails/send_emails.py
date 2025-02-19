@@ -11,15 +11,14 @@ from psycopg2.extras import RealDictCursor
 # Load environment variables from .env file
 load_dotenv()
 
-
 def sns_connect() -> boto3.client:
     """Connect to sns client"""
     print("Connecting to SNS...")
     client = boto3.client(
         'sns',
-        aws_access_key_id=ENV['AWS_ACCESS_KEY'],
-        aws_secret_access_key=ENV['AWS_SECRET_ACCESS_KEY'],
-        region_name=ENV['AWS_REGION']
+        aws_access_key_id=ENV['PRIVATE_AWS_ACCESS_KEY'],
+        aws_secret_access_key=ENV['PRIVATE_AWS_SECRET_ACCESS_KEY'],
+        region_name=ENV['PRIVATE_AWS_REGION']
     )
     print("Connected to SNS.")
     return client
@@ -63,14 +62,14 @@ def get_new_games(conn: psycopg2.connect) -> list:
         WHEN p.platform_discount > 0 THEN CONCAT(p.platform_discount, '%% off')
         ELSE 'No discount'
     END AS discount_info
-FROM game AS g
-JOIN game_platform_assignment AS p USING (game_id)
-JOIN genre_game_platform_assignment AS gp USING (platform_assignment_id)
-JOIN genre AS ge USING (genre_id)
-JOIN platform AS pl USING (platform_id)
-WHERE p.platform_release_date >= %s
-GROUP BY g.game_id, g.game_name, g.game_image, p.platform_release_date, pl.platform_name, p.platform_price, p.platform_discount;
-"""
+    FROM game AS g
+    JOIN game_platform_assignment AS p USING (game_id)
+    JOIN genre_game_platform_assignment AS gp USING (platform_assignment_id)
+    JOIN genre AS ge USING (genre_id)
+    JOIN platform AS pl USING (platform_id)
+    WHERE p.platform_release_date >= %s
+    GROUP BY g.game_id, g.game_name, g.game_image, p.platform_release_date, pl.platform_name, p.platform_price, p.platform_discount;
+    """
 
     with conn.cursor() as cur:
         cur.execute(query, (previous_day,))
@@ -207,7 +206,7 @@ def generate_html(genre_name: str, game_data: list, subscribers: list) -> str:
             </head>
             <body>
                 <div class="email-container">
-                    <img src="https://imgur.com/hY6MSBU.png" alt="Playstream logo" style="width:150px;height:150px;">
+                    <img src="https://i.imgur.com/hY6MSBU.png" alt="Playstream logo" style="width:150px;height:150px;">
                     <h1>New Game Releases in {genre_name}</h1>
                     <table class="game-table">
     """
@@ -249,9 +248,9 @@ def get_ses_connection() -> boto3.client:
     print("Connecting to SES...")
     ses_client = boto3.client(
         'ses',
-        aws_access_key_id=ENV['AWS_ACCESS_KEY'],
-        aws_secret_access_key=ENV['AWS_SECRET_ACCESS_KEY'],
-        region_name=ENV['AWS_REGION']
+        aws_access_key_id=ENV['PRIVATE_AWS_ACCESS_KEY'],
+        aws_secret_access_key=ENV['PRIVATE_AWS_SECRET_ACCESS_KEY'],
+        region_name=ENV['PRIVATE_AWS_REGION']
     )
     print("Connected to SES.")
     return ses_client

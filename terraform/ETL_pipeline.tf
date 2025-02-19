@@ -79,6 +79,9 @@ resource "aws_lambda_function" "c15-play-stream-steam-etl-pipeline-lambda-functi
     package_type          = "Image"
     image_uri             = data.aws_ecr_image.steam-latest-image.image_uri
     memory_size           = 1024
+    ephemeral_storage {
+      size = 1024
+    }
     timeout               = 512
 
     environment {
@@ -100,6 +103,9 @@ resource "aws_lambda_function" "c15-play-stream-gog-etl-pipeline-lambda-function
     package_type          = "Image"
     image_uri             = data.aws_ecr_image.gog-latest-image.image_uri
     memory_size           = 1024
+    ephemeral_storage {
+      size = 1024
+    }
     timeout               = 512
 
     environment {
@@ -121,6 +127,9 @@ resource "aws_lambda_function" "c15-play-stream-epic-etl-pipeline-lambda-functio
     package_type          = "Image"
     image_uri             = data.aws_ecr_image.epic-latest-image.image_uri
     memory_size           = 1024
+    ephemeral_storage {
+      size = 1024
+    }
     timeout               = 512
 
     environment {
@@ -163,7 +172,8 @@ resource "aws_iam_policy" "etl-pipeline-state_machine_lambda_policy" {
             aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn,
             aws_lambda_function.c15-play-stream-epic-etl-pipeline-lambda-function.arn,
             aws_lambda_function.c15-play-stream-gog-etl-pipeline-lambda-function.arn,
-            aws_lambda_function.c15-play-stream-weekly-summary-lambda-function.arn
+            aws_lambda_function.c15-play-stream-weekly-summary-lambda-function.arn,
+            aws_lambda_function.c15-play-stream-daily-genre-email-lambda-function.arn
         ]
       }
     ]
@@ -265,6 +275,21 @@ resource "aws_iam_role" "report_scheduler_role" {
         Effect    = "Allow",
         Principal = { Service = "scheduler.amazonaws.com" },
         Action    = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "scheduler_role_step_permissions" {
+  name   = "c15-play-stream-run-pipeline"
+  role   = aws_iam_role.report_scheduler_role.name
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "states:StartExecution",
+        Resource = aws_sfn_state_machine.etl-pipeline-state-machine.arn
       }
     ]
   })
