@@ -31,6 +31,17 @@ data "aws_ecr_image" "gog-latest-image" {
   most_recent             = true
 }
 
+# Epic ECR Information
+
+data "aws_ecr_repository" "c15-play-stream-epic-etl-pipeline-ecr" {
+    name                  = "c15-play-stream-epic-etl-pipeline-ecr"
+}
+
+data "aws_ecr_image" "epic-latest-image" {
+  repository_name         = data.aws_ecr_repository.c15-play-stream-epic-etl-pipeline-ecr.name
+  most_recent             = true
+}
+
 resource "aws_iam_role" "lambda_task_role" {
   name                    = "c15-play-stream-task-role"
 
@@ -58,6 +69,7 @@ resource "aws_iam_policy" "etl-pipeline-lambda-iam-policy" {
         Action   = "lambda:InvokeFunction",
         Resource = [
             aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn,
+            aws_lambda_function.c15-play-stream-epic-etl-pipeline-lambda-function.arn,
             aws_lambda_function.c15-play-stream-gog-etl-pipeline-lambda-function.arn
         ]
       }
@@ -113,6 +125,27 @@ resource "aws_lambda_function" "c15-play-stream-gog-etl-pipeline-lambda-function
     role                  = aws_iam_role.lambda_task_role.arn
 }
 
+# Lambda Function for the Epic ETL pipeline
+
+resource "aws_lambda_function" "c15-play-stream-epic-etl-pipeline-lambda-function" {
+    function_name         = "c15-play-stream-epic-etl-pipeline-lambda-function"
+    package_type          = "Image"
+    image_uri             = data.aws_ecr_image.epic-latest-image.image_uri
+    memory_size           = 512
+    timeout               = 512
+
+    environment {
+        variables = {
+        DB_HOST      = var.DB_HOST
+        DB_NAME      = var.DB_NAME
+        DB_PASSWORD  = var.DB_PASSWORD
+        DB_PORT      = var.DB_PORT
+        DB_USERNAME  = var.DB_USERNAME
+        }
+    }
+    role                  = aws_iam_role.lambda_task_role.arn
+}
+
 # IAM Role for Step Function that invokes the Lambda
 
 resource "aws_iam_role" "etl-pipeline-step-function-role" {
@@ -139,6 +172,7 @@ resource "aws_iam_policy" "etl-pipeline-state_machine_lambda_policy" {
         Action   = "lambda:InvokeFunction",
         Resource = [
             aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn,
+            aws_lambda_function.c15-play-stream-epic-etl-pipeline-lambda-function.arn,
             aws_lambda_function.c15-play-stream-gog-etl-pipeline-lambda-function.arn
         ]
       }
@@ -202,6 +236,20 @@ resource "aws_sfn_state_machine" "etl-pipeline-state-machine" {
               "End": true
             }
           }
+        },
+        {
+          "StartAt": "Invoke Epic ETL Pipeline Lambda Function",
+          "States": {
+            "Invoke Epic ETL Pipeline Lambda Function": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": aws_lambda_function.c15-play-stream-epic-etl-pipeline-lambda-function.arn,
+                "Payload.$": "$"
+              },
+              "End": true
+            }
+          }
         }
       ],
       "End": true
@@ -218,7 +266,7 @@ resource "aws_sfn_state_machine" "etl-pipeline-state-machine" {
 }
 # IAM Role for Scheduler
 resource "aws_iam_role" "report_scheduler_role" {
-  name = "c15-play-steam-state-scheduler-role"
+  name = "c15-play-stream-state-scheduler-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
