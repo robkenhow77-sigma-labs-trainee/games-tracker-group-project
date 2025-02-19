@@ -15,6 +15,7 @@ import gog_load_functions as lf
 
 
 def load_data(new_games_transformed: list[dict], connection: psycopg.Connection):
+    """Loads the cleaned data to the database"""
     # LOAD STEP 1: Update the game, tag, developer, publisher and genre tables
     # Get the current tables and make a mapping of {name: id}
     game_titles_and_ids = lf.make_id_mapping(lf.get_game_ids(connection), 'game')
@@ -22,7 +23,6 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
     devs_and_ids = lf.make_id_mapping(lf.get_developer_ids(connection), 'developer')
     pubs_and_ids = lf.make_id_mapping(lf.get_publisher_ids(connection), 'publisher')
     genres_and_ids = lf.make_id_mapping(lf.get_genre_ids(connection), 'genre')
-
 
     # Gets a list of games, tags, developers, publishers and genres
     # that are not in the database, and need to be uploaded
@@ -35,6 +35,7 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
     # Game table must be formatted differently as it has more than just name and id
     age_rating_map = lf.make_id_mapping(lf.get_age_rating_mapping(connection), "age_rating")
     new_games = lf.format_games_for_upload(new_games, age_rating_map)
+
 
     # Upload games, tags, developers, publishers and genres and return their new ids
     new_game_titles_and_ids = lf.make_id_mapping(
@@ -85,7 +86,7 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
 
     # Get the current game_platform tuples
     current_game_platform_tuples = lf.make_current_game_platform_assignment_tuples(
-        current_game_platform_assignments, 'platform_id')
+        current_game_platform_assignments)
 
     # Gets the new game_platform assignments that aren't in the database, to be uploaded
     game_platform_tuples = lf.assign_game_platform(new_games_transformed,
@@ -106,16 +107,9 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
         for row in new_game_platform_assignments}
     current_game_platform_assignments.update(new_game_platform_assignments)
 
-
     # LOAD STEP 3: Update the genre_game_platform_assignment and tag_game_platform_assignment
     genre_game_platform_assignment = lf.get_genre_game_platform_assignment(connection)
     tag_game_platform_assignment = lf.get_tag_game_platform_assignment(connection)
-
-    # Get mapping for genre_name: genre_id and tag_name: tag_id
-    genre_game_platform_mapping = {
-        row['platform_assignment_id']: row['genre_id'] for row in genre_game_platform_assignment}
-    tag_game_platform_mapping = {
-        row['platform_assignment_id']: row['tag_id'] for row in tag_game_platform_assignment}
 
     # Make tuples of the existing genre/tag_ids and platform_assignment_ids
     current_genre_game_platform_tuples = [(game["genre_id"],
@@ -135,12 +129,8 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
     lf.upload_genre_game_platform_assignment(new_genre_game_platform_tuples, connection)
     lf.upload_tag_game_platform_assignment(new_tag_game_platform_tuples, connection)
 
-    # Close the connection to the database
-    connection.close()  # pylint: disable=no-member
-
 
 if __name__ == "__main__":
-    # initialise
     # Initialise logging
     log_format = "{asctime} - {levelname} - {message}"
     log_datefmt = "%Y-%m-%d %H:%M"
@@ -166,14 +156,15 @@ if __name__ == "__main__":
         "tag": ["action"],
         "genre": ["mystic"],
         "publisher": ["sigma", "activision"],
-        "release_date": datetime.now(),
+        "release_date": datetime.date(datetime.now()),
         "game_image": "random",
         "is_nsfw": True,
         "age_rating": "PEGI 16",
-        "platform": "GOG",
+        "platform": "Steam",
         "score": 90,
         "price": 20000,
-        "discount": 99
+        "discount": 99,
+        "platform_url": "game_platform_url"
         },
         {
         "game_name": "rocket league",
@@ -181,15 +172,15 @@ if __name__ == "__main__":
         "tag": ["action", "racing"],
         "genre": ["mystic", "horror"],
         "publisher": ["sigma"],
-        "release_date": datetime.now(),
+        "release_date": datetime.date(datetime.now()),
         "game_image": "random",
         "is_nsfw": True,
         "age_rating": "PEGI 18",
         "platform": "GOG",
         "score": 10,
         "price": 20,
-        "discount": 0
+        "discount": 0,
+        "platform_url": "game_platform_url"
         }]
 
-
-    load_data(NEW_GAMES_EXAMPLE, db_connection)
+    db_connection.close()

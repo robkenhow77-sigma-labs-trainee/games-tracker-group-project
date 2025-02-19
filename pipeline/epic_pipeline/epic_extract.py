@@ -79,8 +79,11 @@ def get_pegi_age_control(game: dict) -> str:
 
 def get_link(game: dict) -> str:
     """Gets the link of the game from the pageSlug"""
-    mappings = game.get("catalogNs", {}).get("mappings")
-    link = 'https://store.epicgames.com/en-US/p/' + mappings[0].get('pageSlug')
+    try:
+        mappings = game.get("catalogNs", {}).get("mappings")
+        link = 'https://store.epicgames.com/en-US/p/' + mappings[0].get('pageSlug')
+    except TypeError:
+        return None
     return link if link else None
 
 

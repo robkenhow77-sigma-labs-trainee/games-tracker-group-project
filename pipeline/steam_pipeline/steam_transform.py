@@ -378,6 +378,7 @@ def format_data(game: dict, days_to_accept=0) -> bool:
     formatted_data['genres'] = format_genre_list(game['genres'])
     formatted_data['platform_price'] = format_integer(game['platform_price'])
     formatted_data['platform'] = "Steam"
+    formatted_data['link'] = game['link']
 
     # Optional data formatting
     if is_valid_publisher(game['publisher']):
@@ -551,6 +552,7 @@ if __name__ == "__main__":
                     'release_date': '17 Feb, 2025', 
                     'game_image':
                     'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/394360/header.jpg?t=1739207786',
-                    'age_rating': '7'}]
+                    'age_rating': '7',
+                    'link': 'https://store.steampowered.com/app/394360/Hearts_of_Iron_IV/'}]
 
     print(clean_data(test_input))

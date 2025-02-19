@@ -9,15 +9,9 @@ data "aws_ecr_image" "weekly-summary-latest-image" {
     most_recent     = true
 }
 
-# Setting the email addresses for the Weekly Summaries
-
-data "aws_ses_email_identity" "abdi_email" {
-  email = var.ABDI_EMAIL 
-}
-
 # Setting IAM information
 
-resource "aws_iam_policy" "send_email_policy" {
+resource "aws_iam_policy" "send_weekly_email_policy" {
   name        = "SES_SendEmailPolicy"
   description = "Policy for sending emails using SES"
 
@@ -30,7 +24,6 @@ resource "aws_iam_policy" "send_email_policy" {
           "ses:SendRawEmail"
         ]
         Effect   = "Allow"
-        Resource = [data.aws_ses_email_identity.abdi_email.arn]
       },
     ]
   })
@@ -38,7 +31,7 @@ resource "aws_iam_policy" "send_email_policy" {
 
 resource "aws_iam_role_policy_attachment" "lambda-weekly-summary-policy-attachment" {
   role       = aws_iam_role.lambda_task_role.name
-  policy_arn = aws_iam_policy.send_email_policy.arn
+  policy_arn = aws_iam_policy.send_weekly_email_policy.arn
 }
 
 # Lambda Function to make the Weekly Email Summary work
@@ -108,7 +101,7 @@ resource "aws_scheduler_schedule" "weekly-email-summary-scheduler" {
         mode = "OFF"
     }
     target {
-        arn      = aws_sfn_state_machine.weekly-email-summary-step-function.arn
+        arn      = aws_lambda_function.c15-play-stream-weekly-summary-lambda-function.arn
         role_arn = aws_iam_role.report_scheduler_role.arn
     }
 }
