@@ -101,8 +101,6 @@ def get_filtered_games(conn: connection, genre: str = None, tag: str = None, pri
     params.append(offset)
 
     with conn.cursor() as cursor:
-        print(price_range)
-        print(query)
         cursor.execute(query, tuple(params))
         result = cursor.fetchall()
 
