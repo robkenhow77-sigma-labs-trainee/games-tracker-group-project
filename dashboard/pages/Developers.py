@@ -1,4 +1,4 @@
-#pylint: disable=invalid-name, ungrouped-imports, too-many-positional-arguments, too-many-arguments, too-many-locals, line-too-long
+#pylint: disable=invalid-name, ungrouped-imports, too-many-positional-arguments, too-many-arguments, too-many-locals, line-too-long, duplicate-code
 """Dashboard for Developers to see statistics about games."""
 import logging
 from os import environ as ENV
