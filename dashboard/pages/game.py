@@ -6,10 +6,10 @@ import pandas as pd
 import streamlit as st
 from psycopg2 import connect
 from dotenv import load_dotenv
-from psycopg2.extensions import connection as psycop_connection
+from psycopg2.extensions import connection as psycopg_connection
 
 @st.cache_resource
-def get_connection() -> psycop_connection:
+def get_connection() -> psycopg_connection:
     """Returns a connection to the database."""
     logging.info("Getting connection to database...")
     dbname = ENV['DB_NAME']
@@ -19,7 +19,7 @@ def get_connection() -> psycop_connection:
     password = ENV['DB_PASSWORD']
     return connect(dbname=dbname, user=user, password=password, host=host, port=port)
 
-def get_game_suggestions(partial_name: str, conn: psycop_connection) -> list:
+def get_game_suggestions(partial_name: str, conn: psycopg_connection) -> list:
     """Fetches a list of game names that match the partial input."""
     query = """
     SELECT game_name 
@@ -33,7 +33,7 @@ def get_game_suggestions(partial_name: str, conn: psycop_connection) -> list:
     cur.close()
     return game_names
 
-def get_game_info(game_name: str, conn: psycop_connection) -> pd.DataFrame:
+def get_game_info(game_name: str, conn: psycopg_connection) -> pd.DataFrame:
     """Fetches detailed game information from the database."""
     query = """
     SELECT 
