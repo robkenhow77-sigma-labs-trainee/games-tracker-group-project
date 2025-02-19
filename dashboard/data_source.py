@@ -1,4 +1,4 @@
-"""Functions that interact with the database"""
+"""Functions that interact with the database for subscribe page"""
 from os import environ as ENV
 
 import psycopg2

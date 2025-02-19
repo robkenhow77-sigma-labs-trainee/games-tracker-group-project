@@ -5,7 +5,6 @@ from os import environ as ENV
 import streamlit as st
 import boto3
 from dotenv import load_dotenv
-from components import dashboard_title
 from data_source import get_connection, get_all_genres
 
 
@@ -195,7 +194,6 @@ if __name__ == "__main__":
             
     </style>
     """, unsafe_allow_html=True)
-    dashboard_title()
     st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow; font-size: 30px;">Subscribe to the Newsletter</h4>',
                 unsafe_allow_html=True)
     st.html("<marquee>Subscribe to receive updates on new game releases!</marquee>")
