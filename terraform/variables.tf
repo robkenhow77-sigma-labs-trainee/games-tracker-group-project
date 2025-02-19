@@ -36,3 +36,11 @@ variable "DB_PASSWORD" {
 variable "DB_NAME" {
     type = string  
 }
+
+variable "ABDI_EMAIL" {
+    type = string
+}
+
+variable "SNS_TOPIC_ARN" {
+    type = string
+}
