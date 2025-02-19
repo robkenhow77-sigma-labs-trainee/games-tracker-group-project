@@ -1,5 +1,5 @@
-"""Script containing all tests for the functions in transform.py."""
 # pylint: skip-file
+"""Script containing all tests for the functions in transform.py."""
 
 from datetime import datetime, timedelta
 
@@ -351,15 +351,15 @@ def test_valid_image_too_long():
     """) is False
 
 
-pos_price = ['3', '7', '12', '       16 ', '18 ']
-@pytest.mark.parametrize("test_input", pos_price)
+pos_age = ['3', '7', '12', '       16 ', '18 ']
+@pytest.mark.parametrize("test_input", pos_age)
 def test_valid_age_positive(test_input):
     """Tests if is_valid_price returns True when a valid price is passed."""
     assert is_valid_age(test_input) is True
 
 
-neg_price = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", [], "", "15", " "]
-@pytest.mark.parametrize("test_input", neg_price)
+neg_age = [None, 100, 'words', True, datetime.now(), -2.99, "50.3", "89%", "-10", [], "", "15", " "]
+@pytest.mark.parametrize("test_input", neg_age)
 def test_valid_age_negative(test_input):
     """Tests if is_valid_price returns False when an invalid price is passed."""
     assert is_valid_age(test_input) is False

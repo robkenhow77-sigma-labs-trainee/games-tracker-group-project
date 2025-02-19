@@ -3,6 +3,7 @@
 # Native imports
 from os import environ as ENV
 from datetime import datetime
+import logging
 
 # Third-party imports
 import psycopg
@@ -140,6 +141,16 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
 
 if __name__ == "__main__":
     # initialise
+    # Initialise logging
+    log_format = "{asctime} - {levelname} - {message}"
+    log_datefmt = "%Y-%m-%d %H:%M"
+    logging.basicConfig(
+            level=logging.INFO,
+            format=log_format,
+            style="{",
+            datefmt=log_datefmt
+        )
+
     load_dotenv()
     user = ENV['DB_USERNAME']
     password = ENV["DB_PASSWORD"]

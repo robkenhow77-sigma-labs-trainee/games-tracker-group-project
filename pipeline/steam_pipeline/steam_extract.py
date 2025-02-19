@@ -55,7 +55,7 @@ def get_current_games(conn: psycopg.Connection):
         return cur.fetchall()
 
 
-def setup_logging(output: str, filename="game_track.log", level=20):
+def setup_logging(output: str=None, filename="game_track.log", level=logging.INFO):
     """Setup the basicConfig."""
     log_format = "{asctime} - {levelname} - {message}"
     log_datefmt = "%Y-%m-%d %H:%M"
@@ -315,6 +315,7 @@ def scrape_newest(url: str, target_date: str, local: bool, conn: psycopg.Connect
 
 
 if __name__ == "__main__":
+    setup_logging()
     load_dotenv()
     user = ENV['DB_USERNAME']
     password = ENV["DB_PASSWORD"]

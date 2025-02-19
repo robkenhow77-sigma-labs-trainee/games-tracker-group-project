@@ -1,7 +1,10 @@
 """Extracts script that pulls game data from undocumented GraphQL API"""
-
-import requests
+# Native imports
 import logging
+
+# Third-party imports
+import requests
+
 
 
 def load_query(filename: str) -> str:
@@ -91,12 +94,17 @@ def format_data(games: list[dict]) -> list[dict]:
         game_data = {
             "title": game.get("title"),
             "genres": genres if genres else None,
-            "publisher": [game.get("publisherDisplayName")] if game.get("publisherDisplayName") else None,
-            "developer": [game.get("developerDisplayName")] if game.get("developerDisplayName") else None,
+            "publisher": [game.get("publisherDisplayName")]
+                if game.get("publisherDisplayName") else None,
+            "developer": [game.get("developerDisplayName")]
+                if game.get("developerDisplayName") else None,
             "tag": tags if tags else None,
-            "platform_score": get_platform_score(sandbox_id) if sandbox_id else None,
-            "platform_price": game.get("price", {}).get("totalPrice", {}).get("originalPrice"),
-            "platform_discount": game.get("price", {}).get("totalPrice", {}).get("discountPercentage"),
+            "platform_score": get_platform_score(sandbox_id)
+                if sandbox_id else None,
+            "platform_price": game.get("price", {}).get(
+                "totalPrice", {}).get("originalPrice"),
+            "platform_discount": game.get("price", {}).get(
+                "totalPrice", {}).get("discountPercentage"),
             "release_date": game.get("releaseDate"),
             "game_image": game.get("keyImages", [{}])[0].get("url"),
             "age_rating": get_pegi_age_control(game),
@@ -107,11 +115,17 @@ def format_data(games: list[dict]) -> list[dict]:
     return game_list
 
 
+def main(url: str) -> list[dict]:
+    """Extracts the data in the correct format"""
+    games = extract_games(url)
+    return format_data(games)
+
+
 if __name__ == "__main__":
     raw_games = extract_games(
         "https://graphql.epicgames.com/graphql")
-    games = format_data(raw_games)
+    scraped_games = format_data(raw_games)
 
-    print(games)
+    print(scraped_games)
 
-    print(len(games))
+    print(len(scraped_games))
