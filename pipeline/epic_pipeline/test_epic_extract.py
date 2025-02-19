@@ -85,7 +85,7 @@ def mock_game_data():
         {
             "title": "Mock Game",
             "catalogNs": {
-                "mappings": [{"sandboxId": "mock-sandbox"}],
+                "mappings": [{"sandboxId": "mock-sandbox", "pageSlug": "PlayStreamRulez-54c31"}],
                 "ageGatings": [{"ratingSystem": "PEGI", "ageControl": "12+"}]
             },
             "tags": [{"groupName": "genre", "name": "Action"}, {"groupName": "tag", "name": "TEST_MMO"}],

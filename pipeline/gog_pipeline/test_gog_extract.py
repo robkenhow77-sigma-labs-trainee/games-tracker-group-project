@@ -108,5 +108,6 @@ def test_get_data(mock_get_soup, false_soup):
         'platform_discount': '50',
         'release_date': "2025-02-18T10:58:00+02:00",
         'game_image': 'test_image.png',
-        'age_rating': '16'
+        'age_rating': '16',
+        'link': 'test'
     }
