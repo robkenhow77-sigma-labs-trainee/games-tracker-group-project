@@ -1,6 +1,6 @@
 """Extract script by webscraping steam store page"""
 import re
-from os import mkdir, environ as ENV, path
+from os import environ as ENV
 from tempfile import mkdtemp
 from datetime import datetime, timedelta
 
