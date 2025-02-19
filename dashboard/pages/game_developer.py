@@ -1,4 +1,4 @@
-"""Information about each platform."""
+"""Gets all the information on a developer."""
 import logging
 from os import environ as ENV
 import pandas as pd
@@ -101,7 +101,7 @@ def main():
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Platform Information</h3>',
+    st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Game Developer Information</h3>',
                 unsafe_allow_html=True)
 
 if __name__ == "__main__":
