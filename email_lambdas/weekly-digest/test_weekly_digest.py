@@ -1,9 +1,9 @@
-
 # pylint: skip-file
+
+import pandas as pd
 
 from unittest.mock import MagicMock
 from weekly_digest import get_weekly_top_games, sum_of_games_released_per_platform
-import pandas as pd
 
 
 def test_get_weekly_top_games():
@@ -29,5 +29,3 @@ def test_get_weekly_top_games():
 
     assert all(result ==
                expected_result)
-    
-
