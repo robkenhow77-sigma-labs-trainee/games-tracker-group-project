@@ -151,12 +151,6 @@ def generate_email_content(top_games: pd.DataFrame, sum_of_games: pd.DataFrame) 
     return html
 
 
-def write_html_to_file(html_body: str):
-    """Writes the HTML to a file for testing purposes"""
-    with open("weekly_digest.html", "w", encoding="utf-8") as file:
-        file.write(html_body)
-
-
 def get_subscribers(sns_conn: boto3.client) -> list[str]:
     """Gets a list of subscribers for the 'play_stream_weekly_digest' topic"""
     response = sns_conn.list_subscriptions_by_topic(
@@ -186,7 +180,6 @@ def lambda_handler(event, context):
     top_games = get_weekly_top_games(conn)
     sum_of_games = sum_of_games_released_per_platform(conn)
     html_body = generate_email_content(top_games, sum_of_games)
-    write_html_to_file(html_body)
 
     sns_client = get_sns_connection()
     subscribers = get_subscribers(sns_client)
