@@ -152,6 +152,7 @@ def get_data(link: str, driver: webdriver) -> dict:
     soup = get_soup(link, driver)
     data = {}
     data['title'] = fetch_title(soup)
+    data['link'] = link
     data['genres'] = fetch_genres(soup)
     data['publisher'] = fetch_publisher(soup)
     data['developer'] = fetch_developer(soup)

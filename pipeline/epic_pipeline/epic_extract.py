@@ -77,6 +77,12 @@ def get_pegi_age_control(game: dict) -> str:
 
     return None
 
+def get_link(game: dict) -> str:
+    """Gets the link of the game from the pageSlug"""
+    mappings = game.get("catalogNs", {}).get("mappings")
+    link = 'https://store.epicgames.com/en-US/p/' + mappings[0].get('pageSlug')
+    return link if link else None
+
 
 def format_data(games: list[dict]) -> list[dict]:
     """Formats raw game data into a standardized list of dictionaries."""
@@ -101,7 +107,8 @@ def format_data(games: list[dict]) -> list[dict]:
                 "totalPrice", {}).get("discountPercentage"),
             "release_date": game.get("releaseDate"),
             "game_image": game.get("keyImages", [{}])[0].get("url"),
-            "age_rating": get_pegi_age_control(game)
+            "age_rating": get_pegi_age_control(game),
+            "link": get_link(game)
         }
         game_list.append(game_data)
 
