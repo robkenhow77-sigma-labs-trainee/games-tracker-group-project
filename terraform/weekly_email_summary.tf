@@ -135,3 +135,13 @@ resource "aws_scheduler_schedule" "weekly-email-summary-scheduler" {
         role_arn = aws_iam_role.report_scheduler_role.arn
     }
 }
+
+resource "aws_s3_bucket" "long-term-storage" {
+  bucket = "c15-playstream-backlog"
+  force_destroy =  true
+
+  tags = {
+    Name        = "Long term weekly email storage"
+    Environment = "Dev"
+  }
+}
