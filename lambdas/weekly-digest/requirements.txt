@@ -1,4 +1,6 @@
-psycopg2-binary
+psycopg2
 pandas
 boto3
 python-dotenv
+pdfkit
+pypdf
