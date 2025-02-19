@@ -47,8 +47,8 @@ resource "aws_lambda_function" "c15-play-stream-weekly-summary-lambda-function" 
     function_name = "c15-play-stream-weekly-email-summary-lambda-function"
     package_type = "Image"
     image_uri = data.aws_ecr_image.weekly-summary-latest-image.image_uri
-    memory_size   = 128
-    timeout       = 120
+    memory_size   = 512
+    timeout       = 512
     
     environment {
         variables = {

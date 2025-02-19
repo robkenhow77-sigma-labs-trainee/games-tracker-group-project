@@ -80,7 +80,7 @@ def get_genre_tag_platform_options(conn: psycopg_connection) -> tuple[list[str],
     return available_genres, available_tags, available_platforms
 
 
-def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = None, price: float = None,
+def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = None, price_range: str = None,
         platform: str = None, top_n: int = None, exclude_nsfw: bool = True) -> pd.DataFrame:
     """Fetches games based on the user's filter selection."""
     query = """
@@ -99,8 +99,19 @@ def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = N
         filters.append("ge.genre_name = %s")
     if tag and tag != "All":
         filters.append("t.tag_name = %s")
-    if price:
-        filters.append("gp.platform_price <= %s")
+
+    if price_range and price_range != "Any":
+        if price_range == "Free":
+            filters.append("gp.platform_price = 0")
+        if price_range == "£0.01 - £10":
+            filters.append("gp.platform_price BETWEEN 1 AND 1000")
+        if price_range == "£10.01 - £50":
+            filters.append("gp.platform_price BETWEEN 1001 AND 5000")
+        if price_range == "£50.01 - £100":
+            filters.append("gp.platform_price BETWEEN 5001 AND 10000")
+        if price_range == "Above £100":
+            filters.append("gp.platform_price > 10001")
+
     if platform and platform != "All":
         filters.append("p.platform_name = %s")
     if exclude_nsfw:
@@ -117,8 +128,6 @@ def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = N
         params.append(genre)
     if tag and tag != "All":
         params.append(tag)
-    if price:
-        params.append(price)
     if platform and platform != "All":
         params.append(platform)
     if top_n:
@@ -140,18 +149,11 @@ def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = N
 
     return df
 
-
-def get_price_filter_options() -> list[str]:
-    """Returns a list of price ranges for user-friendly filtering."""
-    return ["All", "Free", "Under £10", "£10 - £50", "£50 - £100", "Above £100"]
-
-
 def main():
     """Main function to manage the Streamlit app interface."""
     conn = get_connection()
 
     st.sidebar.image("logo.png", width=100)
-
 
     st.markdown("""
     <style>
@@ -162,13 +164,29 @@ def main():
             font-size: 22px;
             color: yellow;
         }
-        
+                
+        [data-testid="stAppViewContainer"] {
+            background-color: #05122B;
+        }
+                
+        [data-testid="stHeader"] {
+            background-color: #05122B;
+        }
+            
+        .st-bb {
+            background-color: #05122B;
+        }
+
         .sidebar-image {
             border-radius: 15px;
             border: 3px solid lightblue;
-            width: 200px;  /* Adjust the width as per your requirement */
+            width: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
         }
-
+        
         /* Sidebar filter elements */
         .stSidebar .stSelectbox > div, 
         .stSidebar .stCheckbox > div,
@@ -224,6 +242,7 @@ def main():
         .markdown-text-container {
             color: yellow;
         }
+            
     </style>
     """, unsafe_allow_html=True)
 
@@ -233,23 +252,20 @@ def main():
     selected_genre = st.sidebar.selectbox("Genre", options=["All"] + genres)
     selected_tag = st.sidebar.selectbox("Tag", options=["All"] + tags)
     selected_platform = st.sidebar.selectbox("Platform", options=["All"] + platforms)
-    price_range = st.sidebar.selectbox("Price Range", options=get_price_filter_options())
+    price_range = st.sidebar.selectbox("Price Range", ["Any",
+                                                       "Free",
+                                                       "£0.01 - £10",
+                                                       "£10.01 - £50",
+                                                       "£50.01 - £100",
+                                                       "Above £100"])
     include_nsfw = st.sidebar.checkbox("Include NSFW Games", value=False)
 
-    price_mapping = {
-        "Free": 0,
-        "Under £10": 10,
-        "£10 - £50": 50,
-        "£50 - £100": 100,
-        "Above £100": 300
-    }
-
-    selected_price = price_mapping.get(price_range, None)
+    selected_price = price_range
 
     genre_counts = get_filtered_games(conn,
                                       genre=selected_genre,
                                       tag=selected_tag,
-                                      price=selected_price,
+                                      price_range=selected_price,
                                       platform=selected_platform,
                                       exclude_nsfw=include_nsfw)
     genre_counts = genre_counts.groupby('platform_name').size().reset_index(name='counts')
@@ -277,6 +293,7 @@ def main():
                                    selected_price,
                                    selected_platform,
                                    top_n=10)
+
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.barplot(x='platform_score', y='game_name', data=top_games, palette="rocket", ax=ax)
 

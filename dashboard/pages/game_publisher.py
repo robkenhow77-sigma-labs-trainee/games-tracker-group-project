@@ -1,12 +1,9 @@
-"""Gets all the information on a publisher."""
-#pylint: disable=unused-import, line-too-long, unused-variable
+#pylint: disable=line-too-long, ungrouped-imports
+"""Dashboard that will get information about a selected publisher."""
 import logging
 from os import environ as ENV
 import pandas as pd
 import streamlit as st
-import plotly.express as px
-import matplotlib.pyplot as plt
-import seaborn as sns
 from psycopg2 import connect
 from dotenv import load_dotenv
 from psycopg2.extensions import connection as psycopg_connection
@@ -22,12 +19,35 @@ def get_connection() -> psycopg_connection:
     password = ENV['DB_PASSWORD']
     return connect(dbname=dbname, user=user, password=password, host=host, port=port)
 
+def get_publisher_info(conn, publisher_name):
+    """Fetches information about the publisher based on partial search."""
+
+    query = """
+    SELECT 
+        publisher.publisher_name,
+        game.game_name
+    FROM 
+        publisher
+    JOIN 
+        publisher_game_assignment dga ON publisher.publisher_id = dga.publisher_id
+    JOIN 
+        game ON game.game_id = dga.game_id
+    WHERE 
+        publisher.publisher_name ILIKE %s;
+    """
+
+
+    cursor = conn.cursor()
+    cursor.execute(query, (f"%{publisher_name}%",))
+    publisher_data = cursor.fetchall()
+
+    return publisher_data
+
 def main():
     """Main function which displays everything on the page."""
     conn = get_connection()
 
-    st.sidebar.image("../images/logo.png", width=100)
-
+    st.sidebar.image("logo.png", width=100)
 
     st.markdown("""
     <style>
@@ -38,13 +58,29 @@ def main():
             font-size: 22px;
             color: yellow;
         }
-        
+                
+        [data-testid="stAppViewContainer"] {
+            background-color: #05122B;
+        }
+                
+        [data-testid="stHeader"] {
+            background-color: #05122B;
+        }
+            
+        .st-bb {
+            background-color: #05122B;
+        }
+
         .sidebar-image {
             border-radius: 15px;
             border: 3px solid lightblue;
-            width: 200px;  /* Adjust the width as per your requirement */
+            width: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
         }
-
+        
         /* Sidebar filter elements */
         .stSidebar .stSelectbox > div, 
         .stSidebar .stCheckbox > div,
@@ -100,11 +136,28 @@ def main():
         .markdown-text-container {
             color: yellow;
         }
+            
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Game Publisher Information</h3>',
+    st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Publisher Information</h3>',
                 unsafe_allow_html=True)
+
+
+    publisher_name = st.text_input("Enter Publisher Name:", "")
+
+    if publisher_name:
+        publisher_data = get_publisher_info(conn, publisher_name)
+        if publisher_data:
+            st.write(f"**publisher: {publisher_data[0][0]}**")
+            st.write(f"**Number of Games Developed: {len(publisher_data)}**")
+            game_names = [game[1] for game in publisher_data]
+            st.write("**Games Developed:**")
+            st.write(", ".join(game_names))
+        else:
+            st.write("No publisher found with that name.")
+    else:
+        st.write("Enter a publisher name to search.")
 
 if __name__ == "__main__":
     load_dotenv()
