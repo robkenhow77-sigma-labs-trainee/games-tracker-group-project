@@ -82,7 +82,7 @@ def get_link(game: dict) -> str:
     try:
         mappings = game.get("catalogNs", {}).get("mappings")
         link = 'https://store.epicgames.com/en-US/p/' + mappings[0].get('pageSlug')
-    except:
+    except TypeError:
         return None
     return link if link else None
 
