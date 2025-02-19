@@ -150,7 +150,7 @@ def main():
     """Main function to manage the Streamlit app interface."""
     conn = get_connection()
 
-    st.sidebar.image("../images/logo.png", width=100)
+    st.sidebar.image("logo.png", width=100)
 
 
     st.markdown("""
