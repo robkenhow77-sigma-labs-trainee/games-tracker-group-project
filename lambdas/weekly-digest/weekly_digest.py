@@ -151,7 +151,6 @@ def generate_email_content(top_games: pd.DataFrame, sum_of_games: pd.DataFrame) 
     return html
 
 
-
 def get_subscribers(sns_conn: boto3.client) -> list[str]:
     """Gets a list of subscribers for the 'play_stream_weekly_digest' topic"""
     response = sns_conn.list_subscriptions_by_topic(
