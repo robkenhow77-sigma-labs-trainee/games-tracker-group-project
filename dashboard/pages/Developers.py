@@ -103,11 +103,11 @@ def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = N
     if price_range and price_range != "Any":
         if price_range == "Free":
             filters.append("gp.platform_price = 0")
-        if price_range == "£0 - £10":
+        if price_range == "£0.01 - £10":
             filters.append("gp.platform_price BETWEEN 1 AND 1000")
-        if price_range == "£10 - £50":
+        if price_range == "£10.01 - £50":
             filters.append("gp.platform_price BETWEEN 1001 AND 5000")
-        if price_range == "£50 - £100":
+        if price_range == "£50.01 - £100":
             filters.append("gp.platform_price BETWEEN 5001 AND 10000")
         if price_range == "Above £100":
             filters.append("gp.platform_price > 10001")
@@ -254,9 +254,9 @@ def main():
     selected_platform = st.sidebar.selectbox("Platform", options=["All"] + platforms)
     price_range = st.sidebar.selectbox("Price Range", ["Any",
                                                        "Free",
-                                                       "£0 - £10",
-                                                       "£10 - £50",
-                                                       "£50 - £100",
+                                                       "£0.01 - £10",
+                                                       "£10.01 - £50",
+                                                       "£50.01 - £100",
                                                        "Above £100"])
     include_nsfw = st.sidebar.checkbox("Include NSFW Games", value=False)
 
