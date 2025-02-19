@@ -19,7 +19,8 @@ NEW_GAMES_EXAMPLE = [{
         "platform": "Steam",
         "score": 90,
         "price": 20000,
-        "discount": 99
+        "discount": 99,
+        "platform_url": "game_platform_url"
         },
         {
         "game_name": "rocket league",
@@ -34,7 +35,8 @@ NEW_GAMES_EXAMPLE = [{
         "platform": "GOG",
         "score": 10,
         "price": 20,
-        "discount": 0
+        "discount": 0,
+        "platform_url": "game_platform_url"
         }]
 
 GAME_ID_MAPPING = {"BO3": 1, "rocket league": 2}
@@ -465,8 +467,8 @@ def test_make_current_game_platform_assignment_tuples():
 
 # Assign game platform
 DATA = [
-    ([(1,1)], [(2, 2, 10, 20, 0, datetime.date(datetime.now()))]),
-    ([(2,2)], [(1, 1, 90, 20000, 99, datetime.date(datetime.now()))])
+    ([(1,1)], [(2, 2, 10, 20, 0, datetime.date(datetime.now()), "game_platform_url")]),
+    ([(2,2)], [(1, 1, 90, 20000, 99, datetime.date(datetime.now()), "game_platform_url")])
     ]
 @pytest.mark.parametrize("current, expected", DATA)
 def test_assign_game_platform(current, expected):

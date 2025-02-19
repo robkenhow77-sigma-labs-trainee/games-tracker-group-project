@@ -163,7 +163,8 @@ if __name__ == "__main__":
         "platform": "Steam",
         "score": 90,
         "price": 20000,
-        "discount": 99
+        "discount": 99,
+        "platform_url": "game_platform_url"
         },
         {
         "game_name": "rocket league",
@@ -178,7 +179,8 @@ if __name__ == "__main__":
         "platform": "GOG",
         "score": 10,
         "price": 20,
-        "discount": 0
+        "discount": 0,
+        "platform_url": "game_platform_url"
         }]
 
     db_connection.close()

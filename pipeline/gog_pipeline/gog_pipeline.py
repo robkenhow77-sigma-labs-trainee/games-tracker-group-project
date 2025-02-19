@@ -1,10 +1,10 @@
-"""A script to run the entire gog pipeline"""
+"""A script to run the entire steam pipeline"""
 
 # Native imports
 from os import environ as ENV
-import logging
-from argparse import ArgumentParser
 from datetime import datetime, timedelta
+from argparse import ArgumentParser
+import logging
 
 # Third-party imports
 import psycopg
@@ -17,7 +17,7 @@ from gog_transform import clean_data
 from gog_load import load_data
 
 
-def init_args() -> bool:
+def init_args() -> tuple:
     """Gets the command line arguments for target date or running local vs cloud."""
     parser = ArgumentParser()
 
@@ -32,7 +32,7 @@ def init_args() -> bool:
             type=str,
             required=False,
             help="Set a target date, in the form' 11 Feb, 2025'. Defaults to yesterday.")
-    
+
     args = parser.parse_args()
     return (args.local, args.target_date)
 
@@ -54,7 +54,8 @@ def change_keys(data: list[dict]):
         "platform": game['platform'],
         "score": game['platform_score'],
         "price": game['platform_price'],
-        "discount": game['platform_discount']
+        "discount": game['platform_discount'],
+        "platform_url": game["link"]
         })
     return updated_keys
 
@@ -62,7 +63,7 @@ def change_keys(data: list[dict]):
 def lambda_handler(event=None, context=None) -> None:
     """Function to run entire Steam ETL pipeline"""
     # Initialise
-    # Initialise logging
+    # Logging
     log_format = "{asctime} - {levelname} - {message}"
     log_datefmt = "%Y-%m-%d %H:%M"
     logging.basicConfig(
@@ -71,12 +72,13 @@ def lambda_handler(event=None, context=None) -> None:
             style="{",
             datefmt=log_datefmt
         )
-    # CLI arguments
-    local, targeted_date = init_args()
 
-    if not targeted_date:
-        targeted_date = datetime.now() - timedelta(days=2)
-        targeted_date = targeted_date.strftime('%d %b, %Y')
+    # CLI arguments
+    local, target_date = init_args()
+
+    if not target_date:
+        target_date = datetime.now() - timedelta(days=2)
+        target_date = target_date.strftime('%d %b, %Y')
 
     # ENV variables
     load_dotenv()
@@ -85,34 +87,33 @@ def lambda_handler(event=None, context=None) -> None:
     host = ENV["DB_HOST"]
     port = ENV["DB_PORT"]
     name = ENV["DB_NAME"]
-    CONN_STRING = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
-    db_connection = psycopg.connect(CONN_STRING, row_factory=dict_row)
-
-    
+    conn_string = f"""postgresql://{user}:{password}@{host}:{port}/{name}"""
+    db_connection = psycopg.connect(conn_string, row_factory=dict_row)
 
     # Extract
-    url = 'https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025'
+    url ='https://www.gog.com/en/games?releaseStatuses=new-arrival&order=desc:releaseDate&hideDLCs=true&releaseDateRange=2025,2025'
+
     scraped_data = scrape_newest(url, local, db_connection)
 
     # Transform
-    cleaned_data = clean_data(scraped_data, targeted_date)
+    cleaned_data = clean_data(scraped_data)
     cleaned_data = change_keys(cleaned_data)
-    
 
     # Load
     load_data(cleaned_data, db_connection)
+    db_connection.close()
     return
 
 
 if __name__ == "__main__":
-    # Initialise logging
-    log_format = "{asctime} - {levelname} - {message}"
-    log_datefmt = "%Y-%m-%d %H:%M"
+    LOGGING_FORMAT = "{asctime} - {levelname} - {message}"
+    LOGGING_DATE_FORMAT = "%Y-%m-%d %H:%M"
     logging.basicConfig(
             level=logging.INFO,
-            format=log_format,
+            format=LOGGING_FORMAT,
             style="{",
-            datefmt=log_datefmt
+            datefmt=LOGGING_DATE_FORMAT
         )
+
     load_dotenv()
     lambda_handler()

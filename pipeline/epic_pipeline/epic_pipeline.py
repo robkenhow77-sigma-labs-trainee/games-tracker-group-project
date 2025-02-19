@@ -1,4 +1,4 @@
-"""A script to run the entire gog pipeline"""
+"""A script to run the entire steam pipeline"""
 
 # Native imports
 from os import environ as ENV
@@ -17,9 +17,15 @@ from epic_transform import clean_data
 from epic_load import load_data
 
 
-def init_args() -> str:
+def init_args() -> tuple:
     """Gets the command line arguments for target date or running local vs cloud."""
     parser = ArgumentParser()
+
+    parser.add_argument(
+            "-l", "--local",
+            action="store_true",
+            required=False,
+            help="Call argument to run local.")
 
     parser.add_argument(
             "-t", "--target_date",
@@ -28,7 +34,7 @@ def init_args() -> str:
             help="Set a target date, in the form' 11 Feb, 2025'. Defaults to yesterday.")
 
     args = parser.parse_args()
-    return args.target_date
+    return (args.local, args.target_date)
 
 
 def change_keys(data: list[dict]):
@@ -48,7 +54,8 @@ def change_keys(data: list[dict]):
         "platform": game['platform'],
         "score": game['platform_score'],
         "price": game['platform_price'],
-        "discount": game['platform_discount']
+        "discount": game['platform_discount'],
+        "platform_url": game["link"]
         })
     return updated_keys
 
@@ -65,8 +72,9 @@ def lambda_handler(event=None, context=None) -> None:
             style="{",
             datefmt=log_datefmt
         )
+
     # CLI arguments
-    target_date = init_args()
+    local, target_date = init_args()
 
     if not target_date:
         target_date = datetime.now() - timedelta(days=2)
@@ -83,20 +91,20 @@ def lambda_handler(event=None, context=None) -> None:
     db_connection = psycopg.connect(conn_string, row_factory=dict_row)
 
     # Extract
-    url = "https://graphql.epicgames.com/graphql"
-    game_data = main(url)
+    url =  "https://graphql.epicgames.com/graphql"
+    scraped_data = main(url)
 
     # Transform
-    cleaned_data = clean_data(game_data, target_date)
+    cleaned_data = clean_data(scraped_data)
     cleaned_data = change_keys(cleaned_data)
 
     # Load
     load_data(cleaned_data, db_connection)
+    db_connection.close()
     return
 
 
 if __name__ == "__main__":
-    # Logging
     LOGGING_FORMAT = "{asctime} - {levelname} - {message}"
     LOGGING_DATE_FORMAT = "%Y-%m-%d %H:%M"
     logging.basicConfig(
@@ -105,5 +113,6 @@ if __name__ == "__main__":
             style="{",
             datefmt=LOGGING_DATE_FORMAT
         )
+
     load_dotenv()
     lambda_handler()
