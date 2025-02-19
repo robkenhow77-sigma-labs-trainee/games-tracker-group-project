@@ -33,7 +33,6 @@ resource "aws_iam_role_policy_attachment" "lambda-daily-summary-policy-attachmen
 }
 
 # Lambda Function to make the daily Email Summary work
-
 resource "aws_lambda_function" "c15-play-stream-daily-summary-lambda-function" {
     function_name = "c15-play-stream-daily-email-summary-lambda-function"
     package_type = "Image"
@@ -43,6 +42,7 @@ resource "aws_lambda_function" "c15-play-stream-daily-summary-lambda-function" {
     
     environment {
         variables = {
+        
         DB_HOST      = var.DB_HOST
         DB_NAME      = var.DB_NAME
         DB_PASSWORD  = var.DB_PASSWORD
@@ -55,7 +55,6 @@ resource "aws_lambda_function" "c15-play-stream-daily-summary-lambda-function" {
 }
 
 # Making the EventBridge Scheduler to run this daily
-
 resource "aws_scheduler_schedule" "daily-email-summary-scheduler" {
     name = "c15-play-stream-daily-email-summary-scheduler"
     schedule_expression   = "rate(1 day)"  # Runs every week
