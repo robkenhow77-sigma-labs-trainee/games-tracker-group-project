@@ -498,5 +498,161 @@ def test_upload_and_return_game_platform_assignments_upload_error():
 
 
 # Assign genre game_platform
+NEW_GAMES_EXAMPLE = [{
+        "game_name": "BO3",
+        "developer": ["treyarch", 'epic', 'some other dev', "someone"],
+        "tag": ["action"],
+        "genre": ["mystic"],
+        "publisher": ["sigma", "activision"],
+        "release_date": datetime.date(datetime.now()),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating": "PEGI 16",
+        "platform": "Steam",
+        "score": 90,
+        "price": 20000,
+        "discount": 99
+        },
+        {
+        "game_name": "rocket league",
+        "developer": ["EA"],
+        "tag": ["action", "racing"],
+        "genre": ["mystic", "horror"],
+        "publisher": ["sigma"],
+        "release_date": datetime.date(datetime.now()),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating": "PEGI 18",
+        "platform": "GOG",
+        "score": 10,
+        "price": 20,
+        "discount": 0
+        }]
+GAME_ID_MAPPING = {"BO3": 1, "rocket league": 2}
+PLATFORM_MAPPING = {"Steam":1, "GOG": 2, "Epic Games Store": 3}
+GAME_PLATFORM_ASSIGNMENT_MAPPING = {"(1, 1)": 1, "(2, 2)": 2}
+GENRE_MAPPING = {"mystic": 1, "horror": 2}
+CURRENT_ASSIGNMENTS = [(1, 1), (1,2)]
 def test_assign_genre_game_platform():
-    assert lf.assign_genre_game_platform == 0
+    assert lf.assign_genre_game_platform(NEW_GAMES_EXAMPLE, GAME_ID_MAPPING, PLATFORM_MAPPING, GENRE_MAPPING, GAME_PLATFORM_ASSIGNMENT_MAPPING,CURRENT_ASSIGNMENTS) == [(2, 2)]
+
+
+# Assign tag game_platform
+NEW_GAMES_EXAMPLE = [{
+        "game_name": "BO3",
+        "developer": ["treyarch", 'epic', 'some other dev', "someone"],
+        "tag": ["action"],
+        "genre": ["mystic"],
+        "publisher": ["sigma", "activision"],
+        "release_date": datetime.date(datetime.now()),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating": "PEGI 16",
+        "platform": "Steam",
+        "score": 90,
+        "price": 20000,
+        "discount": 99
+        },
+        {
+        "game_name": "rocket league",
+        "developer": ["EA"],
+        "tag": ["action", "racing"],
+        "genre": ["mystic", "horror"],
+        "publisher": ["sigma"],
+        "release_date": datetime.date(datetime.now()),
+        "game_image": "random",
+        "is_nsfw": True,
+        "age_rating": "PEGI 18",
+        "platform": "GOG",
+        "score": 10,
+        "price": 20,
+        "discount": 0
+        }]
+GAME_ID_MAPPING = {"BO3": 1, "rocket league": 2}
+PLATFORM_MAPPING = {"Steam":1, "GOG": 2, "Epic Games Store": 3}
+GAME_PLATFORM_ASSIGNMENT_MAPPING = {"(1, 1)": 1, "(2, 2)": 2}
+TAG_MAPPING = {"action": 1, "racing": 2}
+CURRENT_ASSIGNMENTS = [(1, 1), (2,2)]
+def test_assign_genre_game_platform():
+    assert lf.assign_tag_game_platform(NEW_GAMES_EXAMPLE, GAME_ID_MAPPING, PLATFORM_MAPPING, TAG_MAPPING, GAME_PLATFORM_ASSIGNMENT_MAPPING,CURRENT_ASSIGNMENTS) == [(1, 2)]
+
+
+# Upload genre_game_platform_assignment
+
+def test_upload_genre_game_platform_assignment():
+    input_data = [(1, 2)]
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+    mock_cursor.nextset.return_value = False
+
+    with patch('logging.info') as mock_info:
+        result = lf.upload_genre_game_platform_assignment(input_data, mock_conn)
+        mock_info.assert_any_call("Successfully loaded genre_game_platform_assignments")
+
+
+def test_upload_genre_game_platform_assignment_no_data():
+    input = []
+    expected_output = {}
+
+    mock_conn = MagicMock()
+
+    with patch('logging.info') as mock_info:
+        assert lf.upload_genre_game_platform_assignment(input, mock_conn) ==  expected_output
+        mock_info.assert_any_call("No new genre_game_platform_assignments to upload") 
+
+
+def test_upload_genre_game_platform_assignment_upload_error():
+    input = [(1,2), (2,1)]
+    expected_output = {}
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+   
+    mock_cursor.executemany.side_effect = psycopg.Error("DB Error")
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+    with patch('logging.error') as mock_error:
+        assert lf.upload_genre_game_platform_assignment(input, mock_conn) == expected_output
+        mock_error.assert_any_call("Uploading genre_game_platform_assignments failed: DB ERROR. Data to be uploaded: [(1,2), (2,1)]")
+
+
+# Upload genre_game_platform_assignment
+
+def test_upload_tag_game_platform_assignment():
+    input_data = [(1, 2)]
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+    mock_cursor.nextset.return_value = False
+
+    with patch('logging.info') as mock_info:
+        result = lf.upload_tag_game_platform_assignment(input_data, mock_conn)
+        mock_info.assert_any_call("Successfully loaded tag_game_platform_assignments")
+
+
+def test_upload_tag_game_platform_assignment_no_data():
+    input = []
+    expected_output = {}
+
+    mock_conn = MagicMock()
+
+    with patch('logging.info') as mock_info:
+        assert lf.upload_tag_game_platform_assignment(input, mock_conn) ==  expected_output
+        mock_info.assert_any_call("No new tag_game_platform_assignments to upload") 
+
+
+def test_upload_tag_game_platform_assignment_upload_error():
+    input = [(1,2), (2,1)]
+    expected_output = {}
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+   
+    mock_cursor.executemany.side_effect = psycopg.Error("DB Error")
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+    with patch('logging.error') as mock_error:
+        assert lf.upload_tag_game_platform_assignment(input, mock_conn) == expected_output
+        mock_error.assert_any_call("Uploading tag_game_platform_assignments failed: DB ERROR. Data to be uploaded: [(1,2), (2,1)]")
+
