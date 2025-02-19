@@ -32,7 +32,7 @@ def init_driver():
     chrome_options.add_argument(f"--data-path={mkdtemp()}")
     chrome_options.add_argument(f"--disk-cache-dir={mkdtemp()}")
     chrome_options.add_argument("--remote-debugging-pipe")
-    chrome_options.add_argument("--verbose")
+    chrome_options.add_argument("--verbose") 
     chrome_options.add_argument("--log-path=/tmp")
     chrome_options.binary_location = "/opt/chrome/chrome-linux64/chrome"
 
