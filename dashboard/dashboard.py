@@ -1,7 +1,6 @@
+#pylint: disable=unused-variable, line-too-long
 """
-This module connects to a PostgreSQL database to fetch and display game data. 
-It allows users to filter games by genre, tag, price, and platform, 
-and displays information such as title, image, release date, score, price, and platform.
+Global Dashboard which allows users to filter games to their needs.
 """
 import logging
 from os import environ as ENV
@@ -125,7 +124,7 @@ def main():
     """Main function to execute the Streamlit app."""
     load_dotenv()
 
-    st.sidebar.image("../images/logo.png", width=100)
+    st.sidebar.image("logo.png", width=100)
 
     st.markdown("""
     <style>
