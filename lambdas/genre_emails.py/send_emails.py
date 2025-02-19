@@ -145,9 +145,9 @@ def generate_html(genre_name: str, game_data: list, subscribers: list) -> str:
     body_html = f"""
         <html>
             <head>
+                <link href='https://fonts.googleapis.com/css?family=Press Start 2P' rel='stylesheet'><link href='https://fonts.googleapis.com/css?family=Lexend' rel='stylesheet'>
                 <style>
                     body {{
-                        font-family: Arial, sans-serif;
                         color: #f0f0f0;
                         padding: 20px;
                         margin: 0;
@@ -160,13 +160,18 @@ def generate_html(genre_name: str, game_data: list, subscribers: list) -> str:
                         max-width: 600px;  
                         margin: 40px auto;
                         padding: 20px;
-                        background-color: #1b3a4b;
+                        background-color: #05122b;
                         border-radius: 10px;
                         text-align: center;
                     }}
-                    h1, h2, p {{
-                        color: #f0f0f0;
+                    h2, p {{
+                        font-family: 'Lexend';
+                        color: #00e5c2;
                         text-align: center;
+                    }}
+                    h1 {{
+                        font-family: 'Press Start 2P';
+                        color: #ffff00;
                     }}
                     .game-table {{
                         width: 100%;
@@ -174,7 +179,7 @@ def generate_html(genre_name: str, game_data: list, subscribers: list) -> str:
                     }}
                     .game {{
                         width: 100%;
-                        background-color: #204050;
+                        background-color: #05132e;
                         border-radius: 8px;
                         padding: 15px;
                         margin-bottom: 15px;
@@ -188,20 +193,21 @@ def generate_html(genre_name: str, game_data: list, subscribers: list) -> str:
                         border-radius: 5px;
                     }}
                     .game-title {{
-                        font-size: 20px;
+                        font-size: 24px;
                         font-weight: bold;
-                        color: #f0f0f0;
+                        color: #00e5c2;
                         margin-top: 10px;
                     }}
                     .game-info {{
                         font-size: 16px;
-                        color: #f0f0f0;
+                        color: #00e5c2;
                         margin-top: 5px;
                     }}
                 </style>
             </head>
             <body>
                 <div class="email-container">
+                    <img src="https://imgur.com/hY6MSBU.png" alt="Playstream logo" style="width:150px;height:150px;">
                     <h1>New Game Releases in {genre_name}</h1>
                     <table class="game-table">
     """
