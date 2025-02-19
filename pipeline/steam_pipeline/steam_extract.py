@@ -265,6 +265,7 @@ def get_data(link: str) -> dict:
     data['release_date'] = fetch_release_date(soup)
     data['game_image'] = fetch_game_image(soup)
     data['age_rating'] = fetch_age_rating(soup)
+    data['link'] = link
     return data
 
 
