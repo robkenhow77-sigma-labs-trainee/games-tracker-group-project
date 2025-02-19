@@ -110,7 +110,7 @@ def generate_email_content(top_games: pd.DataFrame, sum_of_games: pd.DataFrame) 
     }
     </style></head>
     <body style="background-color:#05122b;">
-    <img src="https://i.imgur.com/uP32jFH.png" alt="Playstream logo" style="width:150px;height:150px;">
+    <img src="https://i.imgur.com/hY6MSBU.png" alt="Playstream logo" style="width:150px;height:150px;">
     <h2>Weekly Game Platform Trends</h2>
     <p><h3>Here are the number of games released per platform this week:</h3></p>
     <table border='1' cellpadding='5' cellspacing='0' style="border-collapse: collapse; width: 50%;">
@@ -151,12 +151,12 @@ def generate_email_content(top_games: pd.DataFrame, sum_of_games: pd.DataFrame) 
     return html
 
 
-
 def get_subscribers(sns_conn: boto3.client) -> list[str]:
     """Gets a list of subscribers for the 'play_stream_weekly_digest' topic"""
     response = sns_conn.list_subscriptions_by_topic(
         TopicArn=ENV['SNS_TOPIC_ARN'])
-    subscribers = [sub['Endpoint'] for sub in response.get('Subscriptions', []) if sub['Protocol'] == 'email']
+    subscribers = [sub['Endpoint'] for sub in response.get(
+        'Subscriptions', []) if sub['Protocol'] == 'email']
     return subscribers
 
 
