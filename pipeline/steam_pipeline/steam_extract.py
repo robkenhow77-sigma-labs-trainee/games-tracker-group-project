@@ -100,7 +100,7 @@ def find_target_date(driver: ChromeDriverManager, target_date: str) -> None:
             body.send_keys(Keys.END)
             scroll_attempts += 1
 
-        if scroll_attempts == 100: # Change 100 to change how many max scrolls you want.
+        if scroll_attempts == 100000: # Change 100 to change how many max scrolls you want.
             logging.error('Date not found after %s scrolls.', scroll_attempts)
             raise ValueError(f'Date not found after {scroll_attempts} scrolls.')
 
