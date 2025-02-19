@@ -1,3 +1,5 @@
+#pylint: disable=line-too-long, ungrouped-imports
+"""Dashboard that will get information about a selected game."""
 import logging
 from os import environ as ENV
 import pandas as pd
@@ -156,25 +158,20 @@ def main():
 
     st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Search Game</h3>', unsafe_allow_html=True)
 
-    # User input for game name (search box)
     game_search_input = st.text_input("Search for a game by name:")
 
     if game_search_input:
-        # Fetch game suggestions based on partial name
         game_suggestions = get_game_suggestions(game_search_input, conn)
-        
         if game_suggestions:
             game_name = st.selectbox("Select a game:", game_suggestions)
 
             if game_name:
-                # Get detailed information for the selected game
                 game_info_df = get_game_info(game_name, conn)
 
                 if not game_info_df.empty:
                     st.markdown(f"### {game_info_df['game_name'][0]} Details")
                     st.image(game_info_df['game_image'][0], caption=game_info_df['game_name'][0], width=200)
 
-                    # Display detailed information in a formatted manner
                     st.write(f"**Age Rating**: {game_info_df['age_rating_name'][0]}")
                     st.write(f"**NSFW Content**: {'Yes' if game_info_df['is_nsfw'][0] else 'No'}")
                     st.write(f"**Publisher**: {game_info_df['publisher_name'][0]}")

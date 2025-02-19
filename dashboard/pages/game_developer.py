@@ -1,3 +1,5 @@
+#pylint: disable=line-too-long, ungrouped-imports
+"""Dashboard that will get information about a selected developer."""
 import logging
 from os import environ as ENV
 import pandas as pd
@@ -33,12 +35,12 @@ def get_developer_info(conn, developer_name):
     WHERE 
         developer.developer_name ILIKE %s;
     """
-    
-    
+
+
     cursor = conn.cursor()
     cursor.execute(query, (f"%{developer_name}%",))
     developer_data = cursor.fetchall()
-    
+
     return developer_data
 
 def main():
@@ -124,18 +126,13 @@ def main():
     st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Developer Information</h3>',
                 unsafe_allow_html=True)
 
-    
     developer_name = st.text_input("Enter Developer Name:", "")
 
     if developer_name:
         developer_data = get_developer_info(conn, developer_name)
-        
         if developer_data:
-            
             st.write(f"**Developer: {developer_data[0][0]}**")
             st.write(f"**Number of Games Developed: {len(developer_data)}**")
-            
-            
             game_names = [game[1] for game in developer_data]
             st.write("**Games Developed:**")
             st.write(", ".join(game_names))

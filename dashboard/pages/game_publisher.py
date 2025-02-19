@@ -1,3 +1,5 @@
+#pylint: disable=line-too-long, ungrouped-imports
+"""Dashboard that will get information about a selected publisher."""
 import logging
 from os import environ as ENV
 import pandas as pd
@@ -33,12 +35,12 @@ def get_publisher_info(conn, publisher_name):
     WHERE 
         publisher.publisher_name ILIKE %s;
     """
-    
-    
+
+
     cursor = conn.cursor()
     cursor.execute(query, (f"%{publisher_name}%",))
     publisher_data = cursor.fetchall()
-    
+
     return publisher_data
 
 def main():
@@ -124,18 +126,14 @@ def main():
     st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Publisher Information</h3>',
                 unsafe_allow_html=True)
 
-    
+
     publisher_name = st.text_input("Enter Publisher Name:", "")
 
     if publisher_name:
         publisher_data = get_publisher_info(conn, publisher_name)
-        
         if publisher_data:
-            
             st.write(f"**publisher: {publisher_data[0][0]}**")
             st.write(f"**Number of Games Developed: {len(publisher_data)}**")
-            
-            
             game_names = [game[1] for game in publisher_data]
             st.write("**Games Developed:**")
             st.write(", ".join(game_names))
