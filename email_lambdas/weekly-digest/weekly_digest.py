@@ -15,9 +15,9 @@ def get_sns_connection() -> boto3.client:
     print("Connecting to SNS...")
     client = boto3.client(
         'sns',
-        aws_access_key_id=ENV['AWS_ACCESS_KEY'],
-        aws_secret_access_key=ENV['AWS_SECRET_ACCESS_KEY'],
-        region_name=ENV['AWS_REGION']
+        aws_access_key_id=ENV['PRIVATE_AWS_ACCESS_KEY'],
+        aws_secret_access_key=ENV['PRIVATE_AWS_SECRET_ACCESS_KEY'],
+        region_name=ENV['PRIVATE_AWS_REGION']
     )
     print("Connected to SNS.")
     return client
@@ -28,9 +28,9 @@ def get_ses_connection() -> boto3.client:
     print("Connecting to SES...")
     ses_client = boto3.client(
         'ses',
-        aws_access_key_id=ENV['AWS_ACCESS_KEY'],
-        aws_secret_access_key=ENV['AWS_SECRET_ACCESS_KEY'],
-        region_name=ENV['AWS_REGION']
+        aws_access_key_id=ENV['PRIVATE_AWS_ACCESS_KEY'],
+        aws_secret_access_key=ENV['PRIVATE_AWS_SECRET_ACCESS_KEY'],
+        region_name=ENV['PRIVATE_AWS_REGION']
     )
     print("Connected to SES.")
     return ses_client
