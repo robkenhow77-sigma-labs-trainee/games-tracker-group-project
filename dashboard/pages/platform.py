@@ -26,8 +26,7 @@ def main():
     """Main function which displays everything on the page."""
     conn = get_connection()
 
-    st.sidebar.image("../images/logo.png", width=100)
-
+    st.sidebar.image("logo.png", width=100)
 
     st.markdown("""
     <style>

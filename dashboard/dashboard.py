@@ -46,13 +46,10 @@ def get_genre_tag_platform_options(conn: connection) -> tuple[list[str], list[st
     return available_genres, available_tags, available_platforms
 
 
-def get_filtered_games(conn: connection, genre: str = None, tag: str = None, price: float = None,
+def get_filtered_games(conn: connection, genre: str = None, tag: str = None, price_range: str = None,
     platform: str = None, limit: int = 25, offset: int = 0) -> pd.DataFrame:
     """
-    Fetches games from the database based on the provided filters (genre, tag, price, platform).
-
-    Returns:
-        A Pandas DataFrame containing filtered game data.
+    Fetches games from the database based on the provided filters (genre, tag, price_range, platform).
     """
     query = """
     SELECT DISTINCT g.game_name, g.game_image, gp.platform_score, gp.platform_price, 
@@ -69,31 +66,43 @@ def get_filtered_games(conn: connection, genre: str = None, tag: str = None, pri
 
     if genre and genre != "All":
         filters.append("ge.genre_name = %s")
+    
     if tag and tag != "All":
         filters.append("t.tag_name = %s")
-    if price:
-        filters.append("gp.platform_price <= %s")
+    
+    if price_range and price_range != "Any":
+        if price_range == "Free":
+            filters.append("gp.platform_price = 0")
+        if price_range == "£0 - £10":
+            filters.append("gp.platform_price BETWEEN 1 AND 1000")
+        if price_range == "£10 - £50":
+            filters.append("gp.platform_price BETWEEN 1001 AND 5000")
+        if price_range == "£50 - £100":
+            filters.append("gp.platform_price BETWEEN 5001 AND 10000")
+        if price_range == "Above £100":
+            filters.append("gp.platform_price > 10001")
+
     if platform and platform != "All":
         filters.append("p.platform_name = %s")
 
     if filters:
         query += " WHERE " + " AND ".join(filters)
 
-    query += " ORDER BY g.game_name LIMIT %s OFFSET %s"
+    query += " ORDER BY gp.platform_release_date DESC LIMIT %s OFFSET %s"
 
     params = []
     if genre and genre != "All":
         params.append(genre)
     if tag and tag != "All":
         params.append(tag)
-    if price:
-        params.append(price * 100)
     if platform and platform != "All":
         params.append(platform)
     params.append(limit)
     params.append(offset)
 
     with conn.cursor() as cursor:
+        print(price_range)
+        print(query)
         cursor.execute(query, tuple(params))
         result = cursor.fetchall()
 
@@ -120,6 +129,7 @@ def format_date(date: datetime) -> str:
     """Returns the date formatted as DD/MM/YYYY."""
     return datetime.strftime(date, "%d/%m/%Y")
 
+
 def main():
     """Main function to execute the Streamlit app."""
     load_dotenv()
@@ -136,10 +146,26 @@ def main():
             color: yellow;
         }
                 
+        [data-testid="stAppViewContainer"] {
+            background-color: #05122B;
+        }
+                
+        [data-testid="stHeader"] {
+            background-color: #05122B;
+        }
+            
+        .st-bb {
+            background-color: #05122B;
+        }
+
         .sidebar-image {
             border-radius: 15px;
             border: 3px solid lightblue;
             width: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
         }
         
         /* Sidebar filter elements */
@@ -197,6 +223,7 @@ def main():
         .markdown-text-container {
             color: yellow;
         }
+            
     </style>
     """, unsafe_allow_html=True)
 
@@ -215,20 +242,13 @@ def main():
     platform_filter = st.sidebar.selectbox("Select Platform", ["All"] + platforms)
     price_range = st.sidebar.selectbox("Price Range", ["Any",
                                                        "Free",
-                                                       "Under £10",
+                                                       "£0 - £10",
                                                        "£10 - £50",
                                                        "£50 - £100",
                                                        "Above £100"])
 
-    price_mapping = {
-        "Free": 0,
-        "Under £10": 10,
-        "£10 - £50": 50,
-        "£50 - £100": 100,
-        "Above £100": 300
-    }
 
-    selected_price = price_mapping.get(price_range, None)
+    selected_price = price_range
     value_data = get_filtered_games(connection_to_db,
                                     genre_filter,
                                     tag_filter,
@@ -237,7 +257,7 @@ def main():
                                     limit,
                                     offset)
 
-    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Library</h4>', unsafe_allow_html=True)
+    st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow; text-align: center;">Games Library</h3>', unsafe_allow_html=True)
 
     col_headers = ['Title', 'Image', 'Release Date', 'Score', 'Price', 'Platform']
     st.markdown(f'<div style="font-family: \'Press Start 2P\', cursive; color: yellow; font-size: 12px;">{"  |  ".join(col_headers)}</div>', unsafe_allow_html=True)
