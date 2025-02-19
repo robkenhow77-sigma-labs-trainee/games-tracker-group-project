@@ -1,14 +1,18 @@
 """Creates an email giving weekly digestible information on new game platform trends"""
 
+from os import environ as ENV, makedirs, path
+from dotenv import load_dotenv
+from datetime import datetime
+
 from psycopg2.extensions import connection
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import pandas as pd
 import boto3
-from os import environ as ENV
-from dotenv import load_dotenv
-from datetime import datetime
-
+from xhtml2pdf import pisa
+import pdfkit
+import boto3
+from pypdf import PdfReader, PdfWriter
 
 def get_sns_connection() -> boto3.client:
     """Get SNS client connection"""
@@ -178,6 +182,33 @@ def send_email(ses_client: boto3.client, subscribers: list, html_body: str):
         )
 
 
+def convert_html_to_pdf(source_html: str, output_filename: str) -> None:
+    """Converts the html to a pdf."""
+
+    result_file = open(output_filename, "w+b")
+    
+    makedirs(path.dirname(output_filename), exist_ok=True)
+
+    pisa.CreatePDF(
+            source_html,
+            dest=result_file)
+
+    result_file.close()
+
+
+def save_pdf_to_s3(html: str) -> None:
+    """Stores the most recent digest as a PDF file in a S3"""
+
+    file_name = str(datetime.strftime(datetime.today().date(),'%d-%m-%Y')) + ".pdf"
+    bucket_name = "c15-playstream-backlog"
+
+    convert_html_to_pdf(html, "tmp/" + file_name)
+
+    s3 = boto3.client('s3')
+    with open("tmp/" + file_name, "rb") as f:
+        s3.upload_fileobj(f, bucket_name, "weekly_summaries/" + file_name)
+
+
 def lambda_handler():
     """Main function"""
     load_dotenv()
@@ -186,7 +217,7 @@ def lambda_handler():
     top_games = get_weekly_top_games(conn)
     sum_of_games = sum_of_games_released_per_platform(conn)
     html_body = generate_email_content(top_games, sum_of_games)
-    write_html_to_file(html_body)
+    save_pdf_to_s3(html_body)
 
     sns_client = get_sns_connection()
     subscribers = get_subscribers(sns_client)
