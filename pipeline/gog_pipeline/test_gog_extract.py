@@ -6,8 +6,9 @@ import pytest
 from bs4 import BeautifulSoup
 from gog_extract import get_soup, fetch_title, fetch_genres, fetch_publisher, fetch_developer, fetch_tags, \
     fetch_platform_score, fetch_platform_price, fetch_platform_discount, fetch_release_date, fetch_game_image, \
-    fetch_age_rating, get_data
-from unittest.mock import MagicMock
+    fetch_age_rating, get_current_games, get_data
+import unittest
+from unittest.mock import patch, MagicMock
 
 
 @pytest.fixture
@@ -32,6 +33,11 @@ def false_soup():
             <span class="product-actions-price__discount ng-binding" selenium-id="ProductPriceDiscount" ng-bind="'-'+cardProduct.product.price.discountPercentage+'%'">-50%</span>
             <img class="productcard-player__logo" srcset="test_image.png" />
             <div class="age-restrictions">TEST TEST PEGI Rating: 16+ TEST</div>
+            <script type="application/ld+json">
+            {
+            "releaseDate": "2025-02-18T10:58:00+02:00"
+            }
+            </script>
         </body>
     </html>
     """
@@ -78,3 +84,29 @@ def test_fetch_game_image(false_soup: BeautifulSoup):
 def test_fetch_age_rating(false_soup: BeautifulSoup):
     """Tests fetching the age rating"""
     assert fetch_age_rating(false_soup) == '16'
+
+def test_fetch_release_date(false_soup: BeautifulSoup):
+    """Tests fetching the age rating"""
+    assert fetch_release_date(false_soup) == "2025-02-18T10:58:00+02:00"
+
+@patch('gog_extract.get_soup')
+def test_get_data(mock_get_soup, false_soup):
+    """Tests that get_data pulls out the correct data."""
+
+    mock_get_soup.return_value = false_soup
+
+    return_data = get_data('test', "doesn't matter")
+
+    assert return_data == {
+        'title': "Skyrim",
+        'genres': ['Action', 'Adventure'],
+        'publisher': ['Microsoft'],
+        'developer': ['Bethesda'],
+        'tag': ['wilderness', 'mod', 'monster'],
+        'platform_score': '5.0',
+        'platform_price': '£10.00',
+        'platform_discount': '50',
+        'release_date': "2025-02-18T10:58:00+02:00",
+        'game_image': 'test_image.png',
+        'age_rating': '16'
+    }
