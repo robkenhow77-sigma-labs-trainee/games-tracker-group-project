@@ -58,13 +58,29 @@ def main():
             font-size: 22px;
             color: yellow;
         }
-        
+                
+        [data-testid="stAppViewContainer"] {
+            background-color: #05122B;
+        }
+                
+        [data-testid="stHeader"] {
+            background-color: #05122B;
+        }
+            
+        .st-bb {
+            background-color: #05122B;
+        }
+
         .sidebar-image {
             border-radius: 15px;
             border: 3px solid lightblue;
-            width: 200px;  /* Adjust the width as per your requirement */
+            width: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
         }
-
+        
         /* Sidebar filter elements */
         .stSidebar .stSelectbox > div, 
         .stSidebar .stCheckbox > div,
@@ -120,6 +136,7 @@ def main():
         .markdown-text-container {
             color: yellow;
         }
+            
     </style>
     """, unsafe_allow_html=True)
 

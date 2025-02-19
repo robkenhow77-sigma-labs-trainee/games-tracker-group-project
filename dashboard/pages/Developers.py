@@ -155,7 +155,6 @@ def main():
 
     st.sidebar.image("logo.png", width=100)
 
-
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap');
@@ -165,13 +164,29 @@ def main():
             font-size: 22px;
             color: yellow;
         }
-        
+                
+        [data-testid="stAppViewContainer"] {
+            background-color: #05122B;
+        }
+                
+        [data-testid="stHeader"] {
+            background-color: #05122B;
+        }
+            
+        .st-bb {
+            background-color: #05122B;
+        }
+
         .sidebar-image {
             border-radius: 15px;
             border: 3px solid lightblue;
-            width: 200px;  /* Adjust the width as per your requirement */
+            width: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
         }
-
+        
         /* Sidebar filter elements */
         .stSidebar .stSelectbox > div, 
         .stSidebar .stCheckbox > div,
@@ -227,6 +242,7 @@ def main():
         .markdown-text-container {
             color: yellow;
         }
+            
     </style>
     """, unsafe_allow_html=True)
 
@@ -277,6 +293,7 @@ def main():
                                    selected_price,
                                    selected_platform,
                                    top_n=10)
+
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.barplot(x='platform_score', y='game_name', data=top_games, palette="rocket", ax=ax)
 
