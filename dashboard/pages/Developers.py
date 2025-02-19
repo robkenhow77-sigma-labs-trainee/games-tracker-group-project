@@ -271,11 +271,11 @@ def main():
     st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Top 10 Best Reviewed Games</h4>',
                 unsafe_allow_html=True)
 
-    top_games = get_filtered_games(conn, 
-                                   selected_genre, 
-                                   selected_tag, 
-                                   selected_price, 
-                                   selected_platform, 
+    top_games = get_filtered_games(conn,
+                                   selected_genre,
+                                   selected_tag,
+                                   selected_price,
+                                   selected_platform,
                                    top_n=10)
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.barplot(x='platform_score', y='game_name', data=top_games, palette="rocket", ax=ax)
@@ -293,7 +293,7 @@ def main():
 
     st.pyplot(fig)
 
-    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Price vs Rating Scatter Plot</h4>', 
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Price vs Rating Scatter Plot</h4>',
                 unsafe_allow_html=True)
 
     fig, ax = plt.subplots(figsize=(10, 6))

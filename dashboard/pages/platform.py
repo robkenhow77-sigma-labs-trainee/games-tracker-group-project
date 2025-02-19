@@ -1,4 +1,5 @@
 """Information about each platform."""
+#pylint: disable=unused-import, line-too-long, unused-variable
 import logging
 from os import environ as ENV
 import pandas as pd
@@ -22,6 +23,7 @@ def get_connection() -> psycopg_connection:
     return connect(dbname=dbname, user=user, password=password, host=host, port=port)
 
 def main():
+    """Main function which displays everything on the page."""
     conn = get_connection()
 
     st.sidebar.image("../images/logo.png", width=100)
