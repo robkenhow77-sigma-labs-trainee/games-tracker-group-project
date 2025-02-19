@@ -207,7 +207,7 @@ def generate_html(genre_name: str, game_data: list, subscribers: list) -> str:
             </head>
             <body>
                 <div class="email-container">
-                    <img src="https://i.imgur.com/uP32jFH.png" alt="Playstream logo" style="width:150px;height:150px;">
+                    <img src="https://imgur.com/hY6MSBU.png" alt="Playstream logo" style="width:150px;height:150px;">
                     <h1>New Game Releases in {genre_name}</h1>
                     <table class="game-table">
     """
