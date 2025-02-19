@@ -10,3 +10,5 @@ rich
 selenium
 webdriver_manager
 psycopg[binary]
+psycopg[binary,pool]
+psycopg-binary
