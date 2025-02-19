@@ -54,7 +54,8 @@ def change_keys(data: list[dict]):
         "platform": game['platform'],
         "score": game['platform_score'],
         "price": game['platform_price'],
-        "discount": game['platform_discount']
+        "discount": game['platform_discount'],
+        "platform_url": game["link"]
         })
     return updated_keys
 
@@ -76,7 +77,7 @@ def lambda_handler(event=None, context=None) -> None:
     local, target_date = init_args()
 
     if not target_date:
-        target_date = datetime.now() - timedelta(days=2)
+        target_date = datetime.now() - timedelta(days=1)
         target_date = target_date.strftime('%d %b, %Y')
 
     # ENV variables
@@ -114,5 +115,4 @@ if __name__ == "__main__":
         )
 
     load_dotenv()
-
     lambda_handler()

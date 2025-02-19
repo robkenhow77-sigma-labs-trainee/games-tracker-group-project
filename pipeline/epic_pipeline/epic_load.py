@@ -3,6 +3,7 @@
 # Native imports
 from os import environ as ENV
 from datetime import datetime
+import logging
 
 # Third-party imports
 import psycopg
@@ -14,7 +15,7 @@ import epic_load_functions as lf
 
 
 def load_data(new_games_transformed: list[dict], connection: psycopg.Connection):
-    """Upload the games to the database"""
+    """Loads the cleaned data to the database"""
     # LOAD STEP 1: Update the game, tag, developer, publisher and genre tables
     # Get the current tables and make a mapping of {name: id}
     game_titles_and_ids = lf.make_id_mapping(lf.get_game_ids(connection), 'game')
@@ -85,7 +86,7 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
 
     # Get the current game_platform tuples
     current_game_platform_tuples = lf.make_current_game_platform_assignment_tuples(
-        current_game_platform_assignments, 'platform_id')
+        current_game_platform_assignments)
 
     # Gets the new game_platform assignments that aren't in the database, to be uploaded
     game_platform_tuples = lf.assign_game_platform(new_games_transformed,
@@ -128,12 +129,18 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
     lf.upload_genre_game_platform_assignment(new_genre_game_platform_tuples, connection)
     lf.upload_tag_game_platform_assignment(new_tag_game_platform_tuples, connection)
 
-    # Close the connection to the database
-    connection.close()  # pylint: disable=no-member
-
 
 if __name__ == "__main__":
-    # initialise
+    # Initialise logging
+    log_format = "{asctime} - {levelname} - {message}"
+    log_datefmt = "%Y-%m-%d %H:%M"
+    logging.basicConfig(
+            level=logging.INFO,
+            format=log_format,
+            style="{",
+            datefmt=log_datefmt
+        )
+
     load_dotenv()
     user = ENV['DB_USERNAME']
     password = ENV["DB_PASSWORD"]
@@ -153,10 +160,11 @@ if __name__ == "__main__":
         "game_image": "random",
         "is_nsfw": True,
         "age_rating": "PEGI 16",
-        "platform": "Epic",
+        "platform": "Steam",
         "score": 90,
         "price": 20000,
-        "discount": 99
+        "discount": 99,
+        "platform_url": "game_platform_url"
         },
         {
         "game_name": "rocket league",
@@ -168,12 +176,11 @@ if __name__ == "__main__":
         "game_image": "random",
         "is_nsfw": True,
         "age_rating": "PEGI 18",
-        "platform": "Epic",
+        "platform": "GOG",
         "score": 10,
         "price": 20,
-        "discount": 0
+        "discount": 0,
+        "platform_url": "game_platform_url"
         }]
 
-
-    load_data(NEW_GAMES_EXAMPLE, db_connection)
     db_connection.close()

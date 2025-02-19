@@ -86,7 +86,7 @@ def load_data(new_games_transformed: list[dict], connection: psycopg.Connection)
 
     # Get the current game_platform tuples
     current_game_platform_tuples = lf.make_current_game_platform_assignment_tuples(
-        current_game_platform_assignments, 'platform_id')
+        current_game_platform_assignments)
 
     # Gets the new game_platform assignments that aren't in the database, to be uploaded
     game_platform_tuples = lf.assign_game_platform(new_games_transformed,
@@ -163,7 +163,8 @@ if __name__ == "__main__":
         "platform": "Steam",
         "score": 90,
         "price": 20000,
-        "discount": 99
+        "discount": 99,
+        "platform_url": "game_platform_url"
         },
         {
         "game_name": "rocket league",
@@ -178,7 +179,8 @@ if __name__ == "__main__":
         "platform": "GOG",
         "score": 10,
         "price": 20,
-        "discount": 0
+        "discount": 0,
+        "platform_url": "game_platform_url"
         }]
 
     db_connection.close()

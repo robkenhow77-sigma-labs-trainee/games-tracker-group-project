@@ -36,7 +36,3 @@ variable "DB_PASSWORD" {
 variable "DB_NAME" {
     type = string  
 }
-
-variable "ABDI_EMAIL" {
-    type = string
-}

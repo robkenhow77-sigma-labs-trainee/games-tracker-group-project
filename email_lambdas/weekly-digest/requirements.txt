@@ -1,0 +1,7 @@
+psycopg2-binary
+pandas
+boto3
+python-dotenv
+pdfkit
+pypdf
+xhtml2pdf
