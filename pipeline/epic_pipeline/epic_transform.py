@@ -401,7 +401,7 @@ def format_data(game: dict, days_before_today_allowed=0) -> bool:
     formatted_data['genres'] = format_genre_list(game['genres'])
     formatted_data['platform_price'] = game['platform_price']
     formatted_data['platform'] = "Epic Games Store"
-    formatted_data['link'] = game['link']
+    formatted_data['link'] = game['link'] if game['link'] else 'N/A'
 
     # Optional data formatting
     if is_valid_publisher(game['publisher']):
