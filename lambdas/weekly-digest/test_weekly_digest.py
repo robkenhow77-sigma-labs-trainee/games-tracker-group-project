@@ -1,5 +1,7 @@
+# pylint: skip-file
+
 from unittest.mock import MagicMock
-from weekly_digest import get_weekly_top_games, sum_of_games_released_per_platform
+from weekly_digest import get_weekly_top_games
 import pandas as pd
 
 
