@@ -52,11 +52,15 @@ resource "aws_lambda_function" "c15-play-stream-weekly-summary-lambda-function" 
     
     environment {
         variables = {
-        DB_HOST      = var.DB_HOST
-        DB_NAME      = var.DB_NAME
-        DB_PASSWORD  = var.DB_PASSWORD
-        DB_PORT      = var.DB_PORT
-        DB_USER      = var.DB_USERNAME
+        DB_HOST                         = var.DB_HOST
+        DB_NAME                         = var.DB_NAME
+        DB_PASSWORD                     = var.DB_PASSWORD
+        DB_PORT                         = var.DB_PORT
+        DB_USERNAME                     = var.DB_USERNAME
+        PRIVATE_AWS_ACCESS_KEY          = var.AWS_ACCESS_KEY
+        PRIVATE_AWS_SECRET_ACCESS_KEY   = var.AWS_SECRET_ACCESS_KEY
+        PRIVATE_AWS_REGION              = var.AWS_REGION
+        SNS_TOPIC_ARN                   = var.SNS_TOPIC_ARN
         }
     }
 
@@ -67,7 +71,7 @@ resource "aws_lambda_function" "c15-play-stream-weekly-summary-lambda-function" 
 
 resource "aws_sfn_state_machine" "weekly-email-summary-step-function" {
     name     = "c15-play-stream-weekly-email-summary-step-function"
-    role_arn = aws_iam_role.lambda_task_role.arn
+    role_arn = aws_iam_role.etl-pipeline-step-function-role.arn
     publish  = true
     type     = "EXPRESS"
 
@@ -75,43 +79,15 @@ resource "aws_sfn_state_machine" "weekly-email-summary-step-function" {
         "Comment": "Step Function to run the Weekly Email Summary Lambda Function",
         "StartAt": "Run Weekly Email Summary Lambda",
         "States": {
-        "Run Weekly Email Summary Lambda": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::lambda:invoke",
-            "Parameters": {
-            "FunctionName": aws_lambda_function.c15-play-stream-weekly-summary-lambda-function.arn,
-            "Payload": {}
-            },
-            "ResultPath": "$.lambdaResult",
-            "Next": "Send Email Notification"
-        },
-        "SendEmail": {
-        "Type": "Task",
-        "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
-        "Parameters": {
-          "Content": {
-            "Simple": {
-              "Body": {
-                "Html": {
-                  "Data.$": "$.Payload.body"
-                }
-              },
-              "Subject": {
-                "Data": "ALERT"
-              }
+            "Run Weekly Email Summary Lambda": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::lambda:invoke",
+                "Parameters": {
+                    "FunctionName": aws_lambda_function.c15-play-stream-weekly-summary-lambda-function.arn,
+                    "Payload": {}
+                },
+                "End": true,
             }
-          },
-          "Destination": {
-            "ToAddresses": ["${var.ABDI_EMAIL}"]
-          },
-          "FeedbackForwardingEmailAddress": "${var.ABDI_EMAIL}",
-          "FromEmailAddress": "${var.ABDI_EMAIL}"
-        },
-        "End": true
-        },
-        "EndState": {
-            "Type": "Succeed"
-        }
         }
     })
 
@@ -122,11 +98,12 @@ resource "aws_sfn_state_machine" "weekly-email-summary-step-function" {
     }
 }
 
+
 # Making the EventBridge Scheduler to run this weekly
 
 resource "aws_scheduler_schedule" "weekly-email-summary-scheduler" {
     name = "c15-play-stream-weekly-email-summary-scheduler"
-    schedule_expression   = "rate(1 week)"  # Runs every week
+    schedule_expression   = "cron(15 17 ? * MON *)"  # Runs every Monday at 17:15
     flexible_time_window {
         mode = "OFF"
     }

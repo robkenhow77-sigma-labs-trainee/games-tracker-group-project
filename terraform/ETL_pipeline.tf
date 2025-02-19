@@ -78,7 +78,7 @@ resource "aws_lambda_function" "c15-play-stream-steam-etl-pipeline-lambda-functi
     function_name         = "c15-play-stream-steam-etl-pipeline-lambda-function"
     package_type          = "Image"
     image_uri             = data.aws_ecr_image.steam-latest-image.image_uri
-    memory_size           = 512
+    memory_size           = 1024
     timeout               = 512
 
     environment {
@@ -99,7 +99,7 @@ resource "aws_lambda_function" "c15-play-stream-gog-etl-pipeline-lambda-function
     function_name         = "c15-play-stream-gog-etl-pipeline-lambda-function"
     package_type          = "Image"
     image_uri             = data.aws_ecr_image.gog-latest-image.image_uri
-    memory_size           = 512
+    memory_size           = 1024
     timeout               = 512
 
     environment {
@@ -120,7 +120,7 @@ resource "aws_lambda_function" "c15-play-stream-epic-etl-pipeline-lambda-functio
     function_name         = "c15-play-stream-epic-etl-pipeline-lambda-function"
     package_type          = "Image"
     image_uri             = data.aws_ecr_image.epic-latest-image.image_uri
-    memory_size           = 512
+    memory_size           = 1024
     timeout               = 512
 
     environment {
@@ -162,7 +162,8 @@ resource "aws_iam_policy" "etl-pipeline-state_machine_lambda_policy" {
         Resource = [
             aws_lambda_function.c15-play-stream-steam-etl-pipeline-lambda-function.arn,
             aws_lambda_function.c15-play-stream-epic-etl-pipeline-lambda-function.arn,
-            aws_lambda_function.c15-play-stream-gog-etl-pipeline-lambda-function.arn
+            aws_lambda_function.c15-play-stream-gog-etl-pipeline-lambda-function.arn,
+            aws_lambda_function.c15-play-stream-weekly-summary-lambda-function.arn
         ]
       }
     ]
@@ -267,6 +268,11 @@ resource "aws_iam_role" "report_scheduler_role" {
       }
     ]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "scheduler_role_step" {
+  role       = aws_iam_role.report_scheduler_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess"
 }
 
 # EventBridge Scheduler to run Step Function every 3 hours

@@ -40,3 +40,7 @@ variable "DB_NAME" {
 variable "ABDI_EMAIL" {
     type = string
 }
+
+variable "SNS_TOPIC_ARN" {
+    type = string
+}
