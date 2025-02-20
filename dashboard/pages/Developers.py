@@ -258,7 +258,7 @@ def main():
                                                        "£10.01 - £50",
                                                        "£50.01 - £100",
                                                        "Above £100"])
-    include_nsfw = st.sidebar.checkbox("Include NSFW Games", value=False)
+    include_nsfw = st.sidebar.checkbox("Exclude NSFW Games", value=False)
 
     selected_price = price_range
 

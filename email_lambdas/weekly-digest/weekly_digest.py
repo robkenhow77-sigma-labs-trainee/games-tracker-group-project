@@ -184,7 +184,6 @@ def send_email(ses_client: boto3.client, subscribers: list, html_body: str):
 
 def convert_html_to_pdf(source_html: str, output_filename: str) -> None:
     """Converts the html to a pdf."""
-
     makedirs(path.dirname(output_filename), exist_ok=True)
     result_file = open(output_filename, "w+b")
 
@@ -231,4 +230,3 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     lambda_handler(None, None)
-
