@@ -1,6 +1,6 @@
 pytest
 pylint
-psycopg2
+psycopg2-binary
 python-dotenv
 streamlit
 pandas
