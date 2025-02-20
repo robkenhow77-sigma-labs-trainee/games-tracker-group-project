@@ -1,18 +1,15 @@
 """Creates an email giving weekly digestible information on new game platform trends"""
 
 from os import environ as ENV, makedirs, path
-from dotenv import load_dotenv
 from datetime import datetime
 
+from dotenv import load_dotenv
 from psycopg2.extensions import connection
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import pandas as pd
-import boto3
 from xhtml2pdf import pisa
-import pdfkit
 import boto3
-from pypdf import PdfReader, PdfWriter
 
 def get_sns_connection() -> boto3.client:
     """Get SNS client connection"""
@@ -74,7 +71,9 @@ def get_weekly_top_games(conn: connection) -> pd.DataFrame:
     cursor = conn.cursor()
     cursor.execute(query)
     result = cursor.fetchall()
-    return pd.DataFrame(result, columns=['id', 'title', 'release_date', 'cover_image_url', 'platform_name', 'platform_score'])
+    return pd.DataFrame(
+        result, columns=['id', 'title', 'release_date',
+                         'cover_image_url', 'platform_name', 'platform_score'])
 
 
 def sum_of_games_released_per_platform(conn: connection) -> pd.DataFrame:
@@ -95,9 +94,13 @@ def sum_of_games_released_per_platform(conn: connection) -> pd.DataFrame:
     return pd.DataFrame(result, columns=['platform_name', 'game_count'])
 
 
-def generate_email_content(top_games: pd.DataFrame, sum_of_games: pd.DataFrame) -> str:
-    """Generates an HTML email with the platform game count table at the top and the top games table below"""
-    html = """<html><head><link href='https://fonts.googleapis.com/css?family=Press Start 2P' rel='stylesheet'><link href='https://fonts.googleapis.com/css?family=Lexend' rel='stylesheet'><style>
+def generate_email_content(
+        top_games: pd.DataFrame, sum_of_games: pd.DataFrame) -> str:
+    """Generates an HTML email with the platform game
+    count table at the top and the top games table below"""
+    html = """<html><head>
+    <link href='https://fonts.googleapis.com/css?family=Press Start 2P' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Lexend' rel='stylesheet'><style>
     h2 {
         font-family: 'Press Start 2P';font-size: 32px;
         color: #ffff00;
@@ -125,7 +128,8 @@ def generate_email_content(top_games: pd.DataFrame, sum_of_games: pd.DataFrame) 
 
     for i, (_, row) in enumerate(sum_of_games.iterrows()):
         row_style = "background-color: #05122b;" if i % 2 == 0 else "background-color: #000000"
-        html += f"<tr style='{row_style}'><td><h3>{row['platform_name']}</h3></td><td><h3>{row['game_count']}</h3></td></tr>"
+        html += f"""<tr style='{row_style}'><td><h3>{row['platform_name']}</h3></td>
+                                            <td><h3>{row['game_count']}</h3></td></tr>"""
 
     html += "</table>"
 
@@ -225,4 +229,9 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     lambda_handler(None, None)
+=======
+    lambda_handler(None, None)
+
+>>>>>>> bc6fcc63fa626930bb5061e9bd55928902d39cdc
