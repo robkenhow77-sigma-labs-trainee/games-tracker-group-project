@@ -198,15 +198,15 @@ def save_pdf_to_s3(html: str) -> None:
     """Stores the most recent digest as a PDF file in a S3"""
 
     file_name = str(datetime.strftime(datetime.today().date(),'%d-%m-%Y')) + ".pdf"
-    bucket_name = "c15-playstream-backlog"
+    bucket_name = ENV['PRIVATE_BUCKET_NAME']
 
     convert_html_to_pdf(html, "tmp/" + file_name)
 
     s3 = boto3.client(
         's3',
-        aws_access_key_id=ENV['AWS_ACCESS_KEY'],
-        aws_secret_access_key=ENV['AWS_SECRET_ACCESS_KEY'],
-        region_name=ENV['AWS_REGION']
+        aws_access_key_id=ENV['PRIVATE_AWS_ACCESS_KEY'],
+        aws_secret_access_key=ENV['PRIVATE_AWS_SECRET_ACCESS_KEY'],
+        region_name=ENV['PRIVATE_AWS_REGION']
     )
     with open("tmp/" + file_name, "rb") as f:
         s3.upload_fileobj(f, bucket_name, "weekly_summaries/" + file_name)

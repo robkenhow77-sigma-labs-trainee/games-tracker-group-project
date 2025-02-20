@@ -1,6 +1,6 @@
 # pylint: skip-file
 
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import patch, MagicMock
 import pytest
 
 from epic_extract import (
