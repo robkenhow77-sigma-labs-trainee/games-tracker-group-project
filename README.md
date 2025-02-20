@@ -1,5 +1,7 @@
 # Game Tracker Project
 
+<img src="https://raw.githubusercontent.com/robkenhow77-sigma-labs-trainee/games-tracker-group-project/refs/heads/main/dashboard/logo.png" alt="Logo" style="width:25%; height:auto;">
+
 A project designed for monitoring the latest game releases across Steam, GOG and Epic.
 
 [comment]: <> (could add images for steam gog and epic here?)
@@ -17,17 +19,23 @@ The project *can* be run locally with some minor adjustments but is ultimately d
 * Python 3
 
 Python libraries:
-* beautifulsoup4
+* boto3
+* Beautifulsoup4
 * logging
-* logging
-* pylint
+* matplotlib
+* pandas
+* plotly
+* plotly_express
+* psycopg2
 * pytest
-* pytest-cov
-* requests
 * requests
 * rich
+* seaborn
 * selenium
+* streamlit
 * webdriver_manager
+* xhtml2pdf
+
 
 Optional:
 * [terraform](https://www.terraform.io/)
@@ -73,26 +81,17 @@ Please note, this will not create the ECR which will need to be done through the
 
 - This file you are currently reading :)
 
-### cloud/
-
-#### main.py
-
-- Currently empty
-
-#### README.md
-
-- Contains information relevant to the folder
-
-#### requirements.txt
-
-- A list of libraries required for using the scripts in this folder
-- In a [venv](https://docs.python.org/3/library/venv.html) (use `python3 -m venv .venv` followed by `source .venv/bin/activate`) run `pip install -r requirements.txt` to install them.
-
 ### dashboard/
-
+This directory is where all the dashboard files are stored. This is the interface for the user to interact with the database. 
 #### dashboard.py
 
-- Currently empty
+To run the dashboard locally ensure `streamlit` is installed and run `streamlit run dashboard.py`.
+This file has the homepage as the function `main`, it sets up the sidebar and the table that shows all the games.
+
+#### pages
+Inside of this directory is the pages that the user can redirect themselves to inside of the dashboard, it includes;
+- [Developers.py](/dashboard/pages/Developers.py)
+- [game_developer]
 
 #### README.md
 
