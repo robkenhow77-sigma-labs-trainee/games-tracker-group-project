@@ -1,0 +1,9 @@
+pytest
+pylint
+pandas
+streamlit
+plotly_express
+matplotlib
+seaborn
+psycopg2-binary
+python-dotenv
