@@ -95,7 +95,7 @@ def lambda_handler(event=None, context=None) -> None:
     scraped_data = scrape_newest(url, target_date, local, db_connection)
 
     # Transform
-    cleaned_data = clean_data(scraped_data)
+    cleaned_data = clean_data(scraped_data, target_date)
     cleaned_data = change_keys(cleaned_data)
 
     # Load
@@ -115,4 +115,4 @@ if __name__ == "__main__":
         )
 
     load_dotenv()
-    lambda_handler()
+    lambda_handler(None, None)

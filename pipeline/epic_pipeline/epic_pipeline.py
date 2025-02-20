@@ -95,7 +95,7 @@ def lambda_handler(event=None, context=None) -> None:
     scraped_data = main(url)
 
     # Transform
-    cleaned_data = clean_data(scraped_data)
+    cleaned_data = clean_data(scraped_data, target_date)
     cleaned_data = change_keys(cleaned_data)
 
     # Load

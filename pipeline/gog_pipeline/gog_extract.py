@@ -1,5 +1,6 @@
 """The extraction script for GOG"""
-from os import mkdir, environ as ENV
+from os import environ as ENV
+from tempfile import mkdtemp
 from time import sleep
 import json
 import re
@@ -17,8 +18,6 @@ from dotenv import load_dotenv
 
 def init_driver():
     """Sets up the selenium driver with proper service and options."""
-    tmp_dir = '/tmp/gc_gog' 
-    mkdir(tmp_dir)
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
@@ -27,9 +26,9 @@ def init_driver():
     chrome_options.add_argument("--disable-dev-tools")
     chrome_options.add_argument("--no-zygote")
     chrome_options.add_argument("--single-process")
-    chrome_options.add_argument(f"--user-data-dir={tmp_dir}")
-    chrome_options.add_argument(f"--data-path={tmp_dir}")
-    chrome_options.add_argument(f"--disk-cache-dir={tmp_dir}")
+    chrome_options.add_argument(f"--user-data-dir={mkdtemp()}")
+    chrome_options.add_argument(f"--data-path={mkdtemp()}")
+    chrome_options.add_argument(f"--disk-cache-dir={mkdtemp()}")
     chrome_options.add_argument("--remote-debugging-pipe")
     chrome_options.add_argument("--verbose")
     chrome_options.add_argument("--log-path=/tmp")
