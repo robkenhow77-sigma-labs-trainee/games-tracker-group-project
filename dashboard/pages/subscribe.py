@@ -5,7 +5,6 @@ from os import environ as ENV
 import streamlit as st
 import boto3
 from dotenv import load_dotenv
-from components import dashboard_title
 from data_source import get_connection, get_all_genres
 
 
@@ -45,9 +44,10 @@ def is_already_subscribed(client, email, topic_arn):
     print('existing subs: ', existing_subs)
 
     for sub in existing_subs:
-        if sub['Protocol'] == 'email' and sub['Endpoint'] == email and sub['SubscriptionArn'] != 'PendingConfirmation' and sub['SubscriptionArn'] != 'Deleted':
+        if sub['Protocol'] == 'email' and sub['Endpoint'] == email and sub['SubscriptionArn'] != 'PendingConfirmation':
+            print(f'{sub['Endpoint']} is an existing sub. Return True')
             return True
-        return False
+    return False
 
 
 def subscribe_user(email, genres, weekly_digest):
@@ -100,8 +100,101 @@ def subscribe_user(email, genres, weekly_digest):
 if __name__ == "__main__":
     load_dotenv()
     conn = get_connection()
-    dashboard_title()
-    st.title("Subscribe to the Newsletter")
+
+    st.sidebar.image("logo.png", width=100)
+
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap');
+        
+        body {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 15px;
+            color: yellow;
+        }
+                
+        [data-testid="stAppViewContainer"] {
+            background-color: #05122B;
+        }
+                
+        [data-testid="stHeader"] {
+            background-color: #05122B;
+        }
+            
+        .st-bb {
+            background-color: #05122B;
+        }
+
+        .sidebar-image {
+            border-radius: 15px;
+            border: 3px solid lightblue;
+            width: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        
+        /* Sidebar filter elements */
+        .stSidebar .stSelectbox > div, 
+        .stSidebar .stCheckbox > div,
+        .stSidebar .stMultiSelect > div {
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .stSidebar .stSelectbox label, 
+        .stSidebar .stCheckbox label, 
+        .stSidebar .stMultiSelect label {
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* For the selectbox dropdown itself */
+        .stSidebar .stSelectbox div[data-baseweb="select"] {
+            background-color: black;
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* For the selectbox dropdown options */
+        .stSidebar .stSelectbox div[data-baseweb="select"] div {
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* For the streamlit expander titles */
+        .stSidebar .css-1v3fvcr {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        /* Chart Titles (Plotly) */
+        .stChart .plotly-title {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        /* Subheader titles */
+        .stSubheader, .stTitle {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        /* Sidebar Header */
+        .stSidebar .css-1v3fvcr {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
+
+        .markdown-text-container {
+            color: yellow;
+        }
+            
+    </style>
+    """, unsafe_allow_html=True)
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow; font-size: 30px;">Subscribe to the Newsletter</h4>',
+                unsafe_allow_html=True)
     st.html("<marquee>Subscribe to receive updates on new game releases!</marquee>")
     f_name = st.text_input("First Name")
     l_name = st.text_input("Last Name")
