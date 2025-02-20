@@ -11,6 +11,7 @@ from psycopg2.extras import RealDictCursor
 # Load environment variables from .env file
 load_dotenv()
 
+
 def sns_connect() -> boto3.client:
     """Connect to sns client"""
     print("Connecting to SNS...")
@@ -163,11 +164,11 @@ def generate_html(genre_name: str, game_data: list, subscribers: list) -> str:
                         border-radius: 10px;
                         text-align: center;
                     }}
-                    h2, p {{
+                    h2, p, div {{
                         font-family: 'Lexend';
                         color: #00e5c2;
                         text-align: center;
-                    }}
+                    }}               
                     h1 {{
                         font-family: 'Press Start 2P';
                         color: #ffff00;
