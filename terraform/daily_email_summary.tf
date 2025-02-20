@@ -5,7 +5,7 @@ data "aws_ecr_repository" "c15-play-stream-daily-email-summary" {
 
 data "aws_ecr_image" "daily-summary-latest-image" {
     repository_name = "c15-play-stream-daily-email-summary"
-    most_recent     = true
+    image_tag     = latest
 }
 
 # Setting IAM information
