@@ -59,6 +59,23 @@ def get_number_of_games_by_genre(conn: psycopg_connection) -> pd.DataFrame:
 
     return pd.DataFrame(result, columns=["genre_name", "game_count"])
 
+def get_number_of_games_by_tag(conn: psycopg_connection) -> pd.DataFrame:
+    """Fetches the number of games released per genre."""
+    query = """
+    SELECT t.tag_name, COUNT(DISTINCT g.game_id) AS game_count
+    FROM tag t
+    JOIN tag_game_platform_assignment tpa ON t.tag_id = tpa.tag_id
+    JOIN game_platform_assignment gp ON tpa.platform_assignment_id = gp.platform_assignment_id
+    JOIN game g ON g.game_id = gp.game_id
+    GROUP BY t.tag_name
+    ORDER BY game_count DESC
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(query)
+        result = cursor.fetchall()
+
+    return pd.DataFrame(result, columns=["tag_name", "game_count"])
+
 
 def get_genre_tag_platform_options(conn: psycopg_connection) -> tuple[list[str],
                                                            list[str], list[str]]:
@@ -81,7 +98,7 @@ def get_genre_tag_platform_options(conn: psycopg_connection) -> tuple[list[str],
 
 
 def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = None, price_range: str = None,
-        platform: str = None, top_n: int = None, exclude_nsfw: bool = True) -> pd.DataFrame:
+        platform: str = None, top_n: int = None, include_nsfw: bool = True) -> pd.DataFrame:
     """Fetches games based on the user's filter selection."""
     query = """
     SELECT DISTINCT g.game_name, g.game_image, gp.platform_score, gp.platform_price, p.platform_name, g.is_nsfw
@@ -114,8 +131,11 @@ def get_filtered_games(conn: psycopg_connection, genre: str = None, tag: str = N
 
     if platform and platform != "All":
         filters.append("p.platform_name = %s")
-    if exclude_nsfw:
-        filters.append("g.is_nsfw = FALSE")
+    
+    if include_nsfw:
+        query += " AND g.is_nsfw = TRUE"
+    else:
+        query += " AND g.is_nsfw = FALSE"
 
     if filters:
         query += " WHERE " + " AND ".join(filters)
@@ -249,16 +269,17 @@ def main():
 
     genres, tags, platforms = get_genre_tag_platform_options(conn)
 
-    selected_genre = st.sidebar.selectbox("Genre", options=["All"] + genres)
-    selected_tag = st.sidebar.selectbox("Tag", options=["All"] + tags)
-    selected_platform = st.sidebar.selectbox("Platform", options=["All"] + platforms)
+    selected_genre = st.sidebar.selectbox("Genre", options=["All"] + sorted(genres))
+    selected_tag = st.sidebar.selectbox("Tag", options=["All"] + sorted(tags))
+    selected_platform = st.sidebar.selectbox("Platform", options=["All"] + sorted(platforms))
     price_range = st.sidebar.selectbox("Price Range", ["Any",
                                                        "Free",
                                                        "£0.01 - £10",
                                                        "£10.01 - £50",
                                                        "£50.01 - £100",
                                                        "Above £100"])
-    include_nsfw = st.sidebar.checkbox("Exclude NSFW Games", value=False)
+    
+    include_nsfw = st.sidebar.checkbox("Include NSFW Games", value=False)
 
     selected_price = price_range
 
@@ -267,7 +288,7 @@ def main():
                                       tag=selected_tag,
                                       price_range=selected_price,
                                       platform=selected_platform,
-                                      exclude_nsfw=include_nsfw)
+                                      include_nsfw=include_nsfw)
     genre_counts = genre_counts.groupby('platform_name').size().reset_index(name='counts')
 
     st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Released by Platform</h4>',
@@ -284,31 +305,35 @@ def main():
                  labels={'genre_name': 'Genre', 'game_count': 'Number of Games'})
     st.plotly_chart(fig)
 
-    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Top 10 Best Reviewed Games</h4>',
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Games Released by Tag</h4>',
+                unsafe_allow_html=True)
+    genre_data = get_number_of_games_by_tag(conn)
+    fig = px.bar(genre_data, x='tag_name', y='game_count', color='tag_name',
+                 labels={'tag_name': 'Tag', 'game_count': 'Number of Games'})
+    st.plotly_chart(fig)
+
+    st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Top 10 Games By Filter</h4>',
                 unsafe_allow_html=True)
 
-    top_games = get_filtered_games(conn,
-                                   selected_genre,
-                                   selected_tag,
-                                   selected_price,
-                                   selected_platform,
-                                   top_n=10)
+    top_filtered_games = get_filtered_games(conn,
+                                            genre=selected_genre,
+                                            tag=selected_tag,
+                                            price_range=selected_price,
+                                            platform=selected_platform,
+                                            include_nsfw=include_nsfw,
+                                            top_n=10)
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.barplot(x='platform_score', y='game_name', data=top_games, palette="rocket", ax=ax)
+    game_list = top_filtered_games[['game_name', 'platform_name', 'platform_score', 'platform_price']]
 
-    ax.set_xlabel("Score", fontsize=12, color='white')
-    ax.set_ylabel("Game Name", fontsize=12, color='white')
-    ax.tick_params(axis='both', labelsize=10, labelcolor='white')
-    ax.xaxis.set_tick_params(labelcolor='white')
-    ax.yaxis.set_tick_params(labelcolor='white')
+    game_list = game_list.rename(columns={
+        'game_name': 'Game Name',
+        'platform_name': 'Platform',
+        'platform_score': 'Score',
+    })
 
-    fig.patch.set_visible(False)
-    ax.patch.set_visible(False)
-    sns.despine(left=True, bottom=True)
-    plt.tight_layout()
+    game_list['platform_price'] = game_list['platform_price'].apply(lambda x: f"£{x:.2f}")
 
-    st.pyplot(fig)
+    st.table(game_list)
 
     st.markdown('<h4 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Price vs Rating Scatter Plot</h4>',
                 unsafe_allow_html=True)
