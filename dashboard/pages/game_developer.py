@@ -1,4 +1,4 @@
-#pylint: disable=line-too-long, ungrouped-imports
+# pylint: disable=line-too-long, ungrouped-imports
 """Dashboard that will get information about a selected developer."""
 import logging
 from os import environ as ENV
@@ -25,7 +25,8 @@ def get_developer_info(conn, developer_name):
     query = """
     SELECT 
         developer.developer_name,
-        game.game_name
+        game.game_name,
+        game.game_image
     FROM 
         developer
     JOIN 
@@ -35,7 +36,6 @@ def get_developer_info(conn, developer_name):
     WHERE 
         developer.developer_name ILIKE %s;
     """
-
 
     cursor = conn.cursor()
     cursor.execute(query, (f"%{developer_name}%",))
@@ -148,11 +148,19 @@ def main():
     if developer_name:
         developer_data = get_developer_info(conn, developer_name)
         if developer_data:
-            st.write(f"**Developer: {developer_data[0][0]}**")
-            st.write(f"**Number of Games Developed: {len(developer_data)}**")
-            game_names = [game[1] for game in developer_data]
-            st.write("**Games Developed:**")
-            st.write(", ".join(game_names))
+            st.markdown(f'<div style="text-align: center; margin-bottom: 20px;">'
+                        f"<h3 style='font-size: 30px;'>Developer: {developer_data[0][0]}</h3>"
+                        f'<h2>Number of Games Developed: {len(developer_data)}</h2>'
+                        '</div>', unsafe_allow_html=True)
+
+            for game in developer_data:
+                game_name, game_image = game[1], game[2]
+
+                st.markdown(f'<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 20px;">'
+                            f'<h2>Game: {game_name}</h2>'
+                            f'<img src="{game_image}" alt="{game_name}" style="width: 500px; border-radius: 10px; border: 3px solid #008080;" />'
+                            '</div>', unsafe_allow_html=True)
+
         else:
             st.write("No developer found with that name.")
     else:

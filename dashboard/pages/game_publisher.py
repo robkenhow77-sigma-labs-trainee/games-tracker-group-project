@@ -1,4 +1,4 @@
-#pylint: disable=line-too-long, ungrouped-imports
+# pylint: disable=line-too-long, ungrouped-imports
 """Dashboard that will get information about a selected publisher."""
 import logging
 from os import environ as ENV
@@ -25,7 +25,8 @@ def get_publisher_info(conn, publisher_name):
     query = """
     SELECT 
         publisher.publisher_name,
-        game.game_name
+        game.game_name,
+        game.game_image
     FROM 
         publisher
     JOIN 
@@ -35,7 +36,6 @@ def get_publisher_info(conn, publisher_name):
     WHERE 
         publisher.publisher_name ILIKE %s;
     """
-
 
     cursor = conn.cursor()
     cursor.execute(query, (f"%{publisher_name}%",))
@@ -143,17 +143,24 @@ def main():
     st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Publisher Information</h3>',
                 unsafe_allow_html=True)
 
-
     publisher_name = st.text_input("Enter Publisher Name:", "")
 
     if publisher_name:
         publisher_data = get_publisher_info(conn, publisher_name)
         if publisher_data:
-            st.write(f"**publisher: {publisher_data[0][0]}**")
-            st.write(f"**Number of Games Developed: {len(publisher_data)}**")
-            game_names = [game[1] for game in publisher_data]
-            st.write("**Games Developed:**")
-            st.write(", ".join(game_names))
+            st.markdown(f'<div style="text-align: center; margin-bottom: 20px;">'
+                        f"<h3 style='font-size: 30px;'>Publisher: {publisher_data[0][0]}</h3>"
+                        f'<h2>Number of Games Published: {len(publisher_data)}</h2>'
+                        '</div>', unsafe_allow_html=True)
+
+            for game in publisher_data:
+                game_name, game_image = game[1], game[2]
+
+                st.markdown(f'<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 20px;">'
+                            f'<h2>Game: {game_name}</h2>'
+                            f'<img src="{game_image}" alt="{game_name}" style="width: 500px; border-radius: 10px; border: 3px solid #008080;" />'
+                            '</div>', unsafe_allow_html=True)
+
         else:
             st.write("No publisher found with that name.")
     else:

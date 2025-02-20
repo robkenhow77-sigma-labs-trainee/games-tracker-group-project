@@ -12,7 +12,6 @@ from dotenv import load_dotenv
 import streamlit as st
 from requests import get
 
-
 @st.cache_resource
 def get_connection() -> object:
     """Returns a new connection to the database."""
@@ -47,7 +46,7 @@ def get_genre_tag_platform_options(conn: connection) -> tuple[list[str], list[st
 
 
 def get_filtered_games(conn: connection, genre: str = None, tag: str = None, price_range: str = None,
-    platform: str = None, limit: int = 25, offset: int = 0, exclude_nsfw: bool = False) -> pd.DataFrame:
+    platform: str = None, limit: int = 25, offset: int = 0, include_nsfw: bool = False) -> pd.DataFrame:
     """
     Fetches games from the database based on the provided filters (genre, tag, price_range, platform, nsfw exclusion).
     """
@@ -85,8 +84,10 @@ def get_filtered_games(conn: connection, genre: str = None, tag: str = None, pri
     if platform and platform != "All":
         filters.append("p.platform_name = %s")
 
-    if exclude_nsfw:
-        filters.append("g.is_nsfw = FALSE")
+    if include_nsfw:
+        query += " AND g.is_nsfw = TRUE"
+    else:
+        query += " AND g.is_nsfw = FALSE"
 
     if filters:
         query += " WHERE " + " AND ".join(filters)
@@ -232,9 +233,9 @@ def main():
     connection_to_db = get_connection()
     genres, tags, platforms = get_genre_tag_platform_options(connection_to_db)
 
-    genre_filter = st.sidebar.selectbox("Select Genre", ["All"] + genres)
-    tag_filter = st.sidebar.selectbox("Select Tag", ["All"] + tags)
-    platform_filter = st.sidebar.selectbox("Select Platform", ["All"] + platforms)
+    genre_filter = st.sidebar.selectbox("Genre", options=["All"] + sorted(genres))
+    tag_filter = st.sidebar.selectbox("Tag", options=["All"] + sorted(tags))
+    platform_filter = st.sidebar.selectbox("Platform", options=["All"] + sorted(platforms))
     price_range = st.sidebar.selectbox("Price Range", ["Any",
                                                        "Free",
                                                        "£0.01 - £10",
@@ -242,11 +243,11 @@ def main():
                                                        "£50.01 - £100",
                                                        "Above £100"])
 
-    exclude_nsfw = st.sidebar.checkbox("Exclude NSFW games", value=True)
+    include_nsfw = st.sidebar.checkbox("Include NSFW games", value=False)
 
     if 'page' not in st.session_state:
         st.session_state.page = 1
-    total_games = get_filtered_games(connection_to_db, genre_filter, tag_filter, price_range, platform_filter, 100000, 0, exclude_nsfw).shape[0]
+    total_games = get_filtered_games(connection_to_db, genre_filter, tag_filter, price_range, platform_filter, 100000, 0, include_nsfw).shape[0]
     total_pages = (total_games // 25) + 1
 
     st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow; text-align: center;">Games Library</h3>', unsafe_allow_html=True)
@@ -264,7 +265,7 @@ def main():
                                     platform_filter,
                                     limit,
                                     offset,
-                                    exclude_nsfw)
+                                    include_nsfw)
 
     col_headers = ['Title', 'Image', 'Release Date', 'Score', 'Price', 'Platform']
     st.markdown(f'<div style="font-family: \'Press Start 2P\', cursive; color: yellow; font-size: 12px;">{"  |  ".join(col_headers)}</div>', unsafe_allow_html=True)
