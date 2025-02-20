@@ -30,7 +30,7 @@ def turn_date_to_num_days(target_date: str) -> int:
 
     input_date = datetime.strptime(target_date, "%d %b, %Y").date()
     today = datetime.now().date()
-    return today-input_date
+    return (today-input_date).days
 
 
 def is_valid_data(game: dict, days_to_accept=0) -> bool:
