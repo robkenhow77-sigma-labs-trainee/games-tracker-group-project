@@ -229,9 +229,4 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     lambda_handler(None, None)
-=======
-    lambda_handler(None, None)
-
->>>>>>> bc6fcc63fa626930bb5061e9bd55928902d39cdc
