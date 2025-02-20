@@ -47,7 +47,6 @@ def is_already_subscribed(client, email, topic_arn):
         if sub['Protocol'] == 'email' and sub['Endpoint'] == email and sub['SubscriptionArn'] != 'PendingConfirmation':
             print(f'{sub['Endpoint']} is an existing sub. Return True')
             return True
-    print(f'{sub['Endpoint']} is not an existing sub. Return False')
     return False
 
 
