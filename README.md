@@ -10,6 +10,24 @@ This project includes an ETL pipeline for each storefront, each in their own fol
 
 The project *can* be run locally with some minor adjustments but is ultimately designed to be run on AWS. There are terraform files and Dockerfiles provided for this end.
 
+## Contents
+
+#### [Dashboard](./dashboard/README.md)
+
+#### [Database](./database/README.md)
+
+#### [Daily Genre Emails](./email_lambdas/genre_emails/README.md)
+
+#### [Weekly Summary Emails](./email_lambdas/weekly_digest/README.md)
+
+#### [Epic Pipeline](./pipeline/epic_pipeline/README.md)
+
+#### [GOG Pipeline](./pipeline/gog_pipeline/README.md)
+
+#### [Steam Pipeline](./pipeline/steam_pipeline/README.md)
+
+#### [Terraform](./terraform/README.md)
+
 ## Getting Started
 
 ### Dependencies
@@ -71,24 +89,6 @@ SNS_TOPIC_ARN = "[Your SNS topic ARN]"
 followed by `esc` then type `wq!` to save those changes and quit out of vim.
 You will now need to run `terraform plan` and `terraform apply` to create the resources.
 Please note, this will not create the ECR which will need to be done through the AWS UI. You will need [docker](https://www.docker.com/) or equivalent to containerise the program and put it on the ECR, we have included the required Dockerfiles for this.
-
-## Contents
-
-### [Dashboard](./dashboard/README.md)
-
-### [Database](./database/README.md)
-
-### [Daily Genre Emails](./email_lambdas/genre_emails/README.md)
-
-### [Weekly Summary Emails](./email_lambdas/weekly_digest/README.md)
-
-### [Epic Pipeline](./pipeline/epic_pipeline/README.md)
-
-### [GOG Pipeline](./pipeline/gog_pipeline/README.md)
-
-### [Steam Pipeline](./pipeline/steam_pipeline/README.md)
-
-### [Terraform](./terraform/README.md)
 
 ## Useful diagrams
 
