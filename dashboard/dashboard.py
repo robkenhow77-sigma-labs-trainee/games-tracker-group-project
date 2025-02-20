@@ -1,4 +1,4 @@
-#pylint: disable=unused-variable, line-too-long
+# pylint: disable=unused-variable, line-too-long
 """
 Global Dashboard which allows users to filter games to their needs.
 """
@@ -47,13 +47,13 @@ def get_genre_tag_platform_options(conn: connection) -> tuple[list[str], list[st
 
 
 def get_filtered_games(conn: connection, genre: str = None, tag: str = None, price_range: str = None,
-    platform: str = None, limit: int = 25, offset: int = 0) -> pd.DataFrame:
+    platform: str = None, limit: int = 25, offset: int = 0, exclude_nsfw: bool = False) -> pd.DataFrame:
     """
-    Fetches games from the database based on the provided filters (genre, tag, price_range, platform).
+    Fetches games from the database based on the provided filters (genre, tag, price_range, platform, nsfw exclusion).
     """
     query = """
     SELECT DISTINCT g.game_name, g.game_image, gp.platform_score, gp.platform_price, 
-                    gp.platform_release_date, p.platform_name
+                    gp.platform_release_date, p.platform_name, gp.platform_url
     FROM game g
     JOIN game_platform_assignment gp ON g.game_id = gp.game_id
     JOIN platform p ON gp.platform_id = p.platform_id
@@ -85,10 +85,13 @@ def get_filtered_games(conn: connection, genre: str = None, tag: str = None, pri
     if platform and platform != "All":
         filters.append("p.platform_name = %s")
 
+    if exclude_nsfw:
+        filters.append("g.is_nsfw = FALSE")
+
     if filters:
         query += " WHERE " + " AND ".join(filters)
 
-    query += " ORDER BY gp.platform_release_date DESC LIMIT %s OFFSET %s"
+    query += " ORDER BY gp.platform_score DESC ,gp.platform_release_date DESC LIMIT %s OFFSET %s"
 
     params = []
     if genre and genre != "All":
@@ -105,7 +108,7 @@ def get_filtered_games(conn: connection, genre: str = None, tag: str = None, pri
         result = cursor.fetchall()
 
     df = pd.DataFrame(result, columns=["game_name", "game_image", "platform_score",
-                "platform_price", "platform_release_date", "platform_name"])
+                "platform_price", "platform_release_date", "platform_name", "platform_url"])
 
     df['platform_price'] = df['platform_price']
     df['platform_score'] = df['platform_score'].apply(
@@ -113,6 +116,7 @@ def get_filtered_games(conn: connection, genre: str = None, tag: str = None, pri
         if x == -1 else f"{x}%"
         if x != "No rating at release" else x)
     return df
+
 
 
 def format_price(price: int) -> str:
@@ -225,13 +229,6 @@ def main():
     </style>
     """, unsafe_allow_html=True)
 
-    if 'offset' not in st.session_state:
-        st.session_state.offset = 0
-        st.session_state.limit = 25
-
-    offset = st.session_state.offset
-    limit = st.session_state.limit
-
     connection_to_db = get_connection()
     genres, tags, platforms = get_genre_tag_platform_options(connection_to_db)
 
@@ -245,17 +242,29 @@ def main():
                                                        "£50.01 - £100",
                                                        "Above £100"])
 
+    exclude_nsfw = st.sidebar.checkbox("Exclude NSFW games", value=True)
 
-    selected_price = price_range
+    if 'page' not in st.session_state:
+        st.session_state.page = 1
+    total_games = get_filtered_games(connection_to_db, genre_filter, tag_filter, price_range, platform_filter, 100000, 0, exclude_nsfw).shape[0]
+    total_pages = (total_games // 25) + 1
+
+    st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow; text-align: center;">Games Library</h3>', unsafe_allow_html=True)
+
+    selected_page = st.selectbox("Page", range(1, total_pages + 1))
+    st.session_state.page = selected_page
+
+    offset = (st.session_state.page - 1) * 25
+    limit = 25
+
     value_data = get_filtered_games(connection_to_db,
                                     genre_filter,
                                     tag_filter,
-                                    selected_price,
+                                    price_range,
                                     platform_filter,
                                     limit,
-                                    offset)
-
-    st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow; text-align: center;">Games Library</h3>', unsafe_allow_html=True)
+                                    offset,
+                                    exclude_nsfw)
 
     col_headers = ['Title', 'Image', 'Release Date', 'Score', 'Price', 'Platform']
     st.markdown(f'<div style="font-family: \'Press Start 2P\', cursive; color: yellow; font-size: 12px;">{"  |  ".join(col_headers)}</div>', unsafe_allow_html=True)
@@ -282,42 +291,8 @@ def main():
         with cols[4]:
             st.write(format_price(row['platform_price']))
         with cols[5]:
-            st.write(row['platform_name'])
+            st.markdown(f'<a href="{row["platform_url"]}" target="_blank" style="color: yellow; text-decoration: none;">{row["platform_name"]}</a>', unsafe_allow_html=True)
         st.markdown("---")
-
-
-    if st.button("Load More"):
-        st.session_state.offset += limit
-        value_data = get_filtered_games(connection_to_db,
-                                    genre_filter,
-                                    tag_filter,
-                                    selected_price,
-                                    platform_filter,
-                                    limit,
-                                    offset)
-
-        for idx, row in value_data.iterrows():
-            cols = st.columns(6)
-            with cols[0]:
-                st.write(f"{row['game_name']}")
-            with cols[1]:
-                try:
-                    response = get(row['game_image'], timeout=5)
-                    if response.status_code == 200:
-                        st.image(row["game_image"], caption=row["game_name"])
-                    else:
-                        st.write("No valid image")
-                except Exception:
-                    st.write("No valid image")
-            with cols[2]:
-                st.write(f"{format_date(row['platform_release_date'])}")
-            with cols[3]:
-                st.write(format_score(row['platform_score']))
-            with cols[4]:
-                st.write(format_price(row['platform_price']))
-            with cols[5]:
-                st.write(row['platform_name'])
-            st.markdown("---")
 
 
 if __name__ == "__main__":
