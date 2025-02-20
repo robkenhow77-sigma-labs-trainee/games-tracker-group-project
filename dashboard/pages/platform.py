@@ -75,7 +75,7 @@ def get_genre_breakdown(conn, platform_name):
         result = cursor.fetchall()
         genres = [row[0] for row in result]
         num_games = [row[1] for row in result]
-        
+
         return pd.DataFrame({
             'Genre': genres,
             'Number of Games': num_games
@@ -105,7 +105,7 @@ def get_publisher_breakdown(conn, platform_name):
         result = cursor.fetchall()
         publishers = [row[0] for row in result]
         num_games = [row[1] for row in result]
-        
+
         return pd.DataFrame({
             'Publisher': publishers,
             'Number of Games': num_games
@@ -135,7 +135,7 @@ def get_developer_breakdown(conn, platform_name):
         result = cursor.fetchall()
         developers = [row[0] for row in result]
         num_games = [row[1] for row in result]
-        
+
         return pd.DataFrame({
             'Developer': developers,
             'Number of Games': num_games
@@ -164,7 +164,7 @@ def get_age_rating_breakdown(conn, platform_name):
         result = cursor.fetchall()
         age_ratings = [row[0] for row in result]
         num_games = [row[1] for row in result]
-        
+
         return pd.DataFrame({
             'Age Rating': age_ratings,
             'Number of Games': num_games

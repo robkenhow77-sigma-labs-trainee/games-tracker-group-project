@@ -66,10 +66,10 @@ def get_filtered_games(conn: connection, genre: str = None, tag: str = None, pri
 
     if genre and genre != "All":
         filters.append("ge.genre_name = %s")
-    
+
     if tag and tag != "All":
         filters.append("t.tag_name = %s")
-    
+
     if price_range and price_range != "Any":
         if price_range == "Free":
             filters.append("gp.platform_price = 0")
