@@ -184,14 +184,11 @@ def send_email(ses_client: boto3.client, subscribers: list, html_body: str):
 
 def convert_html_to_pdf(source_html: str, output_filename: str) -> None:
     """Converts the html to a pdf."""
+
     makedirs(path.dirname(output_filename), exist_ok=True)
-    result_file = open(output_filename, "w+b")
-
-    pisa.CreatePDF(
-            source_html,
-            dest=result_file)
-
-    result_file.close()
+    
+    with open(output_filename, "w+b") as result_file:
+        pisa.CreatePDF(source_html, dest=result_file)
 
 
 def save_pdf_to_s3(html: str) -> None:
@@ -200,7 +197,7 @@ def save_pdf_to_s3(html: str) -> None:
     file_name = str(datetime.strftime(datetime.today().date(),'%d-%m-%Y')) + ".pdf"
     bucket_name = ENV['PRIVATE_BUCKET_NAME']
 
-    convert_html_to_pdf(html, "tmp/" + file_name)
+    convert_html_to_pdf(html, "/tmp/" + file_name)
 
     s3 = boto3.client(
         's3',
@@ -208,7 +205,7 @@ def save_pdf_to_s3(html: str) -> None:
         aws_secret_access_key=ENV['PRIVATE_AWS_SECRET_ACCESS_KEY'],
         region_name=ENV['PRIVATE_AWS_REGION']
     )
-    with open("tmp/" + file_name, "rb") as f:
+    with open("/tmp/" + file_name, "rb") as f:
         s3.upload_fileobj(f, bucket_name, "weekly_summaries/" + file_name)
 
 

@@ -8,6 +8,7 @@ from psycopg2 import connect
 from dotenv import load_dotenv
 from psycopg2.extensions import connection as psycopg_connection
 
+
 @st.cache_resource
 def get_connection() -> psycopg_connection:
     """Returns a connection to the database."""
@@ -19,16 +20,17 @@ def get_connection() -> psycopg_connection:
     password = ENV['DB_PASSWORD']
     return connect(dbname=dbname, user=user, password=password, host=host, port=port)
 
-def get_game_suggestions(partial_name: str, conn: psycopg_connection, exclude_nsfw: bool) -> list:
-    """Fetches a list of game names that match the partial input, with an option to exclude NSFW games."""
+def get_game_suggestions(partial_name: str, conn: psycopg_connection, include_nsfw: bool) -> list:
+    """Fetches a list of game names that match the partial input, with an option to include NSFW games."""
     query = """
     SELECT game_name 
     FROM game 
     WHERE game_name ILIKE %s
     """
     
-    # If NSFW exclusion is enabled, add the condition
-    if exclude_nsfw:
+    if include_nsfw:
+        query += " AND is_nsfw = TRUE"
+    else:
         query += " AND is_nsfw = FALSE"
         
     query += " LIMIT 10;"
@@ -39,8 +41,8 @@ def get_game_suggestions(partial_name: str, conn: psycopg_connection, exclude_ns
     cur.close()
     return game_names
 
-def get_game_info(game_name: str, conn: psycopg_connection, exclude_nsfw: bool) -> pd.DataFrame:
-    """Fetches detailed game information from the database, including all genres, with an option to exclude NSFW games."""
+def get_game_info(game_name: str, conn: psycopg_connection, include_nsfw: bool) -> pd.DataFrame:
+    """Fetches detailed game information from the database, including all genres, with an option to include NSFW games."""
     query = """
     SELECT 
         g.game_name,
@@ -69,8 +71,9 @@ def get_game_info(game_name: str, conn: psycopg_connection, exclude_nsfw: bool) 
     WHERE g.game_name = %s
     """
     
-    # If NSFW exclusion is enabled, add the condition
-    if exclude_nsfw:
+    if include_nsfw:
+        query += " AND g.is_nsfw = TRUE"
+    else:
         query += " AND g.is_nsfw = FALSE"
         
     query += " GROUP BY g.game_name, g.game_image, ar.age_rating_name, g.is_nsfw, p.platform_name, pga.platform_release_date, \
@@ -185,49 +188,78 @@ def main():
         .markdown-text-container {
             color: yellow;
         }
+
+        /* Custom style for platform selector in sidebar */
+        .stSidebar .stSelectbox > div > div {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+            font-size: 18px;
+        }
+
+        .stSidebar .stSelectbox {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+            margin-top: 20px;
+        }
+
+        .stSidebar .stSelectbox label {
+            font-family: 'Press Start 2P', cursive;
+            color: yellow;
+        }
             
     </style>
     """, unsafe_allow_html=True)
 
     st.markdown('<h3 style="font-family: \'Press Start 2P\', cursive; color: yellow;">Search Game</h3>', unsafe_allow_html=True)
 
-    # Add NSFW exclusion checkbox in the sidebar
-    exclude_nsfw = st.sidebar.checkbox("Exclude NSFW games", value=True)
+    include_nsfw = st.sidebar.checkbox("Include NSFW games", value=False)
 
     game_search_input = st.text_input("Search for a game by name:")
 
+    platform_selector = None
+
     if game_search_input:
-        game_suggestions = get_game_suggestions(game_search_input, conn, exclude_nsfw)
+        game_suggestions = get_game_suggestions(game_search_input, conn, include_nsfw)
         if game_suggestions:
             game_name = st.selectbox("Select a game:", game_suggestions)
 
             if game_name:
-                game_info_df = get_game_info(game_name, conn, exclude_nsfw)
+                game_info_df = get_game_info(game_name, conn, include_nsfw)
 
                 if not game_info_df.empty:
-                    st.markdown(f"### {game_info_df['game_name'][0]} Details")
-                    st.image(game_info_df['game_image'][0], caption=game_info_df['game_name'][0], width=500)
+                    st.markdown(f'<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 20px;">'
+                                f"<h3 style='font-size: 30px;'>{game_info_df['game_name'][0]} Details</h3>"
+                                f"</div>", unsafe_allow_html=True)
 
-                    score = game_info_df['platform_score'][0]
-                    if score == -1:
-                        rating_display = "No rating at release"
-                    else:
-                        rating_display = f"Score: {score}"
+                    st.markdown(f'<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 20px;">'
+                    f'<img src="{game_info_df["game_image"][0]}" alt="{game_info_df["game_name"][0]}" style="width: 500px; border-radius: 10px; border: 3px solid #00e5c2;"/>'
+                    f"</div>", unsafe_allow_html=True)
 
-                    st.write(f"**Age Rating:** {rating_display}")
-                    st.write(f"**NSFW Content**: {'Yes' if game_info_df['is_nsfw'][0] else 'No'}")
-                    st.write(f"**Publisher**: {game_info_df['publisher_name'][0]}")
-                    st.write(f"**Developer**: {game_info_df['developer_name'][0]}")
-                    st.write(f"**Genres**: {game_info_df['genres'][0]}")
-                    st.write(f"**Platform**: {game_info_df['platform_name'][0]}")
-                    st.write(f"**Release Date**: {game_info_df['platform_release_date'][0]}")
-                    st.write(f"**Price**: £{game_info_df['platform_price'][0] / 100:.2f}")
-                    st.write(f"**Discount**: {game_info_df['platform_discount'][0]}%")
-                    st.write(f"**Game Link**: {game_info_df['platform_url'][0]}")
+
+                    platform_options = game_info_df['platform_name'].unique()
+                    platform_selector = st.sidebar.selectbox("Select Platform", platform_options)
+
+                    platform_info = game_info_df[game_info_df['platform_name'] == platform_selector].iloc[0]
+
+                    st.markdown(f'<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 20px;">'
+                                f"<p style='font-size: 22px;'><strong>Age Rating:</strong> {platform_info['age_rating_name']}</p>"
+                                f"<p style='font-size: 22px;'><strong>Developer:</strong> {platform_info['developer_name']}</p>"
+                                f"<p style='font-size: 22px;'><strong>Publisher:</strong> {platform_info['publisher_name']}</p>"
+                                f"<p style='font-size: 22px;'><strong>Genres:</strong> {platform_info['genres']}</p>"
+                                f"<p style='font-size: 22px;'><strong>Platform:</strong> {platform_info['platform_name']}</p>"
+                                f"<p style='font-size: 22px;'><strong>Release Date:</strong> {platform_info['platform_release_date']}</p>"
+                                f"<p style='font-size: 22px;'><strong>Platform Score:</strong> {platform_info['platform_score']}</p>"
+                                f"<p style='font-size: 22px;'><strong>Price:</strong> £{platform_info['platform_price'] / 100:.2f}</p>"
+                                f"<p style='font-size: 22px;'><strong>Discount:</strong> {platform_info['platform_discount']}%</p>"
+                                f"<p style='font-size: 22px;'><strong>Game Link:</strong> <a href='{platform_info['platform_url']}' target='_blank'>Click Here</a></p>"
+                                f"<p style='font-size: 22px;'><strong>NSFW Content:</strong> {'Yes' if platform_info['is_nsfw'] else 'No'}</p>"
+                                f"</div>", unsafe_allow_html=True)
+
         else:
             st.write("No game found with that name!")
     else:
         st.write("Start typing to search for a game...")
+
 
 if __name__ == "__main__":
     load_dotenv()
