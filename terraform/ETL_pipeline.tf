@@ -6,7 +6,7 @@ data "aws_ecr_repository" "c15-play-stream-steam-etl-pipeline-ecr" {
 
 data "aws_ecr_image" "steam-latest-image" {
   repository_name         = data.aws_ecr_repository.c15-play-stream-steam-etl-pipeline-ecr.name
-  image_tag             = latest
+  image_tag               = "latest"
 }
 
 # GOG ECR Information
@@ -17,7 +17,7 @@ data "aws_ecr_repository" "c15-play-stream-gog-etl-pipeline-ecr" {
 
 data "aws_ecr_image" "gog-latest-image" {
   repository_name         = data.aws_ecr_repository.c15-play-stream-gog-etl-pipeline-ecr.name
-  image_tag             = latest
+  image_tag               = "latest"
 }
 
 # Epic ECR Information
@@ -28,7 +28,7 @@ data "aws_ecr_repository" "c15-play-stream-epic-etl-pipeline-ecr" {
 
 data "aws_ecr_image" "epic-latest-image" {
   repository_name         = data.aws_ecr_repository.c15-play-stream-epic-etl-pipeline-ecr.name
-  image_tag             = latest
+  image_tag               = "latest"
 }
 
 resource "aws_iam_role" "lambda_task_role" {
