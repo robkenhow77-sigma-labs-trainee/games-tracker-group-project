@@ -1,5 +1,6 @@
 pylint
 pytest
+pytest-cov
 boto3 
 psycopg2-binary 
 python-dotenv
