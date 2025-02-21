@@ -149,7 +149,7 @@ def main():
         publisher_data = get_publisher_info(conn, publisher_name)
         if publisher_data:
             st.markdown(f'<div style="text-align: center; margin-bottom: 20px;">'
-                        f"<h3 style='font-size: 30px;'>Publisher: {publisher_data[0][0]}</h3>"
+                        f"<h1>Publisher: {publisher_data[0][0]}</h1>"
                         f'<h2>Number of Games Published: {len(publisher_data)}</h2>'
                         '</div>', unsafe_allow_html=True)
 

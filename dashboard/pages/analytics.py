@@ -329,9 +329,13 @@ def main():
         'game_name': 'Game Name',
         'platform_name': 'Platform',
         'platform_score': 'Score',
+        'platform_price': 'Price'
     })
 
-    game_list['platform_price'] = game_list['platform_price'].apply(lambda x: f"£{x:.2f}")
+    game_list['Price'] = game_list['Price'].apply(lambda x: f"£{x:.2f}")
+
+    game_list.reset_index(drop=True, inplace=True)
+    game_list.index += 1
 
     st.table(game_list)
 

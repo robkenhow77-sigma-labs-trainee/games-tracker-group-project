@@ -149,7 +149,7 @@ def main():
         developer_data = get_developer_info(conn, developer_name)
         if developer_data:
             st.markdown(f'<div style="text-align: center; margin-bottom: 20px;">'
-                        f"<h3 style='font-size: 30px;'>Developer: {developer_data[0][0]}</h3>"
+                        f"<h1>Developer: {developer_data[0][0]}</h1>"
                         f'<h2>Number of Games Developed: {len(developer_data)}</h2>'
                         '</div>', unsafe_allow_html=True)
 
