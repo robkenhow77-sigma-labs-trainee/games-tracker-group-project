@@ -4,9 +4,9 @@
 
 import pytest
 from bs4 import BeautifulSoup
-from gog_extract import get_soup, fetch_title, fetch_genres, fetch_publisher, fetch_developer, fetch_tags, \
+from gog_extract import fetch_title, fetch_genres, fetch_publisher, fetch_developer, fetch_tags, \
     fetch_platform_score, fetch_platform_price, fetch_platform_discount, fetch_release_date, fetch_game_image, \
-    fetch_age_rating, get_current_games, get_data
+    fetch_age_rating, get_data
 import unittest
 from unittest.mock import patch, MagicMock
 

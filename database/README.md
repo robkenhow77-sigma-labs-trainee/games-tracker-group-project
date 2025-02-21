@@ -1,44 +1,19 @@
-# games-tracker-group-project
+<img src="https://raw.githubusercontent.com/robkenhow77-sigma-labs-trainee/games-tracker-group-project/refs/heads/main/dashboard/logo.png" alt="Logo" style="width:25%; height:auto;">
 
-### database/
+# Database
 
-- Type `vim .env` and then add the following by going into edit mode by pressing `i`:
+This folder contains all files related to the database that stores all the scraped data.
 
-```
-DB_HOST=[Your database host address]
-DB_NAME=[Your database name]
-DB_PASSWORD=[Your database password]
-DB_PORT=[Your database access port]
-DB_USERNAME=[Your database username]
-```
+## How to use
 
-followed by `esc` then type `wq!` to save those changes and quit out of vim.
+We used a [postgres](https://www.postgresql.org/) database managed on an AWS RDS.
 
-#### connect_to_db.sh
+Here is the ERD:
 
-- Contains a bash script that will connect you to your database.
-- Run with `bash connect_to_db.sh`
+![ERD](ERD.png)
 
-#### main.py
+## Files
 
-- Currently empty
+Using the `schema.sql` file you can set up the database with the same layout that the pipelines expect.
 
-#### README.md
-
-- Contains information relevant to the folder
-
-#### requirements.txt
-
-- A list of libraries required for using the scripts in this folder
-- In a [venv](https://docs.python.org/3/library/venv.html) (use `python3 -m venv .venv` followed by `source .venv/bin/activate`) run `pip install -r requirements.txt` to install them.
-
-#### reset_database.sh
-
-- WARNING: ONLY RUN THIS IF YOU KNOW WHAT YOU ARE DOING.
-- Contains a bash script that will connect you to your database and remove all data.
-- Run with `bash reset_database.sh`
-
-#### schema.sql
-
-- Contains the postgres SQL required to set up the database as the script is expecting.
-- Running reset_database.sh will seed the database with this architecture.
+the `.sh` files allow for a speedy connecting or resetting of the database but these will need to be adapted to your own use case.

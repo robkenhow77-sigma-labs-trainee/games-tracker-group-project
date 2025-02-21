@@ -5,8 +5,6 @@ import urllib.parse
 
 from requests import get
 
-#TODO: ensure logger is imported and config-ed
-
 def clean_data(data: list[dict], target_date=None) -> list[dict]:
     """Cleans the data extracted from the GoG scraper."""
 

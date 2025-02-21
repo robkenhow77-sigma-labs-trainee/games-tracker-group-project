@@ -1,70 +1,27 @@
-# games-tracker-group-project
+<img src="https://raw.githubusercontent.com/robkenhow77-sigma-labs-trainee/games-tracker-group-project/refs/heads/main/dashboard/logo.png" alt="Logo" style="width:25%; height:auto;">
 
-## Steam ETL pipeline
+# Steam Pipeline
 
-### Python Files in ETL process
+An ETL pipeline takes data, cleans it and then inserts it into a database. The `steam_pipeline.py` file will run the entire pipeline.
 
-#### steam_extract.py
+## How to use
 
-- Scrapes the steam store page for games released today.
-- Can specify a target date to scrape until that date is reached. The script will scroll through the page 100 times.
-- If more than 100 scrolls is needed there is a comment pointing out the number to change to the desired scrolls.
-- Formats the data of all the games extracted in the form of a list of dictionaries.
+This folder will require a `.env`. See the [main README](../../README.md) to see how to make a `.env` and add the following information:
 
-#### steam_transform.py
+```
+DB_HOST="[Your database host url]"
+DB_PORT=[Your database access port]
+DB_PASSWORD="[Your database password]"
+DB_USERNAME="[Your database username]"
+DB_NAME="[Your database name]"
+```
 
-- Takes the data from steam_extract.py and cleans it.
-- Removes all erroneous data and formats all correct data into the form required by the database
+## Files
 
-#### steam_load.py
+The files are broken down into three main types: `test_x.py files`, `x.py` files, `x.sh` files.
 
-- Takes the cleaned data from steam_transform.py
-- Uploads it into our database successfully
+`x.py` files such as `steam_extract.py` contain all the code related to the ETL process (in this case extracting data from the Steam website). Run with `python3 x.py`.
 
-#### steam_pipeline.py
+`test_x.py` files such as `test_steam_transform.py` contain all unit tests for a file (in this case `steam_transform.py`). Run `pytest` in this folder to run all unit tests and ensure the code is working.
 
-- Calls the functions from steam_extract, steam_transform and steam_load
-- Automates the ETL process in one file
-
-#### README.md
-
-- Contains information relevant to the folder
-
-#### requirements.txt
-
-- A list of libraries required for using the scripts in this folder
-- In a [venv](https://docs.python.org/3/library/venv.html) (use `python3 -m venv .venv` followed by `source .venv/bin/activate`) run `pip install -r requirements.txt` to install them.
-
-### Bash Scripts in the folder
-
-#### run_extract.sh
-
-- Runs the steam_extract file with all logging sent a folder that will be created.
-- Run with `bash run_extract.sh`
-
-#### run_month.sh
-
-- Runs the steam_extract file with all logging sent a folder that will be created. Will extract all games between today and the 11th of January 2025.
-- Run with `bash run_month.sh`
-
-#### test.sh
-
-- Runs `pytest` including outputting the test coverage.
-- Run with `bash test.sh`
-
-### Testing Files
-
-#### test_steam_extract.py
-
-- Contains all tests related to the steam_extract file.
-- Run `pytest` to see the test output.
-
-#### test_steam_transform.py
-
-- Contains all tests related to the steam_transform file.
-- Run `pytest` to see the test output.
-
-#### test_steam_load.py
-
-- Contains all tests related to the steam_load file.
-- Run `pytest` to see the test output.
+`x.sh` file such as `steam_pipeline_ECR.sh` contain bash scripts that exist largely for convenience (in this case automatic pushing a dockerised image of the steam_pipeline to the ECR). You should read each shell script and change it to suit your needs. Run with `bash x.sh`.

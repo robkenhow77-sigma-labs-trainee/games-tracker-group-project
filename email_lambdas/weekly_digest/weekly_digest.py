@@ -192,10 +192,10 @@ def convert_html_to_pdf(source_html: str, output_filename: str) -> None:
 
 
 def save_pdf_to_s3(html: str) -> None:
-    """Stores the most recent digest as a PDF file in S3"""
-    
-    file_name = str(datetime.strftime(datetime.today().date(), '%d-%m-%Y')) + ".pdf"
-    bucket_name = "c15-playstream-backlog"
+    """Stores the most recent digest as a PDF file in a S3"""
+
+    file_name = str(datetime.strftime(datetime.today().date(),'%d-%m-%Y')) + ".pdf"
+    bucket_name = ENV['PRIVATE_BUCKET_NAME']
 
     convert_html_to_pdf(html, "/tmp/" + file_name)
 

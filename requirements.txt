@@ -1,0 +1,17 @@
+boto3
+Beautifulsoup4
+logging
+matplotlib
+pandas
+plotly
+plotly_express
+psycopg2
+pylint
+pytest
+requests
+rich
+seaborn
+selenium
+streamlit
+webdriver_manager
+xhtml2pdf
