@@ -37,6 +37,6 @@ variable "DB_NAME" {
     type = string  
 }
 
-variable "ABDI_EMAIL" {
+variable "SNS_TOPIC_ARN" {
     type = string
 }

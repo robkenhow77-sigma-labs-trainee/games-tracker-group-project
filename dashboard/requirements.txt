@@ -1,2 +1,11 @@
 pytest
 pylint
+psycopg2-binary
+python-dotenv
+streamlit
+pandas
+boto3
+seaborn
+matplotlib
+plotly
+requests

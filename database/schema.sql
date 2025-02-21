@@ -17,7 +17,6 @@ DROP TABLE IF EXISTS "age_rating" CASCADE;
 CREATE TABLE "game"(
     "game_id" SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     "game_name" VARCHAR(100) NOT NULL,
-    "release_date" DATE NOT NULL,
     "game_image" VARCHAR(255) NOT NULL,
     "age_rating_id" SMALLINT NOT NULL,
     "is_nsfw" BOOLEAN NOT NULL
@@ -59,9 +58,11 @@ CREATE TABLE "game_platform_assignment"(
     "platform_assignment_id" SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     "game_id" SMALLINT NOT NULL,
     "platform_id" SMALLINT NOT NULL,
+    "platform_release_date" DATE NOT NULL,
     "platform_score" SMALLINT NOT NULL,
     "platform_price" SMALLINT NOT NULL,
-    "platform_discount" SMALLINT NOT NULL
+    "platform_discount" SMALLINT NOT NULL,
+    "platform_url" VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE "platform"(
