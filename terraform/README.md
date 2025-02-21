@@ -3,9 +3,9 @@
 # Terraform
 
 [Terraform](https://www.terraform.io/) is a service which allows for the requisitioning of cloud resources from code.
-[Terraform](https://www.terraform.io/) will need to installed by following the instructions from the [website](https://www.terraform.io/). Inside this folder there are `.tf` files that create the resources. 
+Terraform will need to installed by following the instructions from the website. Inside this folder there are `.tf` files that create the resources. 
 
-If you wish to [Terraform](https://www.terraform.io/) first, make sure you know what terraform is and how it works. Then in this folder type `vim variables.tfvars`, go into edit mode by pressing `i` and add
+If you wish to Terraform first, make sure you know what terraform is and how it works. Then in this folder type `vim variables.tfvars`, go into edit mode by pressing `i` and add
 
 YOU WILL NEED TO CHANGE VALUES THROUGHOUT THIS CODE
 AS THIS IS BEING HOSTED ON THE CLOUD THIS WILL COST MONEY.
