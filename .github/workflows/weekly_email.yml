@@ -34,6 +34,6 @@ jobs:
           IMAGE_TAG: latest
           ### CHANGE FOLDER LOCATION
         run: |
-          cd email_lambdas/weekly-digest
+          cd email_lambdas/weekly_digest
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
